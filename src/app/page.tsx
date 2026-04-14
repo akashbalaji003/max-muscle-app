@@ -131,7 +131,7 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
         <div className="flex items-baseline gap-3 mb-6">
           <span className="font-display text-4xl text-red-500/40 leading-none">01</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Info</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
@@ -194,9 +194,9 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
           {/* Reviews */}
-          <div className="flex flex-col gap-4">
-            <div className="min-h-[80px] lg:min-h-[96px]">
-              <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">WHAT MEMBERS SAY</h2>
+          <div className="flex flex-col gap-4 h-full">
+            <div className="flex-shrink-0">
+              <h2 className="font-display text-3xl lg:text-4xl text-white tracking-wide leading-none whitespace-nowrap">WHAT MEMBERS SAY</h2>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex gap-0.5">
                   {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
@@ -209,9 +209,9 @@ export default function LandingPage() {
           </div>
 
           {/* Instagram */}
-          <div className="flex flex-col gap-4">
-            <div className="min-h-[80px] lg:min-h-[96px]">
-              <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">FOLLOW OUR JOURNEY</h2>
+          <div className="flex flex-col gap-4 h-full">
+            <div className="flex-shrink-0">
+              <h2 className="font-display text-3xl lg:text-4xl text-white tracking-wide leading-none whitespace-nowrap">FOLLOW OUR JOURNEY</h2>
               <p className="text-sm text-slate-500 mt-2">See transformations &amp; daily highlights</p>
             </div>
             <a
@@ -246,7 +246,7 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
         <div className="flex items-baseline gap-3 mb-6">
           <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Directions</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">

@@ -70,12 +70,11 @@ export default function ReviewCarousel({ className = '' }: { className?: string 
   const review = REVIEWS[current];
 
   return (
-    <div className={`flex flex-col flex-1 ${className}`}>
-      {/* Carousel card — grows to fill available height */}
+    <div className={`relative flex-1 ${className}`}>
       <div
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
-        className="relative flex-1"
+        className="h-full"
       >
         <div
           key={current}
@@ -89,7 +88,7 @@ export default function ReviewCarousel({ className = '' }: { className?: string 
           </div>
           {/* Text — grows to fill space */}
           <p className="text-slate-300 text-sm leading-relaxed flex-1">&ldquo;{review.text}&rdquo;</p>
-          {/* Author — pinned to bottom */}
+          {/* Author */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-red-700/30 flex items-center justify-center flex-shrink-0">
@@ -102,33 +101,32 @@ export default function ReviewCarousel({ className = '' }: { className?: string 
             </div>
             <span className="text-[10px] text-slate-600 bg-white/5 px-2 py-1 rounded-full">Google</span>
           </div>
+          {/* Dots — inside card, pinned to bottom */}
+          <div className="flex items-center justify-center gap-1.5 mt-4">
+            {REVIEWS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                className={`rounded-full transition-all ${i === current ? 'w-5 h-1.5 bg-red-600' : 'w-1.5 h-1.5 bg-slate-700 hover:bg-slate-500'}`}
+              />
+            ))}
+          </div>
         </div>
-
-        {/* Nav arrows */}
-        <button
-          onClick={prev}
-          className="absolute -left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-red-600/40 shadow-lg z-10"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <button
-          onClick={next}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-red-600/40 shadow-lg z-10"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
       </div>
 
-      {/* Dots */}
-      <div className="flex items-center justify-center gap-1.5 mt-4">
-        {REVIEWS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            className={`rounded-full transition-all ${i === current ? 'w-5 h-1.5 bg-red-600' : 'w-1.5 h-1.5 bg-slate-700 hover:bg-slate-500'}`}
-          />
-        ))}
-      </div>
+      {/* Nav arrows */}
+      <button
+        onClick={prev}
+        className="absolute -left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-red-600/40 shadow-lg z-10"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      <button
+        onClick={next}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-red-600/40 shadow-lg z-10"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
     </div>
   );
 }
