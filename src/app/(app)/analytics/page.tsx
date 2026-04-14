@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Workouts" value={data?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="indigo" />
+        <StatCard label="Total Workouts" value={data?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="red" />
         <StatCard label="Total Volume" value={formatVolume(data?.totalVolume ?? 0)} icon={<Weight className="w-5 h-5" />} color="violet" />
         <StatCard label="Current Streak" value={`${data?.currentStreak ?? 0}d`} icon={<Flame className="w-5 h-5" />} color="amber" />
         <StatCard label="Longest Streak" value={`${data?.longestStreak ?? 0}d`} icon={<TrendingUp className="w-5 h-5" />} color="emerald" />
