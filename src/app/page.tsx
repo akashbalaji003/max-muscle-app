@@ -195,7 +195,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
           {/* Reviews */}
           <div className="flex flex-col gap-4">
-            <div>
+            <div className="min-h-[80px] lg:min-h-[96px]">
               <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">WHAT MEMBERS SAY</h2>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex gap-0.5">
@@ -210,7 +210,7 @@ export default function LandingPage() {
 
           {/* Instagram */}
           <div className="flex flex-col gap-4">
-            <div>
+            <div className="min-h-[80px] lg:min-h-[96px]">
               <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">FOLLOW OUR JOURNEY</h2>
               <p className="text-sm text-slate-500 mt-2">See transformations &amp; daily highlights</p>
             </div>
