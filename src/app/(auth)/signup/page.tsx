@@ -1,0 +1,131 @@
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Dumbbell, Phone, Lock, User, ArrowLeft } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [form, setForm] = useState({ name: '', phone_number: '', password: '', confirm: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    if (form.password !== form.confirm) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: form.name, phone_number: form.phone_number, password: form.password }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.error || 'Signup failed');
+      return;
+    }
+
+    router.push('/dashboard');
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Back to home */}
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors min-h-[44px]"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Home
+          </Link>
+        </div>
+
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-900/40">
+            <Dumbbell className="w-7 h-7 text-white" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-white">Create Account</h1>
+          <p className="text-sm text-slate-400 mt-1 text-center">Join Max Muscle Lifestyle Fitness Studio</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="glass-card p-6 space-y-4">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
+          <Input
+            id="name"
+            label="Full Name"
+            type="text"
+            placeholder="John Doe"
+            icon={<User className="w-4 h-4" />}
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          />
+
+          <Input
+            id="phone"
+            label="Phone Number"
+            type="tel"
+            placeholder="+91 98765 43210"
+            icon={<Phone className="w-4 h-4" />}
+            value={form.phone_number}
+            onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
+            required
+          />
+
+          <Input
+            id="password"
+            label="Password"
+            type="password"
+            placeholder="Min. 6 characters"
+            icon={<Lock className="w-4 h-4" />}
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            required
+          />
+
+          <Input
+            id="confirm"
+            label="Confirm Password"
+            type="password"
+            placeholder="Re-enter password"
+            icon={<Lock className="w-4 h-4" />}
+            value={form.confirm}
+            onChange={(e) => setForm((f) => ({ ...f, confirm: e.target.value }))}
+            required
+          />
+
+          <Button type="submit" className="w-full min-h-[48px]" size="lg" loading={loading}>
+            Create Account
+          </Button>
+        </form>
+
+        <p className="text-center text-sm text-slate-500 mt-5">
+          Already a member?{' '}
+          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
