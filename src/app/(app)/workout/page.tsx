@@ -41,8 +41,8 @@ const PPL_PLANS: Record<
   ],
 };
 
-const TYPE_COLORS: Record<string, string> = { push:'text-rose-400', pull:'text-blue-400', legs:'text-emerald-400', custom:'text-indigo-400' };
-const TYPE_BG: Record<string, string> = { push:'bg-rose-500', pull:'bg-blue-500', legs:'bg-emerald-500', custom:'bg-indigo-500' };
+const TYPE_COLORS: Record<string, string> = { push:'text-rose-400', pull:'text-blue-400', legs:'text-emerald-400', custom:'text-red-400' };
+const TYPE_BG: Record<string, string> = { push:'bg-rose-500', pull:'bg-blue-500', legs:'bg-emerald-500', custom:'bg-red-600' };
 const TYPE_LABELS: Record<string, string> = { push:'Push', pull:'Pull', legs:'Legs', custom:'Custom' };
 
 function fmtDuration(secs: number) {
@@ -310,7 +310,7 @@ export default function WorkoutPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Workout Logger</h1>
+        <h1 className="font-display text-5xl text-white leading-none">WORKOUT LOGGER</h1>
         <p className="text-sm text-slate-400 mt-0.5">Track your training sessions</p>
       </div>
 
@@ -322,8 +322,8 @@ export default function WorkoutPage() {
 
       {/* Status banners */}
       {!showForm && alreadyLoggedToday && (
-        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4">
-          <p className="text-indigo-300 text-sm font-medium">✓ Workout logged for today!</p>
+        <div className="bg-red-600/10 border border-red-600/30 rounded-xl p-4">
+          <p className="text-red-300 text-sm font-medium">✓ Workout logged for today!</p>
           <p className="text-slate-500 text-xs mt-1">Great work! See you tomorrow.</p>
         </div>
       )}
@@ -345,7 +345,7 @@ export default function WorkoutPage() {
                 key={t}
                 onClick={() => loadPPLPlan(t)}
                 disabled={alreadyLoggedToday}
-                className="glass-card p-4 text-left hover:border-indigo-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
+                className="glass-card p-4 text-left hover:border-red-600/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
               >
                 <div className={`text-lg font-bold ${TYPE_COLORS[t]} mb-1`}>{TYPE_LABELS[t]}</div>
                 <div className="text-xs text-slate-500">{PPL_PLANS[t].length} exercises</div>
@@ -354,9 +354,9 @@ export default function WorkoutPage() {
             <button
               onClick={openCustom}
               disabled={alreadyLoggedToday}
-              className="glass-card p-4 text-left hover:border-indigo-500/50 transition-all border-dashed disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
+              className="glass-card p-4 text-left hover:border-red-600/50 transition-all border-dashed disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
             >
-              <div className="text-lg font-bold text-indigo-400 mb-1">Custom</div>
+              <div className="text-lg font-bold text-red-400 mb-1">Custom</div>
               <div className="text-xs text-slate-500">Build your own</div>
             </button>
           </div>
@@ -401,7 +401,7 @@ export default function WorkoutPage() {
               <button
                 key={t}
                 onClick={() => setWorkoutType(t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${workoutType === t ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${workoutType === t ? 'bg-red-700 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
               >
                 {TYPE_LABELS[t]}
               </button>
@@ -416,7 +416,7 @@ export default function WorkoutPage() {
                 <button
                   key={p.secs}
                   onClick={() => setRestTargetSeconds(p.secs)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all min-h-[30px] ${restTargetSeconds === p.secs ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all min-h-[30px] ${restTargetSeconds === p.secs ? 'bg-red-700 text-white' : 'bg-white/5 text-slate-400 hover:text-white'}`}
                 >
                   {p.label}
                 </button>
@@ -464,7 +464,7 @@ export default function WorkoutPage() {
                       <select
                         value={entry.exercise_id}
                         onChange={(e) => updateExercise(entry.localId, e.target.value)}
-                        className="w-full bg-[#0f0f0f] border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 min-h-[44px]"
+                        className="w-full bg-[#0f0f0f] border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-red-600 min-h-[44px]"
                       >
                         <option value="">Select exercise...</option>
                         {Object.entries(groupedExercises).map(([cat, exs]) => (
@@ -478,7 +478,7 @@ export default function WorkoutPage() {
                       {(entry.muscle_group || entry.equipment) && (
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {entry.muscle_group && (
-                            <span className="text-xs bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                            <span className="text-xs bg-red-600/10 text-red-300 px-2 py-0.5 rounded-full border border-red-600/20">
                               🎯 {entry.muscle_group}
                             </span>
                           )}
@@ -532,7 +532,7 @@ export default function WorkoutPage() {
                           placeholder="0"
                           value={set.weight}
                           onChange={(e) => updateSet(entry.localId, setIdx, 'weight', e.target.value)}
-                          className="bg-[#0f0f0f] border border-slate-700 rounded-lg px-2 h-10 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 text-center [appearance:textfield] w-full"
+                          className="bg-[#0f0f0f] border border-slate-700 rounded-lg px-2 h-10 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-600 text-center [appearance:textfield] w-full"
                         />
                         <input
                           type="number"
@@ -542,7 +542,7 @@ export default function WorkoutPage() {
                           placeholder="0"
                           value={set.reps}
                           onChange={(e) => updateSet(entry.localId, setIdx, 'reps', e.target.value)}
-                          className="bg-[#0f0f0f] border border-slate-700 rounded-lg px-2 h-10 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 text-center [appearance:textfield] w-full"
+                          className="bg-[#0f0f0f] border border-slate-700 rounded-lg px-2 h-10 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-600 text-center [appearance:textfield] w-full"
                         />
                         <button
                           onClick={() => updateSet(entry.localId, setIdx, 'completed', !set.completed)}
@@ -563,7 +563,7 @@ export default function WorkoutPage() {
                     <div className="flex items-center justify-between pt-1 gap-2">
                       <button
                         onClick={() => addSet(entry.localId)}
-                        className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors min-h-[36px] px-1 flex-shrink-0"
+                        className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors min-h-[36px] px-1 flex-shrink-0"
                       >
                         <Plus className="w-3.5 h-3.5" /> Add Set
                       </button>
@@ -594,7 +594,7 @@ export default function WorkoutPage() {
           {/* Add exercise button */}
           <button
             onClick={addExercise}
-            className="flex items-center justify-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors min-h-[44px] w-full border border-dashed border-indigo-500/30 rounded-xl hover:border-indigo-500/60 hover:bg-indigo-500/5"
+            className="flex items-center justify-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors min-h-[44px] w-full border border-dashed border-red-600/30 rounded-xl hover:border-red-600/60 hover:bg-red-600/5"
           >
             <Plus className="w-4 h-4" /> Add Exercise
           </button>
@@ -605,7 +605,7 @@ export default function WorkoutPage() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Session notes (optional)..."
             rows={2}
-            className="w-full bg-[#000000] border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"
+            className="w-full bg-[#000000] border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-600 resize-none"
           />
 
           {/* Action buttons */}
@@ -664,7 +664,7 @@ export default function WorkoutPage() {
             return (
               <details key={w.id} className="glass-card overflow-hidden group">
                 <summary className="flex items-center gap-3 p-4 cursor-pointer list-none hover:bg-white/2 transition-colors select-none">
-                  <div className={`w-2 h-10 rounded-full flex-shrink-0 ${TYPE_BG[wType] || 'bg-indigo-500'}`} />
+                  <div className={`w-2 h-10 rounded-full flex-shrink-0 ${TYPE_BG[wType] || 'bg-red-600'}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-white text-sm">{formatDate(w.date, 'EEE, MMM dd')}</p>

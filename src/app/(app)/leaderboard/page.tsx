@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trophy, Medal, Search } from 'lucide-react';
+import { Trophy, Search } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { CATEGORY_COLORS } from '@/lib/utils';
 import type { Exercise } from '@/types';
@@ -15,7 +15,13 @@ interface LeaderboardEntry {
   users: { id: string; phone_number: string; name: string | null };
 }
 
-const RANK_STYLES = ['text-amber-400', 'text-slate-300', 'text-amber-700'];
+const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
+const MEDAL_COLORS = ['text-amber-400', 'text-slate-300', 'text-amber-700'];
+const PODIUM_BG = [
+  'bg-slate-700/30 border-slate-500/30',        // silver (2nd)
+  'bg-amber-600/20 border-amber-500/30',         // gold  (1st)
+  'bg-amber-900/20 border-amber-800/30',         // bronze (3rd)
+];
 
 const ALL_MUSCLE_GROUPS = [
   'All',
@@ -27,10 +33,12 @@ const ALL_MUSCLE_GROUPS = [
 
 export default function LeaderboardPage() {
   const router = useRouter();
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selected, setSelected] = useState('');
   const [board, setBoard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeMuscle, setActiveMuscle] = useState('All');
 
@@ -42,17 +50,26 @@ export default function LeaderboardPage() {
       setExercises(data.exercises || []);
       setBoard(data.leaderboard || []);
       setSelected(data.selected_exercise_id || '');
+      setInitialLoading(false);
     }
     load();
   }, [router]);
 
   async function changeExercise(exerciseId: string) {
-    if (exerciseId === selected) return;
+    if (exerciseId === selected) {
+      // Already selected — just scroll to results
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     setSelected(exerciseId);
     setLoading(true);
     const res = await fetch(`/api/leaderboard?exercise_id=${exerciseId}`);
     if (res.ok) { const data = await res.json(); setBoard(data.leaderboard || []); }
     setLoading(false);
+    // Scroll to results on mobile after loading
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   function displayName(entry: LeaderboardEntry) {
@@ -79,11 +96,32 @@ export default function LeaderboardPage() {
 
   const selectedExercise = exercises.find((e) => e.id === selected);
 
+  // Skeleton for initial load
+  if (initialLoading) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <div className="skeleton h-7 w-36 mb-1" />
+          <div className="skeleton h-4 w-52 mt-1" />
+        </div>
+        <div className="skeleton h-10 w-full rounded-xl" />
+        <div className="flex gap-2 overflow-hidden">
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-7 w-16 rounded-full flex-shrink-0" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="skeleton h-64 rounded-2xl" />
+          <div className="lg:col-span-2 skeleton h-64 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Personal records — ranked by top weight</p>
+        <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500 mb-1">Rankings</p>
+        <h1 className="font-display text-5xl text-white leading-none">LEADERBOARD</h1>
+        <p className="text-sm text-slate-400 mt-1.5">Personal records — ranked by top weight</p>
       </div>
 
       {/* Search */}
@@ -94,7 +132,7 @@ export default function LeaderboardPage() {
           placeholder="Search exercise..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-[#0f0f0f] border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          className="w-full bg-[#0f0f0f] border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-600 transition-colors"
         />
       </div>
 
@@ -108,9 +146,9 @@ export default function LeaderboardPage() {
             <button
               key={muscle}
               onClick={() => setActiveMuscle(muscle)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                 active
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-red-700 text-white'
                   : empty
                   ? 'bg-[#0f0f0f] text-slate-600 border border-white/5 cursor-default'
                   : 'bg-[#0f0f0f] text-slate-400 hover:text-white border border-white/5'
@@ -140,8 +178,8 @@ export default function LeaderboardPage() {
               <button
                 key={ex.id}
                 onClick={() => changeExercise(ex.id)}
-                className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors border-b border-white/5 last:border-0 ${
-                  selected === ex.id ? 'bg-indigo-600/15 text-indigo-300' : 'hover:bg-white/3 text-slate-300'
+                className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b border-white/5 last:border-0 ${
+                  selected === ex.id ? 'bg-red-700/15 text-red-300' : 'hover:bg-white/3 text-slate-300'
                 }`}
               >
                 <span
@@ -158,13 +196,13 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Leaderboard panel */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" ref={resultsRef}>
           {selectedExercise && (
             <div className="mb-4">
               <h2 className="text-lg font-bold text-white">{selectedExercise.name}</h2>
               <div className="flex flex-wrap gap-2 mt-1">
                 {selectedExercise.muscle_group && (
-                  <span className="text-xs bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  <span className="text-xs bg-red-600/10 text-red-300 px-2 py-0.5 rounded-full border border-red-600/20">
                     {selectedExercise.muscle_group}
                   </span>
                 )}
@@ -178,8 +216,17 @@ export default function LeaderboardPage() {
           )}
 
           {loading && (
-            <div className="glass-card flex items-center justify-center py-16">
-              <div className="animate-spin w-7 h-7 border-2 border-indigo-500 border-t-transparent rounded-full" />
+            <div className="glass-card space-y-3 p-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="skeleton w-8 h-8 rounded-full flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="skeleton h-4 w-1/2" />
+                    <div className="skeleton h-3 w-1/4" />
+                  </div>
+                  <div className="skeleton h-5 w-16" />
+                </div>
+              ))}
             </div>
           )}
 
@@ -192,23 +239,29 @@ export default function LeaderboardPage() {
           )}
 
           {!loading && board.length > 0 && (
-            <Card className="overflow-hidden p-0">
-              {/* Top 3 podium if ≥ 3 entries */}
+            <Card className="overflow-hidden p-0 fade-in">
+              {/* Top 3 podium */}
               {board.length >= 3 && (
-                <div className="flex items-end justify-center gap-4 p-5 bg-gradient-to-b from-indigo-900/10 to-transparent border-b border-white/5">
-                  {[board[1], board[0], board[2]].map((entry, i) => (
-                    <div key={entry.id} className="flex flex-col items-center gap-2">
-                      <p className={`font-bold ${i === 1 ? 'text-xl' : 'text-base'} ${RANK_STYLES[entry.rank - 1]}`}>
-                        {entry.max_weight} kg
-                      </p>
-                      <p className={`text-xs max-w-[72px] text-center truncate ${entry.is_current_user ? 'text-indigo-300 font-bold' : 'text-slate-300'}`}>
-                        {displayName(entry)}
-                      </p>
-                      <div className={`${i === 1 ? 'h-16' : 'h-10'} w-14 bg-indigo-600/20 border border-indigo-500/20 rounded-t-lg flex items-center justify-center`}>
-                        <span className="text-xs font-bold text-indigo-400">#{entry.rank}</span>
+                <div className="flex items-end justify-center gap-3 p-5 bg-gradient-to-b from-indigo-900/10 to-transparent border-b border-white/5">
+                  {/* Order: 2nd, 1st, 3rd */}
+                  {[board[1], board[0], board[2]].map((entry, podiumIdx) => {
+                    const rankIdx = entry.rank - 1; // 0-based
+                    const isFirst = podiumIdx === 1;
+                    return (
+                      <div key={entry.id} className="flex flex-col items-center gap-1.5">
+                        <span className="text-2xl">{MEDAL_EMOJI[rankIdx]}</span>
+                        <p className={`font-bold ${isFirst ? 'text-lg' : 'text-sm'} ${MEDAL_COLORS[rankIdx]}`}>
+                          {entry.max_weight} kg
+                        </p>
+                        <p className={`text-xs max-w-[80px] text-center truncate ${entry.is_current_user ? 'text-red-300 font-bold' : 'text-slate-300'}`}>
+                          {displayName(entry)}
+                        </p>
+                        <div className={`${isFirst ? 'h-16' : 'h-10'} w-16 border rounded-t-lg flex items-end justify-center pb-1.5 ${PODIUM_BG[podiumIdx]}`}>
+                          <span className="text-xs font-bold text-slate-400">#{entry.rank}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
@@ -216,18 +269,22 @@ export default function LeaderboardPage() {
                 {board.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`flex items-center justify-between px-4 py-3 transition-colors ${
-                      entry.is_current_user ? 'bg-indigo-500/5 border-l-2 border-indigo-500' : 'hover:bg-white/2'
+                    className={`flex items-center justify-between px-4 py-3 ${
+                      entry.is_current_user ? 'bg-red-600/5 border-l-2 border-red-600' : 'hover:bg-white/2'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 text-center font-bold text-sm ${RANK_STYLES[entry.rank - 1] || 'text-slate-500'}`}>
-                        {entry.rank <= 3 ? <Medal className="w-4 h-4 inline" /> : `#${entry.rank}`}
+                      <div className={`w-8 text-center font-bold text-sm ${MEDAL_COLORS[entry.rank - 1] || 'text-slate-500'}`}>
+                        {entry.rank <= 3 ? (
+                          <span className="text-base">{MEDAL_EMOJI[entry.rank - 1]}</span>
+                        ) : (
+                          `#${entry.rank}`
+                        )}
                       </div>
                       <div>
-                        <p className={`text-sm font-medium ${entry.is_current_user ? 'text-indigo-300' : 'text-white'}`}>
+                        <p className={`text-sm font-medium ${entry.is_current_user ? 'text-red-300' : 'text-white'}`}>
                           {displayName(entry)}
-                          {entry.is_current_user && <span className="ml-1.5 text-xs text-indigo-500">(you)</span>}
+                          {entry.is_current_user && <span className="ml-1.5 text-xs text-red-500">(you)</span>}
                         </p>
                         <p className="text-xs text-slate-500">{new Date(entry.achieved_at).toLocaleDateString()}</p>
                       </div>

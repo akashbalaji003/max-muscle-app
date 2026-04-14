@@ -1,16 +1,46 @@
-import { HTMLAttributes } from 'react';
+'use client';
+import { HTMLAttributes, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   glow?: boolean;
+  tilt?: boolean;
 }
 
-export function Card({ className, glow, children, ...props }: CardProps) {
+export function Card({ className, glow, tilt, children, ...props }: CardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!tilt) return;
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rotX = ((y - cy) / cy) * -6;
+    const rotY = ((x - cx) / cx) *  6;
+    el.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
+    el.style.transition = 'transform 0.08s ease-out';
+  }
+
+  function handleMouseLeave() {
+    if (!tilt) return;
+    const el = ref.current;
+    if (!el) return;
+    el.style.transform = '';
+    el.style.transition = 'transform 0.35s ease-out';
+  }
+
   return (
     <div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className={cn(
         'glass-card p-5',
-        glow && 'shadow-lg shadow-indigo-900/20',
+        glow && 'shadow-lg shadow-red-900/20',
         className
       )}
       {...props}
@@ -24,30 +54,30 @@ export function StatCard({
   label,
   value,
   icon,
-  color = 'indigo',
+  color = 'red',
   sub,
 }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
-  color?: 'indigo' | 'amber' | 'emerald' | 'rose' | 'violet';
+  color?: 'red' | 'amber' | 'emerald' | 'rose' | 'violet';
   sub?: string;
 }) {
   const colors = {
-    indigo: 'bg-indigo-500/10 text-indigo-400',
-    amber: 'bg-amber-500/10 text-amber-400',
+    red:     'bg-red-700/10 text-red-400',
+    amber:   'bg-amber-500/10 text-amber-400',
     emerald: 'bg-emerald-500/10 text-emerald-400',
-    rose: 'bg-rose-500/10 text-rose-400',
-    violet: 'bg-violet-500/10 text-violet-400',
+    rose:    'bg-rose-500/10 text-rose-400',
+    violet:  'bg-violet-500/10 text-violet-400',
   };
 
   return (
-    <Card className="flex items-center gap-4">
+    <Card tilt className="flex items-center gap-4">
       <div className={cn('p-3 rounded-xl flex-shrink-0', colors[color])}>{icon}</div>
       <div>
-        <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">{label}</p>
-        <p className="text-2xl font-bold text-white mt-0.5">{value}</p>
-        {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+        <p className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-[0.15em]">{label}</p>
+        <p className="font-display text-4xl text-white leading-none mt-1">{value}</p>
+        {sub && <p className="text-xs text-[#B3B3B3] mt-1">{sub}</p>}
       </div>
     </Card>
   );

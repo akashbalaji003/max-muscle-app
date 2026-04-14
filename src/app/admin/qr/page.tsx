@@ -50,7 +50,7 @@ export default function AdminQRPage() {
 
           {loading ? (
             <div className="w-64 h-64 mx-auto flex items-center justify-center bg-[#000000] rounded-xl">
-              <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full" />
+              <div className="animate-spin w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full" />
             </div>
           ) : qr ? (
             <img src={qr} alt="Check-in QR Code" className="w-64 h-64 mx-auto rounded-xl bg-white p-2" />

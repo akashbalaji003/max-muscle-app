@@ -79,11 +79,11 @@ export default function CheckInPage() {
       border: 'border-emerald-500/30',
     },
     already: {
-      icon: <CheckCircle className="w-16 h-16 text-indigo-400" />,
+      icon: <CheckCircle className="w-16 h-16 text-red-400" />,
       title: 'Already Checked In',
       sub: checkinTime ? `You checked in at ${checkinTime}. See you tomorrow!` : 'You already checked in today.',
-      ringColor: 'bg-indigo-500/20',
-      border: 'border-indigo-500/30',
+      ringColor: 'bg-red-600/20',
+      border: 'border-red-600/30',
     },
     expired: {
       icon: <XCircle className="w-16 h-16 text-red-400" />,
@@ -114,7 +114,7 @@ export default function CheckInPage() {
   return (
     <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       {/* Background blobs */}
-      <div className="absolute top-0 left-1/3 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/3 w-64 h-64 bg-red-700/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/3 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-sm relative">
@@ -130,7 +130,7 @@ export default function CheckInPage() {
 
         {/* Gym logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/40">
+          <div className="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40">
             <QrCode className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold gradient-text">FitHub Gym</span>
@@ -148,8 +148,8 @@ export default function CheckInPage() {
               </p>
             )}
             <div className="relative flex items-center justify-center mb-8">
-              <div className="pulse-ring w-24 h-24 rounded-full bg-indigo-600/10 flex items-center justify-center">
-                <QrCode className="w-12 h-12 text-indigo-400" />
+              <div className="pulse-ring w-24 h-24 rounded-full bg-red-700/10 flex items-center justify-center">
+                <QrCode className="w-12 h-12 text-red-400" />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Gym Check-In</h1>
@@ -164,7 +164,7 @@ export default function CheckInPage() {
         {/* Loading state */}
         {status === 'loading' && (
           <div className="glass-card p-12 flex flex-col items-center gap-4">
-            <Loader className="w-10 h-10 text-indigo-400 animate-spin" />
+            <Loader className="w-10 h-10 text-red-400 animate-spin" />
             <p className="text-slate-300 text-sm">Processing check-in...</p>
           </div>
         )}

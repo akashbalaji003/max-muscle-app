@@ -16,7 +16,7 @@ function fmtDuration(secs: number) {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  push: 'bg-rose-500', pull: 'bg-blue-500', legs: 'bg-emerald-500', custom: 'bg-indigo-500',
+  push: 'bg-rose-500', pull: 'bg-blue-500', legs: 'bg-emerald-500', custom: 'bg-red-600',
 };
 const TYPE_LABELS: Record<string, string> = { push: 'Push', pull: 'Pull', legs: 'Legs', custom: 'Custom' };
 
@@ -73,8 +73,26 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full" />
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div>
+          <div className="skeleton h-3 w-24 mb-2 rounded" />
+          <div className="skeleton h-8 w-48 rounded" />
+        </div>
+        {/* Membership skeleton */}
+        <div className="skeleton h-16 w-full rounded-2xl" />
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="skeleton h-24 rounded-2xl" />
+          <div className="skeleton h-24 rounded-2xl" />
+        </div>
+        {/* Quick start skeleton */}
+        <div className="skeleton h-16 rounded-2xl" />
+        {/* Workouts skeleton */}
+        <div className="space-y-2">
+          <div className="skeleton h-4 w-36 rounded mb-3" />
+          {[1,2,3].map(i => <div key={i} className="skeleton h-14 rounded-2xl" />)}
+        </div>
       </div>
     );
   }
@@ -83,15 +101,17 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <p className="text-slate-400 text-sm">{greeting()},</p>
-        <h1 className="text-2xl font-bold text-white">{user?.name || user?.phone_number || 'Athlete'} 💪</h1>
+        <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500">{greeting()}</p>
+        <h1 className="font-display text-5xl text-white leading-none mt-1">
+          {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
+        </h1>
       </div>
 
       {/* Membership status */}
       {membership ? (
         <div className={`glass-card p-4 flex items-center justify-between ${!memberActive ? 'border-red-500/40' : daysLeft <= 7 ? 'border-amber-500/40' : ''}`}>
           <div className="flex items-center gap-3">
-            {memberActive ? <Calendar className="w-5 h-5 text-indigo-400" /> : <AlertTriangle className="w-5 h-5 text-red-400" />}
+            {memberActive ? <Calendar className="w-5 h-5 text-red-400" /> : <AlertTriangle className="w-5 h-5 text-red-400" />}
             <div>
               <p className="font-medium text-white text-sm">{memberActive ? 'Membership Active' : 'Membership Expired'}</p>
               <p className="text-xs text-slate-400">
@@ -117,49 +137,49 @@ export default function DashboardPage() {
       {memberActive && (
         <Link
           href="/checkin"
-          className={`flex items-center gap-4 glass-card p-4 transition-all hover:border-indigo-500/50 ${checkedInToday ? 'opacity-70 pointer-events-none' : 'cursor-pointer'}`}
+          className={`flex items-center gap-4 glass-card p-4 transition-all hover:border-red-600/50 ${checkedInToday ? 'opacity-70 pointer-events-none' : 'cursor-pointer'}`}
         >
-          <div className={`p-3 rounded-xl ${checkedInToday ? 'bg-emerald-500/10' : 'bg-indigo-500/10'}`}>
-            <QrCode className={`w-5 h-5 ${checkedInToday ? 'text-emerald-400' : 'text-indigo-400'}`} />
+          <div className={`p-3 rounded-xl ${checkedInToday ? 'bg-emerald-500/10' : 'bg-red-600/10'}`}>
+            <QrCode className={`w-5 h-5 ${checkedInToday ? 'text-emerald-400' : 'text-red-400'}`} />
           </div>
           <div>
             <p className="font-medium text-white text-sm">{checkedInToday ? 'Checked in today ✓' : 'Check in for today'}</p>
             <p className="text-xs text-slate-400">{checkedInToday ? 'See you tomorrow!' : 'Tap to scan QR or check in now'}</p>
           </div>
-          {!checkedInToday && <span className="ml-auto text-indigo-400 text-sm">→</span>}
+          {!checkedInToday && <span className="ml-auto text-red-400 text-sm">→</span>}
         </Link>
       )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <StatCard label="Total Workouts" value={analytics?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="indigo" />
+        <StatCard label="Total Workouts" value={analytics?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="red" />
         <StatCard label="Current Streak" value={`${analytics?.currentStreak ?? 0}d`} icon={<Flame className="w-5 h-5" />} color="amber" />
       </div>
 
       {/* Quick start workout */}
-      <Link href="/workout" className="glass-card p-4 flex items-center gap-4 hover:border-indigo-500/50 transition-all">
-        <div className="p-3 bg-indigo-500/10 rounded-xl">
-          <Dumbbell className="w-5 h-5 text-indigo-400" />
+      <Link href="/workout" className="glass-card p-4 flex items-center gap-4 hover:border-red-600/50 transition-all">
+        <div className="p-3 bg-red-600/10 rounded-xl">
+          <Dumbbell className="w-5 h-5 text-red-400" />
         </div>
         <div>
           <p className="font-medium text-white text-sm">Start a Workout</p>
           <p className="text-xs text-slate-400">Push · Pull · Legs · Custom</p>
         </div>
-        <span className="ml-auto text-indigo-400 text-sm">→</span>
+        <span className="ml-auto text-red-400 text-sm">→</span>
       </Link>
 
       {/* 14-day workout history */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-white">Recent Workouts</h2>
-          <Link href="/workout" className="text-xs text-indigo-400 hover:text-indigo-300">View all →</Link>
+          <Link href="/workout" className="text-xs text-red-400 hover:text-red-300">View all →</Link>
         </div>
         <div className="space-y-2">
           {workouts.length === 0 && (
             <div className="glass-card p-8 text-center">
               <Dumbbell className="w-8 h-8 text-slate-700 mx-auto mb-2" />
               <p className="text-slate-400 text-sm">No workouts yet.</p>
-              <Link href="/workout" className="text-indigo-400 text-sm hover:text-indigo-300 mt-1 inline-block">Log your first workout →</Link>
+              <Link href="/workout" className="text-red-400 text-sm hover:text-red-300 mt-1 inline-block">Log your first workout →</Link>
             </div>
           )}
           {workouts.map((w) => {
@@ -215,14 +235,17 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-white">Personal Records</h2>
-            <Link href="/leaderboard" className="text-xs text-indigo-400 hover:text-indigo-300">Leaderboard →</Link>
+            <Link href="/leaderboard" className="text-xs text-red-400 hover:text-red-300">Leaderboard →</Link>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {prs.map((pr) => (
-              <div key={pr.id} className="glass-card p-4">
-                <p className="text-xs text-slate-400 truncate">{pr.exercises?.name}</p>
-                <p className="text-xl font-bold text-amber-400 mt-1">{pr.max_weight} kg</p>
-                <Trophy className="w-3 h-3 text-amber-500 mt-1" />
+              <div key={pr.id} className="glass-card p-4 relative overflow-hidden">
+                <div className="absolute -bottom-2 -right-2 font-display text-7xl text-amber-500/6 leading-none select-none pointer-events-none">
+                  PR
+                </div>
+                <Trophy className="w-3.5 h-3.5 text-amber-500 mb-2" />
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider truncate">{pr.exercises?.name}</p>
+                <p className="font-display text-4xl text-amber-400 leading-none mt-1">{pr.max_weight}<span className="text-xl text-amber-600 ml-1">KG</span></p>
               </div>
             ))}
           </div>

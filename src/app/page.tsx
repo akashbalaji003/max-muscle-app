@@ -1,93 +1,309 @@
 import Link from 'next/link';
-import { Dumbbell, QrCode, BarChart2, Trophy, Shield, Zap } from 'lucide-react';
+import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
+import ReviewCarousel from '@/components/ReviewCarousel';
 
-const FEATURES = [
-  { icon: Dumbbell, title: 'Workout Tracking', desc: 'Log exercises with per-set weight/reps, rest timers, and automatic PR tracking.' },
-  { icon: QrCode, title: 'QR Attendance', desc: 'One-tap check-in with automatic membership validation and history.' },
-  { icon: BarChart2, title: 'Smart Analytics', desc: 'Streaks, volume charts, body-part distribution and progress over time.' },
-  { icon: Trophy, title: 'Leaderboard', desc: "Compete on PRs across every exercise — see where you rank in the gym." },
-  { icon: Shield, title: 'Membership Control', desc: 'Admin panel to manage members, renewals, attendance, and access control.' },
-  { icon: Zap, title: 'Progress Photos', desc: 'Weekly check-ins with photo uploads and community progress feed.' },
+// ─── Replace these with your real values ────────────────────────────────────
+const GYM_PHONE      = '07530007329';
+const GYM_PHONE_HREF = 'tel:+447530007329';   // adjust country code if needed
+const GYM_INSTAGRAM  = 'https://www.instagram.com/maximum_muscle_fitness_studio/';
+// Google Maps — paste your exact Maps URL here:
+const MAPS_EMBED_URL = 'https://maps.google.com/maps?q=Maximum+Muscle+Lifestyle+Fitness+Studio&output=embed&z=16';
+const MAPS_OPEN_URL  = 'https://www.google.com/maps/search/Maximum+Muscle+Lifestyle+Fitness+Studio';
+const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1&destination=Maximum+Muscle+Lifestyle+Fitness+Studio';
+// ────────────────────────────────────────────────────────────────────────────
+
+const HOURS = [
+  { day: 'Monday – Saturday', time: '5:00 AM – 10:00 PM' },
+  { day: 'Sunday',            time: '5:00 AM – 12:30 PM' },
 ];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Nav */}
-      <nav className="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/5 bg-[#000000]/90 backdrop-blur-lg">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-900/40">
+    <div className="min-h-screen flex flex-col bg-[#000000] font-body overflow-x-hidden">
+
+      {/* ── Nav ──────────────────────────────────────────────────────────── */}
+      <nav className="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-5 sm:px-8 py-3 border-b border-white/5 bg-[#000000]/95 backdrop-blur-xl">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 bg-red-700 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-900/50">
             <Dumbbell className="w-5 h-5 text-white" />
           </div>
-          <div className="min-w-0 hidden sm:block">
-            <span className="text-sm font-extrabold text-white leading-tight block">Max Muscle</span>
-            <span className="text-[10px] text-slate-500 leading-tight block">Lifestyle Fitness Studio</span>
+          <div className="min-w-0">
+            <span className="font-display text-lg text-white leading-none tracking-wide block">MAX MUSCLE</span>
+            <span className="text-[10px] text-slate-500 leading-tight tracking-widest uppercase block">Lifestyle Fitness Studio</span>
           </div>
-          <span className="sm:hidden text-base font-extrabold text-white">Max Muscle</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-2 min-h-[40px] flex items-center">
-            Sign in
+        <div className="flex items-center gap-1">
+          <Link href="/login"
+            className="text-sm font-medium text-slate-400 hover:text-white px-4 py-2 min-h-[40px] flex items-center transition-colors">
+            Login
           </Link>
-          <Link
-            href="/signup"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg shadow-indigo-900/30 min-h-[40px] flex items-center"
-          >
-            Get Started
+          <Link href="/admin/login"
+            className="bg-red-700 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-red-900/30 min-h-[40px] flex items-center gap-1.5 transition-all">
+            <Shield className="w-3.5 h-3.5" /> Admin
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-28 pb-16">
-        <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 rounded-full px-4 py-1.5 mb-6">
-          <Zap className="w-3.5 h-3.5 text-indigo-400" />
-          <span className="text-xs font-medium text-indigo-300">Premium Gym Management Platform</span>
-        </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-4">
-          Maximum Muscle
-          <br />
-          <span className="gradient-text">Lifestyle Fitness Studio</span>
-        </h1>
-        <p className="text-base sm:text-lg text-slate-400 max-w-xl mb-8 leading-relaxed">
-          Complete gym management — workout logging, QR attendance,
-          smart analytics, and competitive leaderboard. All in one place.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm sm:max-w-none sm:w-auto">
-          <Link
-            href="/signup"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all shadow-xl shadow-indigo-900/40 min-h-[52px] flex items-center justify-center"
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section className="relative pt-20 pb-0 overflow-hidden">
+        {/* Background ghost text */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+        >
+          <span
+            className="font-display leading-none text-white/[0.025] whitespace-nowrap"
+            style={{ fontSize: 'clamp(120px, 22vw, 340px)', letterSpacing: '-0.02em' }}
           >
-            Start for Free
-          </Link>
-          <Link
-            href="/admin/login"
-            className="bg-[#0f0f0f] hover:bg-[#111111] text-slate-200 font-semibold px-8 py-4 rounded-xl text-lg transition-all border border-indigo-500/20 min-h-[52px] flex items-center justify-center gap-2"
-          >
-            <Shield className="w-4 h-4" /> Admin Portal
-          </Link>
+            IRON
+          </span>
         </div>
-      </section>
 
-      {/* Features */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16 w-full">
-        <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-8">Everything your gym needs</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="glass-card p-5 hover:border-indigo-500/40 transition-colors">
-              <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-3">
-                <Icon className="w-5 h-5 text-indigo-400" />
-              </div>
-              <h3 className="font-semibold text-white mb-1.5">{title}</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">{desc}</p>
+        <div className="relative max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-10">
+          {/* Label row */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-px flex-1 max-w-[32px] bg-red-600/50" />
+            <span className="text-[11px] font-semibold tracking-[0.25em] text-red-400 uppercase">Premium Unisex Gym</span>
+            <div className="h-px flex-1 bg-red-600/20" />
+          </div>
+
+          {/* Editorial hero grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-end">
+            {/* Display text */}
+            <div>
+              <h1
+                className="font-display leading-[0.92] text-white mb-0"
+                style={{ fontSize: 'clamp(72px, 12vw, 168px)', letterSpacing: '-0.01em' }}
+              >
+                <span className="block">MAXIMUM</span>
+                <span className="block gradient-text">MUSCLE</span>
+                <span className="block text-white/80" style={{ fontSize: '0.55em', letterSpacing: '0.08em' }}>
+                  LIFESTYLE FITNESS STUDIO
+                </span>
+              </h1>
             </div>
-          ))}
+
+            {/* Right column: description + CTA */}
+            <div className="lg:max-w-[280px] flex flex-col gap-5 lg:pb-4">
+              <div className="h-px w-full bg-gradient-to-r from-indigo-500/40 to-transparent lg:hidden" />
+
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Your transformation starts here. State-of-the-art equipment, expert trainers,
+                and a community that pushes you further every single day.
+              </p>
+
+              <a href={GYM_PHONE_HREF}
+                className="flex items-center gap-2 text-sm text-slate-500 hover:text-red-400 transition-colors w-fit">
+                <Phone className="w-3.5 h-3.5" />
+                {GYM_PHONE}
+              </a>
+
+              <div className="flex flex-col gap-2.5">
+                <Link href="/signup"
+                  className="group relative bg-red-700 hover:bg-red-600 text-white font-semibold px-6 py-3.5 rounded-xl text-sm shadow-xl shadow-red-900/40 flex items-center justify-between overflow-hidden transition-all">
+                  <span>Join Now</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+                <Link href="/login"
+                  className="bg-white/5 hover:bg-white/8 text-slate-200 font-medium px-6 py-3.5 rounded-xl text-sm border border-white/8 hover:border-red-600/30 flex items-center justify-between transition-all">
+                  <span>Member Login</span>
+                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Accent rule */}
+          <div className="mt-10 flex items-center gap-4">
+            <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/40 via-indigo-500/10 to-transparent" />
+            <div className="flex items-center gap-1.5">
+              {[1,2,3,4,5].map(s => (
+                <Star key={s} className="w-3 h-3 text-amber-400 fill-amber-400" />
+              ))}
+              <span className="text-xs font-bold text-white ml-1">4.9</span>
+              <span className="text-xs text-slate-600 ml-0.5">Google Reviews</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-white/5 text-center text-xs text-slate-600 py-5 px-4">
-        © {new Date().getFullYear()} Maximum Muscle Lifestyle Fitness Studio
+      {/* ── Info Cards ───────────────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
+        <div className="flex items-baseline gap-3 mb-6">
+          <span className="font-display text-4xl text-red-500/40 leading-none">01</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+
+          {/* Location */}
+          <a href={MAPS_OPEN_URL} target="_blank" rel="noopener noreferrer"
+            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-0.5 h-0 bg-red-600 group-hover:h-full transition-all duration-300" />
+            <div className="w-10 h-10 bg-red-600/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-600/20 transition-colors">
+              <MapPin className="w-5 h-5 text-red-400" />
+            </div>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Location</p>
+            <h3 className="font-display text-2xl text-white tracking-wide mb-2">MAX MUSCLE</h3>
+            <p className="text-xs text-slate-500 leading-relaxed mb-3">Maximum Muscle Lifestyle Fitness Studio</p>
+            <span className="text-red-400 text-xs inline-flex items-center gap-1 group-hover:text-red-300">
+              View on Maps <ExternalLink className="w-3 h-3" />
+            </span>
+          </a>
+
+          {/* Phone */}
+          <a href={GYM_PHONE_HREF}
+            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-0.5 h-0 bg-emerald-500 group-hover:h-full transition-all duration-300" />
+            <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+              <Phone className="w-5 h-5 text-emerald-400" />
+            </div>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Contact</p>
+            <h3 className="font-display text-2xl text-white tracking-wide mb-2">CALL US</h3>
+            <p className="text-sm text-slate-300 font-mono mb-1">{GYM_PHONE}</p>
+            <p className="text-xs text-slate-600">Call or WhatsApp</p>
+          </a>
+
+          {/* Hours */}
+          <div className="group bg-[#0a0a0a] p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-0.5 h-0 bg-amber-500 group-hover:h-full transition-all duration-300" />
+            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
+              <Clock className="w-5 h-5 text-amber-400" />
+            </div>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Schedule</p>
+            <h3 className="font-display text-2xl text-white tracking-wide mb-3">OPEN HOURS</h3>
+            <div className="space-y-2.5">
+              {HOURS.map(({ day, time }) => (
+                <div key={day} className="flex flex-col gap-0.5 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                  <span className="text-[10px] text-slate-600 tracking-wider uppercase">{day}</span>
+                  <span className="text-sm text-slate-200 font-semibold font-display tracking-wide">{time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── Reviews + Instagram ──────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
+        <div className="flex items-baseline gap-3 mb-6">
+          <span className="font-display text-4xl text-red-500/40 leading-none">02</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Community</span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+          {/* Reviews */}
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">WHAT MEMBERS SAY</h2>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
+                </div>
+                <span className="text-sm font-bold text-white">4.9</span>
+                <span className="text-xs text-slate-500">on Google Reviews</span>
+              </div>
+            </div>
+            <ReviewCarousel />
+          </div>
+
+          {/* Instagram */}
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">FOLLOW OUR JOURNEY</h2>
+              <p className="text-sm text-slate-500 mt-2">See transformations &amp; daily highlights</p>
+            </div>
+            <a
+              href={GYM_INSTAGRAM}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 group relative flex flex-col items-center justify-center gap-4 text-center p-8 rounded-2xl border border-white/5 bg-[#0a0a0a] hover:border-pink-500/30 transition-all overflow-hidden"
+            >
+              {/* Gradient glow on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-purple-500/0 to-amber-500/0 group-hover:from-pink-500/5 group-hover:via-purple-500/5 group-hover:to-amber-500/5 transition-all duration-500 pointer-events-none" />
+
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-amber-500/20 border border-pink-500/30 flex items-center justify-center group-hover:scale-105 transition-transform relative z-10">
+                <svg className="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </div>
+              <div className="relative z-10">
+                <p className="font-mono text-sm text-white tracking-tight">@maximum_muscle_fitness_studio</p>
+                <p className="text-sm text-slate-400 mt-3 max-w-xs leading-relaxed">
+                  Workout tips, transformation stories, and daily motivation
+                </p>
+              </div>
+              <span className="relative z-10 inline-flex items-center gap-1.5 text-sm font-semibold text-pink-400 group-hover:text-pink-300 transition-colors">
+                Open Instagram <ExternalLink className="w-3.5 h-3.5" />
+              </span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Map ──────────────────────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
+        <div className="flex items-baseline gap-3 mb-6">
+          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Directions</span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">FIND US</h2>
+          <div className="flex gap-2">
+            <a
+              href={MAPS_OPEN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-white/5 border border-white/8 text-slate-300 hover:text-white hover:border-red-600/40 transition-all"
+            >
+              <MapPin className="w-3.5 h-3.5 text-red-400" />
+              Open in Maps
+            </a>
+            <a
+              href={MAPS_DIRECTIONS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white font-semibold transition-all"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              Get Directions
+            </a>
+          </div>
+        </div>
+        <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl shadow-black/60" style={{ height: '320px' }}>
+          <iframe
+            src={MAPS_EMBED_URL}
+            width="100%"
+            height="100%"
+            style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) saturate(0.8)' }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Gym Location"
+          />
+        </div>
+      </section>
+
+      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/5 py-6 px-5 sm:px-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 bg-red-700 rounded-md flex items-center justify-center">
+              <Dumbbell className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="font-display tracking-wider text-slate-500">MAX MUSCLE</span>
+            <span className="text-slate-700">© {new Date().getFullYear()}</span>
+          </div>
+          <div className="flex items-center gap-5">
+            <Link href="/login" className="hover:text-slate-400 transition-colors">Member Login</Link>
+            <Link href="/admin/login" className="hover:text-slate-400 transition-colors">Admin</Link>
+            <a href={GYM_INSTAGRAM} target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">Instagram</a>
+          </div>
+        </div>
       </footer>
+
     </div>
   );
 }

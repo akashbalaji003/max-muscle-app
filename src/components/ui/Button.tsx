@@ -1,5 +1,5 @@
 'use client';
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { ButtonHTMLAttributes, forwardRef, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,17 +9,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', loading, children, disabled, onClick, ...props }, ref) => {
     const base =
-      'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#000000] disabled:opacity-50 disabled:cursor-not-allowed';
+      'relative inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A0A0A] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden';
 
     const variants = {
       primary:
-        'bg-indigo-600 hover:bg-indigo-500 text-white focus:ring-indigo-500 shadow-lg shadow-indigo-900/30 hover:shadow-indigo-900/50',
+        'bg-red-700 hover:bg-red-600 text-white focus:ring-red-600 shadow-lg shadow-red-900/40 hover:shadow-red-900/60 hover:shadow-xl',
       secondary:
-        'bg-[#0f0f0f] hover:bg-[#111111] text-slate-200 border border-indigo-500/30 hover:border-indigo-500/60 focus:ring-indigo-500',
-      ghost: 'text-slate-300 hover:text-white hover:bg-white/5 focus:ring-white/20',
-      danger: 'bg-red-600 hover:bg-red-500 text-white focus:ring-red-500',
+        'bg-transparent text-red-400 border border-red-600/50 hover:bg-red-700 hover:text-white hover:border-red-700 focus:ring-red-600',
+      ghost:
+        'text-[#B3B3B3] hover:text-white hover:bg-white/5 focus:ring-white/20',
+      danger:
+        'bg-red-700 hover:bg-red-600 text-white focus:ring-red-500 shadow-lg shadow-red-900/40',
     };
 
     const sizes = {
@@ -28,11 +30,35 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'h-12 px-6 text-base gap-2',
     };
 
+    function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const size = Math.max(rect.width, rect.height) * 2;
+
+      const ripple = document.createElement('span');
+      ripple.style.cssText = `
+        position: absolute;
+        left: ${x}px; top: ${y}px;
+        width: ${size}px; height: ${size}px;
+        transform: translate(-50%, -50%) scale(0);
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        animation: btn-ripple 0.5s ease-out forwards;
+        pointer-events: none;
+      `;
+      btn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+      onClick?.(e);
+    }
+
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
         className={cn(base, variants[variant], sizes[size], className)}
+        onClick={handleClick}
         {...props}
       >
         {loading && (

@@ -30,15 +30,15 @@ export default function NoMembershipScreen() {
         <div className="glass-card p-5 text-left space-y-3">
           <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest mb-1">What to do next</p>
           <div className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-indigo-600/20 text-indigo-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+            <span className="w-6 h-6 rounded-full bg-red-700/20 text-red-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
             <p className="text-sm text-slate-300">Visit the gym or contact admin</p>
           </div>
           <div className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-indigo-600/20 text-indigo-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+            <span className="w-6 h-6 rounded-full bg-red-700/20 text-red-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
             <p className="text-sm text-slate-300">Admin will add your membership plan</p>
           </div>
           <div className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-indigo-600/20 text-indigo-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+            <span className="w-6 h-6 rounded-full bg-red-700/20 text-red-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
             <p className="text-sm text-slate-300">Log out and log back in to access the app</p>
           </div>
         </div>

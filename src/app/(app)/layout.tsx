@@ -3,6 +3,7 @@ import { verifyToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/layout/Sidebar';
 import NoMembershipScreen from '@/components/NoMembershipScreen';
+import PageTransition from '@/components/PageTransition';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -28,7 +29,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Sidebar />
       {/* pt-14 for mobile top header, pb-20 for mobile bottom nav, lg resets both */}
       <main className="lg:pl-56 pt-14 lg:pt-0 pb-20 lg:pb-0">
-        <div className="max-w-5xl mx-auto p-4 lg:p-8">{children}</div>
+        <div className="max-w-5xl mx-auto p-4 lg:p-8">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </main>
     </div>
   );

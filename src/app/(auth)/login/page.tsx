@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-900/40">
+          <div className="w-14 h-14 bg-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/40">
             <Dumbbell className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-extrabold text-white">Welcome back</h1>
@@ -92,7 +92,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-slate-500 mt-5">
           New here?{' '}
-          <Link href="/signup" className="text-indigo-400 hover:text-indigo-300 font-medium">
+          <Link href="/signup" className="text-red-400 hover:text-red-300 font-medium">
             Create account
           </Link>
         </p>

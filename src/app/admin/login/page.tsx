@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-amber-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-amber-900/40">
+          <div className="w-14 h-14 bg-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/40">
             <Shield className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-extrabold text-white">Admin Portal</h1>
@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
+            className="w-full h-12 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
           >
             {loading && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
