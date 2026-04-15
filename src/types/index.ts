@@ -4,6 +4,9 @@ export interface User {
   name: string | null;
   avatar_url: string | null;
   created_at: string;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+  goal?: 'fat_loss' | 'muscle_gain' | 'maintenance' | null;
 }
 
 export interface Membership {
@@ -114,4 +117,79 @@ export interface AnalyticsData {
   monthlyWorkouts: { week: string; count: number }[];
   bodyPartDistribution: { name: string; value: number }[];
   recentPRs: PR[];
+}
+
+// ── New: Intelligent Fitness Layer ────────────────────────────────────────────
+
+export type FitnessGoal = 'fat_loss' | 'muscle_gain' | 'maintenance';
+
+export interface BodyMetrics {
+  height_cm: number | null;
+  weight_kg: number | null;
+  goal: FitnessGoal | null;
+}
+
+export interface WeightLog {
+  id: string;
+  user_id: string;
+  weight_kg: number;
+  note: string | null;
+  logged_at: string;
+  created_at: string;
+}
+
+export type BadgeType =
+  | 'streak_3'
+  | 'streak_7'
+  | 'streak_30'
+  | 'pr_breaker'
+  | 'first_workout'
+  | 'century'       // 100 workouts
+  | 'iron_will';    // 30-day longest streak
+
+export interface UserBadge {
+  type: BadgeType;
+  label: string;
+  description: string;
+  icon: string;       // emoji
+  earned: boolean;
+  earnedAt?: string;
+}
+
+export interface WorkoutRecommendation {
+  split: string;
+  description: string;
+  emphasis: string[];
+  note: string;
+  bmiCategory: string;
+}
+
+export interface CalorieStats {
+  today: number;
+  week: number;
+  month: number;
+  allTime: number;
+  dailyBreakdown: { date: string; calories: number }[];
+}
+
+export interface EnhancedAnalyticsData extends AnalyticsData {
+  // Body
+  bodyMetrics: BodyMetrics;
+  bmi: number | null;
+  bmiCategory: string | null;
+
+  // Calories
+  calories: CalorieStats;
+
+  // Weight trend
+  weightLogs: WeightLog[];
+
+  // Attendance (for calendar)
+  attendanceDates: string[];
+
+  // Gamification
+  badges: UserBadge[];
+
+  // Recommendations
+  recommendation: WorkoutRecommendation | null;
 }

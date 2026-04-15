@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dumbbell, Calendar, Flame, Trophy, QrCode, AlertTriangle, ChevronDown, Timer } from 'lucide-react';
+import { Dumbbell, Calendar, Flame, Trophy, QrCode, AlertTriangle, ChevronDown, Timer, Activity, Target } from 'lucide-react';
 import { StatCard } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { formatDate, daysRemaining, isMembershipActive, CATEGORY_COLORS } from '@/lib/utils';
 import Link from 'next/link';
-import type { Workout } from '@/types';
+import type { Workout, UserBadge } from '@/types';
 
 function fmtDuration(secs: number) {
   const h = Math.floor(secs / 3600);
@@ -22,12 +22,21 @@ const TYPE_LABELS: Record<string, string> = { push: 'Push', pull: 'Pull', legs: 
 
 interface DashUser { id: string; phone_number: string; name: string | null }
 interface Membership { start_date: string; end_date: string; active: boolean }
+interface AnalyticsSnap {
+  totalWorkouts: number;
+  currentStreak: number;
+  calories?: { today: number; week: number };
+  badges?: UserBadge[];
+  bmi?: number | null;
+  bmiCategory?: string | null;
+  bodyMetrics?: { weight_kg: number | null; goal: string | null };
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<DashUser | null>(null);
   const [membership, setMembership] = useState<Membership | null>(null);
-  const [analytics, setAnalytics] = useState<{ totalWorkouts: number; currentStreak: number } | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsSnap | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [prs, setPRs] = useState<{ id: string; max_weight: number; exercises?: { name: string } }[]>([]);
   const [checkedInToday, setCheckedInToday] = useState(false);
@@ -74,21 +83,16 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Header skeleton */}
         <div>
           <div className="skeleton h-3 w-24 mb-2 rounded" />
           <div className="skeleton h-8 w-48 rounded" />
         </div>
-        {/* Membership skeleton */}
         <div className="skeleton h-16 w-full rounded-2xl" />
-        {/* Stats skeleton */}
         <div className="grid grid-cols-2 gap-4">
           <div className="skeleton h-24 rounded-2xl" />
           <div className="skeleton h-24 rounded-2xl" />
         </div>
-        {/* Quick start skeleton */}
         <div className="skeleton h-16 rounded-2xl" />
-        {/* Workouts skeleton */}
         <div className="space-y-2">
           <div className="skeleton h-4 w-36 rounded mb-3" />
           {[1,2,3].map(i => <div key={i} className="skeleton h-14 rounded-2xl" />)}
@@ -96,6 +100,8 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const earnedBadges = analytics?.badges?.filter(b => b.earned) || [];
 
   return (
     <div className="space-y-6">
@@ -106,6 +112,21 @@ export default function DashboardPage() {
           {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
         </h1>
       </div>
+
+      {/* Badge strip — show only if badges earned */}
+      {earnedBadges.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+          {earnedBadges.map((b) => (
+            <div key={b.type} title={b.description}
+              className="flex-shrink-0 flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full text-xs text-amber-300 whitespace-nowrap">
+              <span>{b.icon}</span>{b.label}
+            </div>
+          ))}
+          <Link href="/analytics" className="flex-shrink-0 text-xs text-slate-600 hover:text-slate-400 pl-1 whitespace-nowrap">
+            View all →
+          </Link>
+        </div>
+      )}
 
       {/* Membership status */}
       {membership ? (
@@ -150,10 +171,47 @@ export default function DashboardPage() {
         </Link>
       )}
 
-      {/* Stats */}
+      {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4">
         <StatCard label="Total Workouts" value={analytics?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="red" />
         <StatCard label="Current Streak" value={`${analytics?.currentStreak ?? 0}d`} icon={<Flame className="w-5 h-5" />} color="amber" />
+      </div>
+
+      {/* Calories today + BMI strip */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Calories today */}
+        <div className="glass-card p-4 flex items-center gap-3">
+          <div className="p-2.5 bg-orange-500/10 rounded-xl flex-shrink-0">
+            <Flame className="w-4 h-4 text-orange-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-display text-2xl text-orange-400 leading-none">{(analytics?.calories?.today ?? 0).toLocaleString()}</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">kcal today</p>
+          </div>
+        </div>
+
+        {/* BMI or goal nudge */}
+        {analytics?.bmi ? (
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-500/10 rounded-xl flex-shrink-0">
+              <Activity className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-display text-2xl text-emerald-400 leading-none">{analytics.bmi}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">BMI · {analytics.bmiCategory}</p>
+            </div>
+          </div>
+        ) : (
+          <Link href="/analytics" className="glass-card p-4 flex items-center gap-3 hover:border-red-600/40 transition-all">
+            <div className="p-2.5 bg-red-500/10 rounded-xl flex-shrink-0">
+              <Target className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white leading-tight">Set goal</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Unlock BMI & recs</p>
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* Quick start workout */}
@@ -211,10 +269,7 @@ export default function DashboardPage() {
                   {typedEntries.map((e) => (
                     <div key={e.id} className="flex items-center justify-between px-4 py-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="w-2 h-2 rounded-full"
-                          style={{ background: CATEGORY_COLORS[e.exercises?.category || ''] || '#6366f1' }}
-                        />
+                        <span className="w-2 h-2 rounded-full" style={{ background: CATEGORY_COLORS[e.exercises?.category || ''] || '#dc2626' }} />
                         <span className="text-slate-300">{e.exercises?.name}</span>
                       </div>
                       <div className="flex items-center gap-3 text-slate-500 text-xs">
