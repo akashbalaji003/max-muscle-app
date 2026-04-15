@@ -72,13 +72,13 @@ export function StatCard({
   };
 
   return (
-    <Card tilt className="flex items-center gap-4">
-      <div className={cn('p-3 rounded-xl flex-shrink-0', colors[color])}>{icon}</div>
-      <div>
-        <p className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-[0.15em]">{label}</p>
-        <p className="font-display text-4xl text-white leading-none mt-1">{value}</p>
-        {sub && <p className="text-xs text-[#B3B3B3] mt-1">{sub}</p>}
+    <div className="glass-card p-3 sm:p-5 flex items-center gap-2 sm:gap-4">
+      <div className={cn('p-2 sm:p-3 rounded-xl flex-shrink-0', colors[color])}>{icon}</div>
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <p className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-[0.15em] truncate">{label}</p>
+        <p className="font-display text-xl sm:text-4xl text-white leading-none mt-1 truncate">{value}</p>
+        {sub && <p className="text-xs text-[#B3B3B3] mt-1 truncate">{sub}</p>}
       </div>
-    </Card>
+    </div>
   );
 }

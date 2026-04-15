@@ -1,14 +1,15 @@
 'use client';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Plus, Trash2, Dumbbell, Trophy, ChevronDown, Timer,
-  Play, Square, CheckCircle2, Circle, Zap, RotateCcw, Clock, X,
+  Plus, Dumbbell, Trophy, ChevronDown, ChevronLeft, ChevronRight, Timer,
+  Play, Square, CheckCircle2, Circle, Zap, RotateCcw, Clock, X, Star, QrCode,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { formatDate, CATEGORY_COLORS } from '@/lib/utils';
 import type { Exercise, Workout, WorkoutType } from '@/types';
+import { format, startOfWeek, endOfWeek, subWeeks, addWeeks } from 'date-fns';
 
 // ── PPL default plans (per-set arrays) ───────────────────────
 const PPL_PLANS: Record<
@@ -41,9 +42,24 @@ const PPL_PLANS: Record<
   ],
 };
 
-const TYPE_COLORS: Record<string, string> = { push:'text-rose-400', pull:'text-blue-400', legs:'text-emerald-400', custom:'text-red-400' };
-const TYPE_BG: Record<string, string> = { push:'bg-rose-500', pull:'bg-blue-500', legs:'bg-emerald-500', custom:'bg-red-600' };
-const TYPE_LABELS: Record<string, string> = { push:'Push', pull:'Pull', legs:'Legs', custom:'Custom' };
+const FULL_BODY_PLAN: { name: string; defaultSets: { weight: number; reps: number }[] }[] = [
+  { name: 'Squat',           defaultSets: [{weight:60,reps:10},{weight:60,reps:10},{weight:57,reps:8}] },
+  { name: 'Bench Press',     defaultSets: [{weight:50,reps:10},{weight:50,reps:10},{weight:47,reps:8}] },
+  { name: 'Barbell Row',     defaultSets: [{weight:50,reps:10},{weight:50,reps:10},{weight:47,reps:8}] },
+  { name: 'Romanian Deadlift', defaultSets: [{weight:50,reps:12},{weight:50,reps:12},{weight:47,reps:10}] },
+  { name: 'Lateral Raise',   defaultSets: [{weight:8,reps:15},{weight:8,reps:15},{weight:8,reps:12}] },
+  { name: 'Calf Raise',      defaultSets: [{weight:40,reps:15},{weight:40,reps:15},{weight:40,reps:12}] },
+];
+
+const TYPE_COLORS: Record<string, string> = { push:'text-rose-400', pull:'text-blue-400', legs:'text-emerald-400', custom:'text-red-400', full_body:'text-violet-400' };
+const TYPE_BG: Record<string, string> = { push:'bg-rose-500', pull:'bg-blue-500', legs:'bg-emerald-500', custom:'bg-red-600', full_body:'bg-violet-600' };
+const TYPE_LABELS: Record<string, string> = { push:'Push', pull:'Pull', legs:'Legs', custom:'Custom', full_body:'Full Body' };
+
+interface ProfileSnap {
+  bmi: number | null;
+  bmiCategory: string | null;
+  goal: 'fat_loss' | 'muscle_gain' | 'maintenance' | null;
+}
 
 function fmtDuration(secs: number) {
   const h = Math.floor(secs / 3600);
@@ -115,6 +131,8 @@ export default function WorkoutPage() {
   const [checkedInToday, setCheckedInToday] = useState<boolean | null>(null);
   const [alreadyLoggedToday, setAlreadyLoggedToday] = useState(false);
   const [restTargetSeconds, setRestTargetSeconds] = useState(180); // 3 minutes default
+  const [historyOffset, setHistoryOffset] = useState(0); // 0 = current week, -1 = prev week
+  const [profile, setProfile] = useState<ProfileSnap | null>(null);
 
   // Global workout timer
   const [elapsed, setElapsed] = useState(0);
@@ -151,10 +169,11 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     async function load() {
-      const [exRes, woRes, attRes] = await Promise.all([
+      const [exRes, woRes, attRes, profileRes] = await Promise.all([
         fetch('/api/exercises'),
-        fetch('/api/workout?limit=14'),
+        fetch('/api/workout?limit=90'),
         fetch('/api/attendance/history?limit=1'),
+        fetch('/api/profile'),
       ]);
       if (woRes.status === 401) { router.push('/login'); return; }
 
@@ -181,6 +200,10 @@ export default function WorkoutPage() {
         const today = new Date().toISOString().split('T')[0];
         setCheckedInToday(att.attendance?.[0]?.date === today);
       }
+      if (profileRes.ok) {
+        const p = await profileRes.json();
+        setProfile({ bmi: p.bmi ?? null, bmiCategory: p.bmiCategory ?? null, goal: p.goal ?? null });
+      }
     }
     load();
   }, [router]);
@@ -201,6 +224,26 @@ export default function WorkoutPage() {
     });
     setEntries(mapped);
     setWorkoutType(type);
+    setShowForm(true);
+    resetTimer();
+    startTimer();
+  }
+
+  function loadFullBodyPlan() {
+    const mapped: ExerciseEntry[] = FULL_BODY_PLAN.map((p) => {
+      const ex = exercises.find((e) => e.name === p.name);
+      return {
+        localId: newId(),
+        exercise_id: ex?.id || '',
+        exercise_name: p.name,
+        muscle_group: ex?.muscle_group || '',
+        equipment: ex?.equipment || '',
+        sets: p.defaultSets.map((s) => ({ weight: String(s.weight), reps: String(s.reps), completed: false })),
+        lastCompletedAt: null,
+      };
+    });
+    setEntries(mapped);
+    setWorkoutType('custom'); // full_body saved as custom for compatibility
     setShowForm(true);
     resetTimer();
     startTimer();
@@ -281,7 +324,6 @@ export default function WorkoutPage() {
     setSaving(false);
 
     if (res.status === 403) { setError(data.error || 'Check in at the gym first.'); startTimer(); return; }
-    if (res.status === 409) { setError(data.error || 'Already logged a workout today.'); startTimer(); return; }
     if (!res.ok) { setError(data.error || 'Failed to save workout.'); startTimer(); return; }
 
     setSuccess(`${TYPE_LABELS[workoutType]} workout saved! ${fmtDuration(elapsed)} 💪`);
@@ -289,9 +331,9 @@ export default function WorkoutPage() {
     setEntries([makeEmptyEntry()]);
     setNotes('');
     resetTimer();
-    setAlreadyLoggedToday(true);
+    setAlreadyLoggedToday(true); // still track for the "logged today" banner
 
-    const woRes = await fetch('/api/workout?limit=14');
+    const woRes = await fetch('/api/workout?limit=90');
     if (woRes.ok) { const d = await woRes.json(); setWorkouts(d.workouts || []); }
     setTimeout(() => setSuccess(''), 4000);
   }
@@ -306,11 +348,107 @@ export default function WorkoutPage() {
   const completedSets = entries.reduce((n, e) => n + e.sets.filter((s) => s.completed).length, 0);
   const totalSets = entries.reduce((n, e) => n + e.sets.length, 0);
 
+  // ── History filter (7-day week windows) ───────────────────────────────
+  const { historyWeekStart, historyWeekEnd, historyLabel, filteredWorkouts } = useMemo(() => {
+    const today = new Date();
+    const base = historyOffset < 0 ? subWeeks(today, -historyOffset) : today;
+    const wStart = startOfWeek(base, { weekStartsOn: 1 }); // Mon start
+    const wEnd = endOfWeek(base, { weekStartsOn: 1 });
+    const startIso = format(wStart, 'yyyy-MM-dd');
+    const endIso = format(wEnd, 'yyyy-MM-dd');
+    const label = historyOffset === 0
+      ? 'This Week'
+      : `${format(wStart, 'MMM d')} – ${format(wEnd, 'MMM d')}`;
+    const filtered = workouts.filter((w) => w.date >= startIso && w.date <= endIso);
+    return { historyWeekStart: startIso, historyWeekEnd: endIso, historyLabel: label, filteredWorkouts: filtered };
+  }, [workouts, historyOffset]);
+
+  // ── Smart quick-start recommendation ─────────────────────────────────
+  const quickStartConfig = useMemo(() => {
+    if (!profile?.bmi) {
+      // No profile: default PPL + custom
+      return {
+        primary: null as string | null,
+        cards: [
+          { type: 'push' as const, label: 'Push', count: PPL_PLANS.push.length, recommended: false, action: () => loadPPLPlan('push') },
+          { type: 'pull' as const, label: 'Pull', count: PPL_PLANS.pull.length, recommended: false, action: () => loadPPLPlan('pull') },
+          { type: 'legs' as const, label: 'Legs', count: PPL_PLANS.legs.length, recommended: false, action: () => loadPPLPlan('legs') },
+          { type: 'custom' as const, label: 'Custom', count: 0, recommended: false, action: openCustom },
+        ],
+      };
+    }
+    const bmi = profile.bmi;
+    const goal = profile.goal;
+
+    if (bmi >= 25) {
+      // Overweight/Obese: recommend Full Body
+      return {
+        primary: 'full_body',
+        cards: [
+          { type: 'full_body' as const, label: 'Full Body', count: FULL_BODY_PLAN.length, recommended: true, action: loadFullBodyPlan },
+          { type: 'push' as const, label: 'Push', count: PPL_PLANS.push.length, recommended: false, action: () => loadPPLPlan('push') },
+          { type: 'legs' as const, label: 'Legs', count: PPL_PLANS.legs.length, recommended: false, action: () => loadPPLPlan('legs') },
+          { type: 'custom' as const, label: 'Custom', count: 0, recommended: false, action: openCustom },
+        ],
+      };
+    }
+
+    if (bmi < 18.5) {
+      // Underweight: recommend compound push
+      return {
+        primary: 'push',
+        cards: [
+          { type: 'push' as const, label: 'Push', count: PPL_PLANS.push.length, recommended: true, action: () => loadPPLPlan('push') },
+          { type: 'pull' as const, label: 'Pull', count: PPL_PLANS.pull.length, recommended: false, action: () => loadPPLPlan('pull') },
+          { type: 'legs' as const, label: 'Legs', count: PPL_PLANS.legs.length, recommended: false, action: () => loadPPLPlan('legs') },
+          { type: 'custom' as const, label: 'Custom', count: 0, recommended: false, action: openCustom },
+        ],
+      };
+    }
+
+    // Normal BMI
+    if (goal === 'muscle_gain') {
+      return {
+        primary: 'push',
+        cards: [
+          { type: 'push' as const, label: 'Push', count: PPL_PLANS.push.length, recommended: true, action: () => loadPPLPlan('push') },
+          { type: 'pull' as const, label: 'Pull', count: PPL_PLANS.pull.length, recommended: false, action: () => loadPPLPlan('pull') },
+          { type: 'legs' as const, label: 'Legs', count: PPL_PLANS.legs.length, recommended: false, action: () => loadPPLPlan('legs') },
+          { type: 'custom' as const, label: 'Custom', count: 0, recommended: false, action: openCustom },
+        ],
+      };
+    }
+
+    if (goal === 'fat_loss') {
+      return {
+        primary: 'full_body',
+        cards: [
+          { type: 'full_body' as const, label: 'Full Body', count: FULL_BODY_PLAN.length, recommended: true, action: loadFullBodyPlan },
+          { type: 'push' as const, label: 'Push', count: PPL_PLANS.push.length, recommended: false, action: () => loadPPLPlan('push') },
+          { type: 'legs' as const, label: 'Legs', count: PPL_PLANS.legs.length, recommended: false, action: () => loadPPLPlan('legs') },
+          { type: 'custom' as const, label: 'Custom', count: 0, recommended: false, action: openCustom },
+        ],
+      };
+    }
+
+    // Maintenance / default
+    return {
+      primary: null,
+      cards: [
+        { type: 'push' as const, label: 'Push', count: PPL_PLANS.push.length, recommended: false, action: () => loadPPLPlan('push') },
+        { type: 'pull' as const, label: 'Pull', count: PPL_PLANS.pull.length, recommended: false, action: () => loadPPLPlan('pull') },
+        { type: 'legs' as const, label: 'Legs', count: PPL_PLANS.legs.length, recommended: false, action: () => loadPPLPlan('legs') },
+        { type: 'custom' as const, label: 'Custom', count: 0, recommended: false, action: openCustom },
+      ],
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, exercises]);
+
   return (
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="font-display text-5xl text-white leading-none">WORKOUT LOGGER</h1>
+        <h1 className="font-display text-3xl sm:text-5xl text-white leading-none">WORKOUT LOGGER</h1>
         <p className="text-sm text-slate-400 mt-0.5">Track your training sessions</p>
       </div>
 
@@ -322,43 +460,73 @@ export default function WorkoutPage() {
 
       {/* Status banners */}
       {!showForm && alreadyLoggedToday && (
-        <div className="bg-red-600/10 border border-red-600/30 rounded-xl p-4">
-          <p className="text-red-300 text-sm font-medium">✓ Workout logged for today!</p>
-          <p className="text-slate-500 text-xs mt-1">Great work! See you tomorrow.</p>
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          <div>
+            <p className="text-emerald-300 text-sm font-medium">Workout logged today! 💪</p>
+            <p className="text-slate-500 text-xs mt-0.5">You can log another session — keep it up!</p>
+          </div>
         </div>
       )}
 
+      {/* ── Check-in gate ── */}
       {!showForm && checkedInToday === false && !alreadyLoggedToday && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-          <p className="text-amber-300 text-sm font-medium">⚠ Gym check-in required</p>
-          <p className="text-slate-500 text-xs mt-1">Check in at the gym before logging a workout.</p>
+        <div className="glass-card rounded-2xl p-6 border-amber-500/25 bg-amber-500/5 flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+            <QrCode className="w-7 h-7 text-amber-400" />
+          </div>
+          <div>
+            <p className="text-base font-bold text-white">Check in first</p>
+            <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+              You must scan your QR code at the gym before you can log a workout for today.
+            </p>
+          </div>
+          <Link
+            href="/checkin"
+            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold px-5 py-2.5 rounded-xl transition-all active:scale-95"
+          >
+            <QrCode className="w-4 h-4" /> Go to Check-In
+          </Link>
         </div>
       )}
 
       {/* Quick-start cards */}
       {!showForm && (
-        <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Quick Start</p>
+        <div className={checkedInToday === false ? 'opacity-30 pointer-events-none select-none' : ''}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Quick Start</p>
+            {quickStartConfig.primary && profile?.bmiCategory && checkedInToday !== false && (
+              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                <Star className="w-3 h-3 text-amber-400" />
+                Based on your {profile.bmiCategory} BMI
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {(['push', 'pull', 'legs'] as const).map((t) => (
+            {quickStartConfig.cards.map((card) => (
               <button
-                key={t}
-                onClick={() => loadPPLPlan(t)}
-                disabled={alreadyLoggedToday}
-                className="glass-card p-4 text-left hover:border-red-600/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
+                key={card.type}
+                onClick={card.action}
+                disabled={checkedInToday === false}
+                className={`relative glass-card p-4 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-98 ${
+                  card.recommended
+                    ? 'border-amber-500/40 hover:border-amber-500/70 bg-amber-500/5'
+                    : card.type === 'custom'
+                    ? 'hover:border-red-600/50 border-dashed'
+                    : 'hover:border-red-600/50'
+                }`}
               >
-                <div className={`text-lg font-bold ${TYPE_COLORS[t]} mb-1`}>{TYPE_LABELS[t]}</div>
-                <div className="text-xs text-slate-500">{PPL_PLANS[t].length} exercises</div>
+                {card.recommended && (
+                  <div className="absolute -top-2 -right-2 bg-amber-500 text-[9px] font-bold text-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-md">
+                    <Star className="w-2.5 h-2.5 fill-current" /> REC
+                  </div>
+                )}
+                <div className={`text-lg font-bold ${TYPE_COLORS[card.type] || 'text-red-400'} mb-1`}>{card.label}</div>
+                <div className="text-xs text-slate-500">
+                  {card.count > 0 ? `${card.count} exercises` : 'Build your own'}
+                </div>
               </button>
             ))}
-            <button
-              onClick={openCustom}
-              disabled={alreadyLoggedToday}
-              className="glass-card p-4 text-left hover:border-red-600/50 transition-all border-dashed disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
-            >
-              <div className="text-lg font-bold text-red-400 mb-1">Custom</div>
-              <div className="text-xs text-slate-500">Build your own</div>
-            </button>
           </div>
         </div>
       )}
@@ -623,17 +791,37 @@ export default function WorkoutPage() {
       {/* ── Workout History ── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-white">Last 14 Days</h2>
-          <span className="text-xs text-slate-500">{workouts.length} sessions</span>
+          <h2 className="font-semibold text-white">History</h2>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setHistoryOffset(o => o - 1)}
+              className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 text-slate-400" />
+            </button>
+            <span className="text-xs text-slate-400 min-w-[80px] text-center">{historyLabel}</span>
+            <button
+              onClick={() => setHistoryOffset(o => Math.min(o + 1, 0))}
+              disabled={historyOffset === 0}
+              className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors disabled:opacity-30"
+            >
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
         </div>
         <div className="space-y-2">
-          {workouts.length === 0 && !showForm && (
+          {filteredWorkouts.length === 0 && !showForm && (
             <div className="glass-card p-10 text-center">
               <Dumbbell className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-              <p className="text-slate-400">No workouts yet. Pick a plan above!</p>
+              <p className="text-slate-400">
+                {workouts.length === 0 ? 'No workouts yet. Pick a plan above!' : 'No workouts this week'}
+              </p>
+              {workouts.length > 0 && filteredWorkouts.length === 0 && (
+                <p className="text-xs text-slate-600 mt-1">Navigate back to see past workouts</p>
+              )}
             </div>
           )}
-          {workouts.map((w) => {
+          {filteredWorkouts.map((w) => {
             type E = { id: string; weight: number; reps: number; sets: number; exercises?: { id: string; name: string; category: string; muscle_group?: string } };
             const rawEntries = (w.workout_entries || w.entries || []) as unknown as E[];
 

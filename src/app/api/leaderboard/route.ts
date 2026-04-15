@@ -20,9 +20,17 @@ export async function GET(req: NextRequest) {
 
   if (!exercises) return NextResponse.json({ error: 'Failed to fetch exercises' }, { status: 500 });
 
+  // Fetch all exercise IDs that have at least one PR (= "tracked" exercises)
+  const { data: allPRs } = await supabaseAdmin
+    .from('prs')
+    .select('exercise_id')
+    .gt('max_weight', 0);
+
+  const exercisesWithPRs = [...new Set((allPRs || []).map((p) => p.exercise_id))] as string[];
+
   const targetExerciseId = exerciseId || (exercises[0]?.id ?? null);
   if (!targetExerciseId) {
-    return NextResponse.json({ leaderboard: [], exercises });
+    return NextResponse.json({ leaderboard: [], exercises, exercises_with_prs: exercisesWithPRs });
   }
 
   const { data: prs } = await supabaseAdmin
@@ -38,5 +46,10 @@ export async function GET(req: NextRequest) {
     is_current_user: (pr.users as unknown as { id: string })?.id === payload.userId,
   }));
 
-  return NextResponse.json({ leaderboard: ranked, exercises, selected_exercise_id: targetExerciseId });
+  return NextResponse.json({
+    leaderboard: ranked,
+    exercises,
+    selected_exercise_id: targetExerciseId,
+    exercises_with_prs: exercisesWithPRs,
+  });
 }

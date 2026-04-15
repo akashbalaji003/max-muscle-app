@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
+import InstagramGallery from '@/components/InstagramGallery';
 
 // ─── Replace these with your real values ────────────────────────────────────
 const GYM_PHONE      = '07530007329';
@@ -10,6 +11,13 @@ const GYM_INSTAGRAM  = 'https://www.instagram.com/maximum_muscle_fitness_studio/
 const MAPS_EMBED_URL = 'https://maps.google.com/maps?q=Maximum+Muscle+Lifestyle+Fitness+Studio&output=embed&z=16';
 const MAPS_OPEN_URL  = 'https://www.google.com/maps/search/Maximum+Muscle+Lifestyle+Fitness+Studio';
 const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1&destination=Maximum+Muscle+Lifestyle+Fitness+Studio';
+
+// ─── Gallery: local video files in /public/videos/ ───────────────────────────
+const GALLERY_POSTS = [
+  { src: '/videos/reel1.mp4', caption: 'Latest Reel'          },
+  { src: '/videos/reel2.mp4', caption: 'Workout Highlight'    },
+  { src: '/videos/reel3.mp4', caption: 'Transformation Story' },
+];
 // ────────────────────────────────────────────────────────────────────────────
 
 const HOURS = [
@@ -87,6 +95,41 @@ export default function LandingPage() {
             <div className="lg:max-w-[280px] flex flex-col gap-5 lg:pb-4">
               <div className="h-px w-full bg-gradient-to-r from-indigo-500/40 to-transparent lg:hidden" />
 
+              {/* Gym photo
+                  Mobile : aspect-[4/3] (landscape, compact) + CTA buttons overlaid at bottom
+                  Desktop: aspect-square — no overlay (buttons live below as usual)       */}
+              <div className="relative w-full overflow-hidden rounded-2xl border border-white/8 shadow-xl shadow-black/60 aspect-[4/3] sm:aspect-square">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/gym-hero.jpg"
+                  alt="Maximum Muscle Fitness Studio"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                {/* Subtle inner vignette */}
+                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/5 pointer-events-none" />
+
+                {/* ── Mobile-only CTA overlay ──────────────────────────────────
+                    Buttons sit on the lower third of the image so they are
+                    immediately visible without scrolling. Hidden on sm+.       */}
+                <div className="sm:hidden absolute inset-x-0 bottom-0 z-10">
+                  {/* gradient scrim so text stays readable over any photo */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-transparent" />
+                  <div className="relative px-4 pb-4 pt-12 flex flex-col gap-2">
+                    <Link href="/signup"
+                      className="flex items-center justify-between bg-red-600 active:bg-red-700 text-white font-semibold px-5 py-3 rounded-xl text-sm shadow-lg shadow-red-900/50 active:scale-[0.98] transition-all duration-150">
+                      <span>Join Now</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </Link>
+                    <Link href="/login"
+                      className="flex items-center justify-between bg-black/50 backdrop-blur-sm active:bg-black/70 text-slate-100 font-medium px-5 py-3 rounded-xl text-sm border border-white/15 active:scale-[0.98] transition-all duration-150">
+                      <span>Member Login</span>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               <p className="text-sm text-slate-400 leading-relaxed">
                 Your transformation starts here. State-of-the-art equipment, expert trainers,
                 and a community that pushes you further every single day.
@@ -98,7 +141,8 @@ export default function LandingPage() {
                 {GYM_PHONE}
               </a>
 
-              <div className="flex flex-col gap-2.5">
+              {/* Desktop CTA — hidden on mobile (buttons are overlaid on image above) */}
+              <div className="hidden sm:flex flex-col gap-2.5">
                 <Link href="/signup"
                   className="group relative bg-red-700 hover:bg-red-600 text-white font-semibold px-6 py-3.5 rounded-xl text-sm shadow-xl shadow-red-900/40 flex items-center justify-between overflow-hidden transition-all">
                   <span>Join Now</span>
@@ -196,7 +240,7 @@ export default function LandingPage() {
           {/* Reviews */}
           <div className="flex flex-col gap-4 h-full">
             <div className="flex-shrink-0">
-              <h2 className="font-display text-3xl lg:text-4xl text-white tracking-wide leading-none whitespace-nowrap">WHAT MEMBERS SAY</h2>
+              <h2 className="font-display text-2xl lg:text-4xl text-white tracking-wide leading-none">WHAT MEMBERS SAY</h2>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex gap-0.5">
                   {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
@@ -211,7 +255,7 @@ export default function LandingPage() {
           {/* Instagram */}
           <div className="flex flex-col gap-4 h-full">
             <div className="flex-shrink-0">
-              <h2 className="font-display text-3xl lg:text-4xl text-white tracking-wide leading-none whitespace-nowrap">FOLLOW OUR JOURNEY</h2>
+              <h2 className="font-display text-2xl lg:text-4xl text-white tracking-wide leading-none">FOLLOW OUR JOURNEY</h2>
               <p className="text-sm text-slate-500 mt-2">See transformations &amp; daily highlights</p>
             </div>
             <a
@@ -242,15 +286,46 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Gallery ──────────────────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
+        <div className="flex items-baseline gap-3 mb-6">
+          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Gallery</span>
+        </div>
+
+        {/* Section heading + Instagram handle link */}
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+          <div>
+            <h2 className="font-display text-3xl sm:text-5xl text-white tracking-wide leading-none">
+              LATEST REELS
+            </h2>
+            <p className="text-sm text-slate-500 mt-2">
+              Follow our journey on Instagram
+            </p>
+          </div>
+          <a
+            href={GYM_INSTAGRAM}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors"
+          >
+            @maximum_muscle_fitness_studio
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        <InstagramGallery posts={GALLERY_POSTS} instagramUrl={GYM_INSTAGRAM} />
+      </section>
+
       {/* ── Map ──────────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">04</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="font-display text-4xl sm:text-5xl text-white tracking-wide leading-none">FIND US</h2>
+          <h2 className="font-display text-3xl sm:text-5xl text-white tracking-wide leading-none">FIND US</h2>
           <div className="flex gap-2">
             <a
               href={MAPS_OPEN_URL}

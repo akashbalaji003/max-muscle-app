@@ -203,7 +203,7 @@ export async function GET(req: NextRequest) {
   const [workoutsRes, userRes, prsRes, attendanceRes, weightLogsRes] = await Promise.all([
     supabaseAdmin
       .from('workouts')
-      .select(`id, date, workout_type, duration_seconds, workout_entries(weight, reps, sets, exercises(category))`)
+      .select(`id, date, workout_type, duration_seconds, workout_entries(weight, reps, sets, exercises(id, name, category))`)
       .eq('user_id', userId)
       .order('date', { ascending: true }),
 
@@ -257,7 +257,7 @@ export async function GET(req: NextRequest) {
   let totalVolume = 0;
   const bodyPartCounts: Record<string, number> = {};
 
-  type WEntry = { weight: number; reps: number; sets: number; exercises: { category: string } };
+  type WEntry = { weight: number; reps: number; sets: number; exercises: { name: string; category: string } };
 
   for (const w of workouts) {
     for (const entry of (w.workout_entries as unknown as WEntry[])) {
@@ -288,9 +288,13 @@ export async function GET(req: NextRequest) {
 
   for (const w of workouts) {
     const dur = (w.duration_seconds as number) || 0;
-    if (dur === 0) continue;
-    const met = getMET((w.workout_type as string) || 'custom', dur);
-    const cal = calcCalories(userWeightKg, met, dur);
+    // If no timer was used, estimate duration: ~4 min/set, minimum 30 min
+    const effectiveDur = dur > 0 ? dur : (() => {
+      const totalSets = (w.workout_entries as unknown as WEntry[]).reduce((n, e) => n + (e.sets || 1), 0);
+      return Math.max(totalSets * 240, 1800);
+    })();
+    const met = getMET((w.workout_type as string) || 'custom', effectiveDur);
+    const cal = calcCalories(userWeightKg, met, effectiveDur);
     const d = w.date as string;
     calByDate[d] = (calByDate[d] || 0) + cal;
     totalCalories += cal;
@@ -390,5 +394,19 @@ export async function GET(req: NextRequest) {
 
     // New: recommendations
     recommendation,
+
+    // Raw workout records — used by the client to compute dynamic date-range charts
+    rawWorkouts: workouts.map((w) => ({
+      date: w.date as string,
+      workout_type: (w.workout_type as string) || 'custom',
+      duration_seconds: (w.duration_seconds as number) || 0,
+      workout_entries: ((w.workout_entries as unknown as WEntry[]) || []).map((e) => ({
+        weight: e.weight,
+        reps: e.reps,
+        sets: e.sets,
+        exercises: e.exercises ? { category: e.exercises.category, name: e.exercises.name } : null,
+      })),
+    })),
+    userWeightKg,
   });
 }

@@ -1,10 +1,20 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Loader, QrCode, ArrowLeft } from 'lucide-react';
+import { CheckCircle, XCircle, Loader, QrCode, ArrowLeft, Dumbbell } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
 type Status = 'idle' | 'loading' | 'success' | 'already' | 'error' | 'unauthorized' | 'expired';
+
+/** Format: "15 April 2026" */
+function formatDateLarge(date: Date): string {
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/** Format: "7:42 AM" */
+function formatTimeFmt(date: Date): string {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
 
 export default function CheckInPage() {
   const [status, setStatus] = useState<Status>('idle');
@@ -12,10 +22,10 @@ export default function CheckInPage() {
   const [userName, setUserName] = useState('');
   const [memberDays, setMemberDays] = useState<number | null>(null);
   const [checkinTime, setCheckinTime] = useState('');
+  const [checkinDate, setCheckinDate] = useState('');
 
   useEffect(() => {
     async function init() {
-      // Load user profile
       const meRes = await fetch('/api/auth/me');
       if (meRes.status === 401) { setStatus('unauthorized'); return; }
       const meData = await meRes.json();
@@ -26,17 +36,15 @@ export default function CheckInPage() {
         setMemberDays(diff);
       }
 
-      // Check if already checked in today
       const attRes = await fetch('/api/attendance/history?limit=1');
       if (attRes.ok) {
         const attData = await attRes.json();
         const today = new Date().toISOString().split('T')[0];
         const record = attData.attendance?.[0];
         if (record?.date === today) {
-          const time = new Date(record.checked_in_at).toLocaleTimeString('en-US', {
-            hour: '2-digit', minute: '2-digit',
-          });
-          setCheckinTime(time);
+          const ts = new Date(record.checked_in_at);
+          setCheckinTime(formatTimeFmt(ts));
+          setCheckinDate(formatDateLarge(ts));
           setStatus('already');
         }
       }
@@ -51,10 +59,9 @@ export default function CheckInPage() {
 
     if (res.status === 401) { setStatus('unauthorized'); return; }
     if (res.status === 409) {
-      const time = data.checked_in_at
-        ? new Date(data.checked_in_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        : '';
-      setCheckinTime(time);
+      const ts = data.checked_in_at ? new Date(data.checked_in_at) : new Date();
+      setCheckinTime(formatTimeFmt(ts));
+      setCheckinDate(formatDateLarge(ts));
       setStatus('already');
       setMessage(data.error);
       return;
@@ -62,54 +69,14 @@ export default function CheckInPage() {
     if (res.status === 403) { setStatus('expired'); setMessage(data.error); return; }
     if (!res.ok) { setStatus('error'); setMessage(data.error || 'Check-in failed'); return; }
 
-    const time = data.attendance?.checked_in_at
-      ? new Date(data.attendance.checked_in_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-      : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    setCheckinTime(time);
+    const ts = data.attendance?.checked_in_at ? new Date(data.attendance.checked_in_at) : new Date();
+    setCheckinTime(formatTimeFmt(ts));
+    setCheckinDate(formatDateLarge(ts));
     setStatus('success');
     setMessage(data.message);
   }
 
-  const statusConfig = {
-    success: {
-      icon: <CheckCircle className="w-16 h-16 text-emerald-400" />,
-      title: 'Checked In! 🎉',
-      sub: checkinTime ? `Checked in at ${checkinTime}. Have a great workout!` : 'Have a great workout today!',
-      ringColor: 'bg-emerald-500/20',
-      border: 'border-emerald-500/30',
-    },
-    already: {
-      icon: <CheckCircle className="w-16 h-16 text-red-400" />,
-      title: 'Already Checked In',
-      sub: checkinTime ? `You checked in at ${checkinTime}. See you tomorrow!` : 'You already checked in today.',
-      ringColor: 'bg-red-600/20',
-      border: 'border-red-600/30',
-    },
-    expired: {
-      icon: <XCircle className="w-16 h-16 text-red-400" />,
-      title: 'Membership Expired',
-      sub: message || 'Please renew your membership to check in.',
-      ringColor: 'bg-red-500/20',
-      border: 'border-red-500/30',
-    },
-    error: {
-      icon: <XCircle className="w-16 h-16 text-red-400" />,
-      title: 'Check-in Failed',
-      sub: message || 'Something went wrong. Please try again.',
-      ringColor: 'bg-red-500/20',
-      border: 'border-red-500/30',
-    },
-    unauthorized: {
-      icon: <QrCode className="w-16 h-16 text-amber-400" />,
-      title: 'Sign In Required',
-      sub: 'Please sign in to your FitHub account to check in.',
-      ringColor: 'bg-amber-500/20',
-      border: 'border-amber-500/30',
-    },
-  };
-
-  const config = status !== 'idle' && status !== 'loading' ? statusConfig[status] : null;
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const todayDisplay = formatDateLarge(new Date());
 
   return (
     <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
@@ -128,15 +95,18 @@ export default function CheckInPage() {
           </Link>
         </div>
 
-        {/* Gym logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+        {/* Gym logo — Max Muscle branding */}
+        <div className="flex items-center justify-center gap-2.5 mb-8">
           <div className="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40">
-            <QrCode className="w-5 h-5 text-white" />
+            <Dumbbell className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold gradient-text">FitHub Gym</span>
+          <div className="text-left">
+            <span className="text-xl font-bold gradient-text block leading-none">MAX MUSCLE</span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest">Check-In</span>
+          </div>
         </div>
 
-        {/* Idle state */}
+        {/* ── Idle state ── */}
         {status === 'idle' && (
           <div className="glass-card p-8 text-center">
             {userName && (
@@ -152,16 +122,16 @@ export default function CheckInPage() {
                 <QrCode className="w-12 h-12 text-red-400" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Gym Check-In</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Max Muscle Check-In</h1>
             <p className="text-slate-400 text-sm mb-8">Tap below to record your attendance for today.</p>
             <Button onClick={handleCheckIn} size="lg" className="w-full text-base min-h-[52px]">
               Check In Now
             </Button>
-            <p className="text-xs text-slate-600 mt-4">{today}</p>
+            <p className="text-xs text-slate-600 mt-4">{todayDisplay}</p>
           </div>
         )}
 
-        {/* Loading state */}
+        {/* ── Loading state ── */}
         {status === 'loading' && (
           <div className="glass-card p-12 flex flex-col items-center gap-4">
             <Loader className="w-10 h-10 text-red-400 animate-spin" />
@@ -169,30 +139,129 @@ export default function CheckInPage() {
           </div>
         )}
 
-        {/* Result states */}
-        {config && (
-          <div className={`glass-card p-8 text-center border ${config.border}`}>
-            <div className={`w-20 h-20 ${config.ringColor} rounded-full flex items-center justify-center mx-auto mb-6`}>
-              {config.icon}
+        {/* ── Success state ── */}
+        {status === 'success' && (
+          <div className="glass-card p-8 text-center border border-emerald-500/30">
+            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-emerald-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">{config.title}</h1>
-            <p className="text-slate-400 text-sm mb-8">{config.sub}</p>
+
+            {/* Gym name */}
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+              Max Muscle Check-In
+            </p>
+
+            {/* Large date */}
+            <p className="font-display text-4xl sm:text-5xl text-white leading-none mb-2">
+              {checkinDate}
+            </p>
+
+            {/* Time */}
+            <p className="text-xl text-emerald-400 font-semibold mb-6">{checkinTime}</p>
+
+            <p className="text-emerald-300 text-sm font-medium mb-8">
+              ✅ Checked In — Have a great workout!
+            </p>
+
             <div className="space-y-3">
-              {status === 'unauthorized' && (
-                <Link href="/login">
-                  <Button className="w-full min-h-[48px]" size="lg">Sign In</Button>
-                </Link>
-              )}
-              {status === 'error' && (
-                <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px]">
-                  Try Again
-                </Button>
-              )}
+              <Link href="/workout">
+                <Button className="w-full min-h-[48px]" size="lg">Start Workout</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── Already checked in ── */}
+        {status === 'already' && (
+          <div className="glass-card p-8 text-center border border-red-600/30">
+            <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-red-400" />
+            </div>
+
+            {/* Gym name */}
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+              Max Muscle Check-In
+            </p>
+
+            {/* Large date */}
+            <p className="font-display text-4xl sm:text-5xl text-white leading-none mb-2">
+              {checkinDate || todayDisplay}
+            </p>
+
+            {/* Time */}
+            {checkinTime && (
+              <p className="text-xl text-red-400 font-semibold mb-6">{checkinTime}</p>
+            )}
+
+            <p className="text-slate-400 text-sm mb-8">Already checked in today. See you tomorrow!</p>
+
+            <div className="space-y-3">
+              <Link href="/workout">
+                <Button className="w-full min-h-[48px]" size="lg">Log a Workout</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── Expired ── */}
+        {status === 'expired' && (
+          <div className="glass-card p-8 text-center border border-red-500/30">
+            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="w-10 h-10 text-red-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Membership Expired</h1>
+            <p className="text-slate-400 text-sm mb-8">{message || 'Please renew your membership to check in.'}</p>
+            <div className="space-y-3">
               <Link href="/dashboard">
                 <Button variant="ghost" className="w-full min-h-[48px]">Go to Dashboard</Button>
               </Link>
             </div>
-            <p className="text-xs text-slate-700 mt-6">{today}</p>
+            <p className="text-xs text-slate-700 mt-6">{todayDisplay}</p>
+          </div>
+        )}
+
+        {/* ── Error ── */}
+        {status === 'error' && (
+          <div className="glass-card p-8 text-center border border-red-500/30">
+            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="w-10 h-10 text-red-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Check-in Failed</h1>
+            <p className="text-slate-400 text-sm mb-8">{message || 'Something went wrong. Please try again.'}</p>
+            <div className="space-y-3">
+              <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px]">
+                Try Again
+              </Button>
+              <Link href="/dashboard">
+                <Button variant="ghost" className="w-full min-h-[48px]">Go to Dashboard</Button>
+              </Link>
+            </div>
+            <p className="text-xs text-slate-700 mt-6">{todayDisplay}</p>
+          </div>
+        )}
+
+        {/* ── Unauthorized ── */}
+        {status === 'unauthorized' && (
+          <div className="glass-card p-8 text-center border border-amber-500/30">
+            <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <QrCode className="w-10 h-10 text-amber-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Sign In Required</h1>
+            <p className="text-slate-400 text-sm mb-8">Please sign in to your Max Muscle account to check in.</p>
+            <div className="space-y-3">
+              <Link href="/login">
+                <Button className="w-full min-h-[48px]" size="lg">Sign In</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>
+              </Link>
+            </div>
           </div>
         )}
       </div>

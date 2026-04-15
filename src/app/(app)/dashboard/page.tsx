@@ -20,7 +20,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 const TYPE_LABELS: Record<string, string> = { push: 'Push', pull: 'Pull', legs: 'Legs', custom: 'Custom' };
 
-interface DashUser { id: string; phone_number: string; name: string | null }
+interface DashUser { id: string; phone_number: string; name: string | null; avatar_url?: string | null }
 interface Membership { start_date: string; end_date: string; active: boolean }
 interface AnalyticsSnap {
   totalWorkouts: number;
@@ -108,14 +108,24 @@ export default function DashboardPage() {
       {/* Header */}
       <div>
         <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500">{greeting()}</p>
-        <h1 className="font-display text-5xl text-white leading-none mt-1">
-          {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
-        </h1>
+        <div className="flex items-center gap-3 mt-1">
+          {user?.avatar_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatar_url}
+              alt="Profile"
+              className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-red-500/40"
+            />
+          )}
+          <h1 className="font-display text-3xl sm:text-5xl text-white leading-none truncate">
+            {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
+          </h1>
+        </div>
       </div>
 
       {/* Badge strip — show only if badges earned */}
       {earnedBadges.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
           {earnedBadges.map((b) => (
             <div key={b.type} title={b.description}
               className="flex-shrink-0 flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full text-xs text-amber-300 whitespace-nowrap">

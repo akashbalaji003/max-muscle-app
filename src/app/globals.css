@@ -376,3 +376,4 @@ tbody tr {
   transition: height 0.3s ease;
 }
 .accent-border-card:hover::before { height: 100%; }
+

@@ -33,20 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Only one workout per day
-    const { data: existingWorkout } = await supabaseAdmin
-      .from('workouts')
-      .select('id')
-      .eq('user_id', payload.userId)
-      .eq('date', workoutDate)
-      .single();
-
-    if (existingWorkout) {
-      return NextResponse.json(
-        { error: 'You have already logged a workout today.' },
-        { status: 409 }
-      );
-    }
+    // Multiple workouts per day are allowed — no 409 restriction
 
     const { data: workout, error: workoutError } = await supabaseAdmin
       .from('workouts')

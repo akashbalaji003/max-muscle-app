@@ -3,10 +3,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard, Dumbbell, BarChart2, Trophy, Camera,
-  LogOut, QrCode, Menu, X, ChevronLeft,
+  LayoutDashboard, Dumbbell, BarChart2, Trophy, Users,
+  LogOut, QrCode, Menu, ChevronLeft, UserCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ThemeToggle from '@/components/ThemeToggle';
 
 const NAV_ITEMS = [
@@ -14,8 +14,9 @@ const NAV_ITEMS = [
   { href: '/workout',     label: 'Workout',  icon: Dumbbell },
   { href: '/analytics',   label: 'Stats',    icon: BarChart2 },
   { href: '/leaderboard', label: 'Board',    icon: Trophy },
-  { href: '/progress',    label: 'Progress', icon: Camera },
+  { href: '/progress',    label: 'Social',   icon: Users },
   { href: '/checkin',     label: 'Check-In', icon: QrCode },
+  { href: '/profile',     label: 'Profile',  icon: UserCircle },
 ];
 
 const PAGE_META: Record<string, { title: string; back?: string }> = {
@@ -23,18 +24,27 @@ const PAGE_META: Record<string, { title: string; back?: string }> = {
   '/workout':     { title: 'Workout Logger', back: '/dashboard' },
   '/analytics':   { title: 'Analytics',      back: '/dashboard' },
   '/leaderboard': { title: 'Leaderboard',    back: '/dashboard' },
-  '/progress':    { title: 'Progress Feed',  back: '/dashboard' },
+  '/progress':    { title: 'Social Feed',    back: '/dashboard' },
   '/checkin':     { title: 'Check-In',       back: '/dashboard' },
+  '/profile':     { title: 'Profile',        back: '/dashboard' },
 };
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [me, setMe] = useState<{ name?: string | null; avatar_url?: string | null; phone_number?: string } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => d?.user && setMe(d.user))
+      .catch(() => null);
+  }, []);
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
+    router.push('/');
   }
 
   const meta = PAGE_META[pathname] || { title: 'Max Muscle' };
@@ -80,6 +90,28 @@ export default function Sidebar() {
 
       {/* Bottom section */}
       <div className="p-3 border-t border-white/5 space-y-0.5">
+        {/* User chip */}
+        {me && (
+          <Link
+            href="/profile"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-all mb-1"
+          >
+            {me.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={me.avatar_url} alt="avatar" className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-red-500/40" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-red-700/30 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-300 text-xs font-bold">
+                  {(me.name || me.phone_number || '?').slice(0, 1).toUpperCase()}
+                </span>
+              </div>
+            )}
+            <span className="text-sm text-slate-300 font-medium truncate flex-1">
+              {me.name || me.phone_number?.slice(-6) || 'My Profile'}
+            </span>
+          </Link>
+        )}
         <ThemeToggle />
         <button
           onClick={handleLogout}
@@ -140,7 +172,7 @@ export default function Sidebar() {
       </div>
 
       {/* Mobile bottom navigation bar */}
-      <nav className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0f0f0f]/98 backdrop-blur-xl border-t border-white/8 grid grid-cols-6">
+      <nav className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0f0f0f]/98 backdrop-blur-xl border-t border-white/8 grid grid-cols-7">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
@@ -172,12 +204,6 @@ export default function Sidebar() {
             onClick={() => setMobileOpen(false)}
           />
           <div className="relative w-64 bg-[#0f0f0f] h-full flex flex-col shadow-2xl slide-up">
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white z-10 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              <X className="w-5 h-5" />
-            </button>
             <NavContent />
           </div>
         </div>

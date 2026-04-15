@@ -172,6 +172,64 @@ export interface CalorieStats {
   dailyBreakdown: { date: string; calories: number }[];
 }
 
+// Raw workout record shipped from API for client-side dynamic computation
+export interface RawWorkout {
+  date: string;
+  workout_type: string;
+  duration_seconds: number;
+  workout_entries: {
+    weight: number;
+    reps: number;
+    sets: number;
+    exercises: { category: string; name: string } | null;
+  }[];
+}
+
+// ── Social Platform Types ─────────────────────────────────────────────────────
+
+export interface SocialPost extends ProgressPhoto {
+  users: Pick<User, 'id' | 'name' | 'phone_number' | 'avatar_url'>;
+  like_count:          number;
+  comment_count:       number;
+  liked_by_me:         boolean;
+  is_following_author: boolean;
+}
+
+export interface PostComment {
+  id:         string;
+  user_id:    string;
+  post_id:    string;
+  body:       string;
+  created_at: string;
+  users: Pick<User, 'id' | 'name' | 'phone_number' | 'avatar_url'>;
+}
+
+export type ActivityType = 'like' | 'comment' | 'follow' | 'pr_highlight' | 'streak';
+
+export interface ActivityItem {
+  id:           string;
+  recipient_id: string;
+  actor_id:     string;
+  type:         ActivityType;
+  post_id:      string | null;
+  comment_id:   string | null;
+  meta:         Record<string, string | number> | null;
+  read:         boolean;
+  created_at:   string;
+  actor:  Pick<User, 'id' | 'name' | 'phone_number' | 'avatar_url'> | null;
+  post:   { id: string; image_url: string } | null;
+}
+
+export interface SuggestedUser {
+  id:           string;
+  name:         string | null;
+  phone_number: string;
+  avatar_url:   string | null;
+  created_at:   string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface EnhancedAnalyticsData extends AnalyticsData {
   // Body
   bodyMetrics: BodyMetrics;
@@ -192,4 +250,8 @@ export interface EnhancedAnalyticsData extends AnalyticsData {
 
   // Recommendations
   recommendation: WorkoutRecommendation | null;
+
+  // Raw workout data for dynamic client-side chart computation
+  rawWorkouts: RawWorkout[];
+  userWeightKg: number;
 }

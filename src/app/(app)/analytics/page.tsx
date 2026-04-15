@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Dumbbell, Flame, TrendingUp, Weight, ChevronLeft, ChevronRight,
   Activity, Target, Award, Calendar, Zap, AlertCircle, CheckCircle,
-  BarChart2, User,
+  BarChart2, User, X,
 } from 'lucide-react';
 import { StatCard } from '@/components/ui/Card';
 import { formatVolume, CATEGORY_COLORS } from '@/lib/utils';
@@ -12,8 +12,12 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid,
 } from 'recharts';
-import type { EnhancedAnalyticsData, WeightLog } from '@/types';
-import { format, subWeeks, addWeeks, subMonths, addMonths, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
+import type { EnhancedAnalyticsData, WeightLog, RawWorkout } from '@/types';
+import {
+  format, addDays, subWeeks, addWeeks, startOfWeek,
+  subMonths, startOfMonth, endOfMonth,
+  eachDayOfInterval, endOfWeek,
+} from 'date-fns';
 
 // ── Tooltip components ─────────────────────────────────────────────────────
 const VolumeTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
@@ -52,23 +56,167 @@ const WeightTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   return null;
 };
 
+const MonthTooltip = ({ active, payload, label }: { active?: boolean; payload?: { payload?: { label?: string }; value: number }[]; label?: string }) => {
+  if (active && payload?.length) {
+    const rangeLabel = payload[0]?.payload?.label;
+    return (
+      <div className="bg-[#0f0f0f] border border-white/10 rounded-xl px-3 py-2 text-sm">
+        <p className="text-slate-400">{label} {rangeLabel ? `(${rangeLabel})` : ''}</p>
+        <p className="text-white font-semibold">{payload[0].value} workout{payload[0].value !== 1 ? 's' : ''}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+// ── Client-side chart computation helpers ──────────────────────────────────
+
+/** Mirror of server MET logic */
+function getMET(type: string, secs: number): number {
+  const h = secs / 3600;
+  if (type === 'legs') return h > 1 ? 6 : 5;
+  if (type === 'push' || type === 'pull') return h > 1 ? 5.5 : 5;
+  return h > 1.5 ? 5 : 4;
+}
+
+/** Calories for one workout (estimates duration if timer wasn't used) */
+function workoutCalories(w: RawWorkout, weightKg: number): number {
+  const dur = w.duration_seconds > 0
+    ? w.duration_seconds
+    : Math.max(w.workout_entries.reduce((n, e) => n + (e.sets || 1), 0) * 240, 1800);
+  return Math.round(getMET(w.workout_type, dur) * weightKg * (dur / 3600));
+}
+
+/**
+ * Returns 7 ISO date strings for the week containing `weekOffset`.
+ * weekOffset=0 → current week, -1 → last week, etc.
+ * Week starts on SUNDAY (weekStartsOn: 0).
+ */
+function getWeekDates(weekOffset: number): string[] {
+  const today = new Date();
+  const base = weekOffset < 0 ? subWeeks(today, -weekOffset) : today;
+  const wStart = startOfWeek(base, { weekStartsOn: 0 }); // Sunday
+  return Array.from({ length: 7 }, (_, i) => format(addDays(wStart, i), 'yyyy-MM-dd'));
+}
+
+/** Weekly chart data: Sun → Sat for the selected weekOffset */
+function computeWeekly(
+  rawWorkouts: RawWorkout[],
+  weekOffset: number,
+  weightKg: number,
+): { date: string; fullDate: string; volume: number; calories: number }[] {
+  return getWeekDates(weekOffset).map((iso) => {
+    const dayWs = rawWorkouts.filter((w) => w.date === iso);
+    let vol = 0, cal = 0;
+    for (const w of dayWs) {
+      for (const e of w.workout_entries) vol += e.weight * e.reps * e.sets;
+      cal += workoutCalories(w, weightKg);
+    }
+    return {
+      date: format(new Date(iso + 'T12:00:00'), 'EEE'), // Sun, Mon, Tue, Wed, Thu, Fri, Sat
+      fullDate: iso,
+      volume: Math.round(vol),
+      calories: cal,
+    };
+  });
+}
+
+/**
+ * Monthly chart: groups workouts into fixed weekly bins within the month.
+ * W1=days 1-7, W2=8-14, W3=15-21, W4=22-28, W5=29+ (only if month has those days).
+ * Never produces invalid weeks like "W6".
+ */
+function computeMonthly(
+  rawWorkouts: RawWorkout[],
+  monthOffset: number,
+): { week: string; label: string; count: number; startDate: string; endDate: string }[] {
+  const today = new Date();
+  const base = monthOffset < 0 ? subMonths(today, -monthOffset) : today;
+  const mStart = startOfMonth(base);
+  const daysInMonth = endOfMonth(base).getDate();
+  const yr = mStart.getFullYear(), mo = mStart.getMonth();
+
+  const buckets: { week: string; label: string; count: number; startDate: string; endDate: string }[] = [];
+  let wn = 1;
+  for (let s = 1; s <= daysInMonth; s += 7) {
+    const e = Math.min(s + 6, daysInMonth);
+    const sd = format(new Date(yr, mo, s), 'yyyy-MM-dd');
+    const ed = format(new Date(yr, mo, e), 'yyyy-MM-dd');
+    const count = rawWorkouts.filter((w) => w.date >= sd && w.date <= ed).length;
+    buckets.push({ week: `W${wn}`, label: `${s}–${e}`, count, startDate: sd, endDate: ed });
+    wn++;
+  }
+  return buckets;
+}
+
+/**
+ * Body part distribution — filtered to `filterDates` if provided,
+ * otherwise aggregates all workouts.
+ */
+function computeBodyDist(
+  rawWorkouts: RawWorkout[],
+  filterDates: string[] | null,
+): { name: string; value: number }[] {
+  const counts: Record<string, number> = {};
+  const ws = filterDates ? rawWorkouts.filter((w) => filterDates.includes(w.date)) : rawWorkouts;
+  for (const w of ws) {
+    for (const e of w.workout_entries) {
+      const cat = e.exercises?.category || 'other';
+      counts[cat] = (counts[cat] || 0) + 1;
+    }
+  }
+  return Object.entries(counts).map(([name, value]) => ({ name, value }));
+}
+
+/**
+ * Exercise weight trend: max weight per workout date for a given exercise name.
+ */
+function computeExerciseTrend(
+  rawWorkouts: RawWorkout[],
+  exerciseName: string,
+): { date: string; maxWeight: number }[] {
+  const byDate: Record<string, number> = {};
+  for (const w of rawWorkouts) {
+    for (const e of w.workout_entries) {
+      if (e.exercises?.name === exerciseName && e.weight > 0) {
+        byDate[w.date] = Math.max(byDate[w.date] || 0, e.weight);
+      }
+    }
+  }
+  return Object.entries(byDate)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, maxWeight]) => ({
+      date: format(new Date(date + 'T12:00:00'), 'MMM d'),
+      maxWeight,
+    }));
+}
+
+/** All unique exercise names from rawWorkouts, sorted */
+function extractExerciseNames(rawWorkouts: RawWorkout[]): string[] {
+  const names = new Set<string>();
+  for (const w of rawWorkouts) {
+    for (const e of w.workout_entries) {
+      if (e.exercises?.name) names.add(e.exercises.name);
+    }
+  }
+  return Array.from(names).sort();
+}
+
 // ── BMI gauge ring ─────────────────────────────────────────────────────────
 function BMIGauge({ bmi, category }: { bmi: number; category: string }) {
-  const pct = Math.min(Math.max((bmi - 10) / 30, 0), 1); // 10–40 range → 0–1
+  const pct = Math.min(Math.max((bmi - 10) / 30, 0), 1);
   const color = category === 'Normal' ? '#10b981' : category === 'Overweight' ? '#f59e0b' : category === 'Obese' ? '#ef4444' : '#6366f1';
   const r = 52, cx = 64, cy = 64;
   const circ = 2 * Math.PI * r;
-  const dash = pct * circ * 0.75; // 270° arc
+  const dash = pct * circ * 0.75;
 
   return (
     <div className="flex flex-col items-center gap-1">
       <svg width={128} height={100} className="-mb-2">
-        {/* Track */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={10}
           strokeDasharray={`${circ * 0.75} ${circ * 0.25}`}
           strokeDashoffset={circ * 0.125}
           strokeLinecap="round" />
-        {/* Fill */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={10}
           strokeDasharray={`${dash} ${circ - dash}`}
           strokeDashoffset={circ * 0.125}
@@ -92,7 +240,7 @@ function StreakCalendar({ attendanceDates, weekOffset }: { attendanceDates: stri
 
   return (
     <div className="grid grid-cols-7 gap-1.5">
-      {['M','T','W','T','F','S','S'].map((d, i) => (
+      {['MON','TUE','WED','THU','FRI','SAT','SUN'].map((d, i) => (
         <div key={i} className="text-center text-[10px] text-slate-600 pb-0.5">{d}</div>
       ))}
       {days.map((day) => {
@@ -129,7 +277,7 @@ function MonthCalendar({ attendanceDates, monthOffset }: { attendanceDates: stri
   return (
     <div>
       <div className="grid grid-cols-7 gap-1 mb-1">
-        {['M','T','W','T','F','S','S'].map((d, i) => (
+        {['MON','TUE','WED','THU','FRI','SAT','SUN'].map((d, i) => (
           <div key={i} className="text-center text-[10px] text-slate-600">{d}</div>
         ))}
       </div>
@@ -157,7 +305,7 @@ function MonthCalendar({ attendanceDates, monthOffset }: { attendanceDates: stri
 }
 
 // ── Body metrics setup card ────────────────────────────────────────────────
-function BodySetupCard({ onSave }: { onSave: (h: number, w: number, g: string) => void }) {
+function BodySetupCard({ onSave, title }: { onSave: (h: number, w: number, g: string) => void; title?: string }) {
   const [h, setH] = useState('');
   const [w, setW] = useState('');
   const [g, setG] = useState('');
@@ -191,8 +339,8 @@ function BodySetupCard({ onSave }: { onSave: (h: number, w: number, g: string) =
     <div className="glass-card p-5 border-amber-500/20">
       <div className="flex items-center gap-2 mb-4">
         <AlertCircle className="w-4 h-4 text-amber-400" />
-        <h3 className="font-semibold text-white text-sm">Set up your body profile</h3>
-        <span className="text-xs text-slate-500">— unlocks BMI, calories & recommendations</span>
+        <h3 className="font-semibold text-white text-sm">{title ?? 'Set up your body profile'}</h3>
+        {!title && <span className="text-xs text-slate-500">— unlocks BMI, calories & recommendations</span>}
       </div>
       <form onSubmit={save} className="space-y-3">
         {err && <p className="text-xs text-red-400">{err}</p>}
@@ -273,7 +421,7 @@ function WeightLogger({ currentWeight, onLogged }: { currentWeight: number | nul
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'body' | 'calendar' | 'insights';
+type Tab = 'overview' | 'body' | 'calendar' | 'insights' | 'trends';
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -281,9 +429,17 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('overview');
 
-  // Navigation state
+  // Navigation offsets (0 = current, negative = past)
   const [weekOffset, setWeekOffset] = useState(0);
   const [monthOffset, setMonthOffset] = useState(0);
+
+  // Selected date(s) for body part distribution sync
+  // null = show all-time, array of ISO dates = show only those days
+  const [selectedDates, setSelectedDates] = useState<string[] | null>(null);
+  const [selectedLabel, setSelectedLabel] = useState<string>('');
+
+  // Exercise trends
+  const [selectedExercise, setSelectedExercise] = useState<string>('');
 
   const load = useCallback(async () => {
     const res = await fetch('/api/analytics');
@@ -294,6 +450,82 @@ export default function AnalyticsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // ── Raw data ───────────────────────────────────────────────────────────
+  const rawWorkouts = data?.rawWorkouts ?? [];
+  const weightKg = data?.userWeightKg ?? 70;
+
+  // ── Dynamic chart data (recomputed on every offset/selection change) ───
+  const weeklyData = useMemo(
+    () => computeWeekly(rawWorkouts, weekOffset, weightKg),
+    [rawWorkouts, weekOffset, weightKg],
+  );
+
+  const monthlyData = useMemo(
+    () => computeMonthly(rawWorkouts, monthOffset),
+    [rawWorkouts, monthOffset],
+  );
+
+  const bodyDistData = useMemo(
+    () => computeBodyDist(rawWorkouts, selectedDates),
+    [rawWorkouts, selectedDates],
+  );
+
+  const exerciseNames = useMemo(() => extractExerciseNames(rawWorkouts), [rawWorkouts]);
+
+  const exerciseTrendData = useMemo(
+    () => selectedExercise ? computeExerciseTrend(rawWorkouts, selectedExercise) : [],
+    [rawWorkouts, selectedExercise],
+  );
+
+  // ── Labels ─────────────────────────────────────────────────────────────
+  const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
+
+  const wLabel = useMemo(() => {
+    if (weekOffset === 0) return 'This Week';
+    return `${format(new Date(weekDates[0] + 'T12:00:00'), 'MMM d')} – ${format(new Date(weekDates[6] + 'T12:00:00'), 'MMM d')}`;
+  }, [weekOffset, weekDates]);
+
+  const mBase = monthOffset < 0 ? subMonths(new Date(), -monthOffset) : new Date();
+  const mLabel = monthOffset === 0 ? format(new Date(), 'MMMM yyyy') : format(mBase, 'MMMM yyyy');
+
+  // ── Bar click handlers (sync body distribution) ────────────────────────
+  // Recharts passes the data payload as the first argument — cast via unknown
+  function handleWeekBarClick(barData: unknown) {
+    const d = barData as { fullDate?: string };
+    if (!d.fullDate) return;
+    const iso = d.fullDate;
+    if (selectedDates?.length === 1 && selectedDates[0] === iso) {
+      setSelectedDates(null);
+      setSelectedLabel('');
+    } else {
+      setSelectedDates([iso]);
+      setSelectedLabel(format(new Date(iso + 'T12:00:00'), 'MMM d, yyyy'));
+    }
+  }
+
+  function handleMonthBarClick(barData: unknown) {
+    const d = barData as { startDate?: string; endDate?: string };
+    if (!d.startDate || !d.endDate) return;
+    const filtered = rawWorkouts
+      .filter((w) => w.date >= d.startDate! && w.date <= d.endDate!)
+      .map((w) => w.date);
+    if (filtered.length === 0) {
+      setSelectedDates(null);
+      setSelectedLabel('');
+    } else {
+      setSelectedDates(filtered);
+      const mStart = format(new Date(d.startDate + 'T12:00:00'), 'MMM d');
+      const mEnd = format(new Date(d.endDate + 'T12:00:00'), 'MMM d');
+      setSelectedLabel(`${mStart} – ${mEnd}`);
+    }
+  }
+
+  function clearSelection() {
+    setSelectedDates(null);
+    setSelectedLabel('');
+  }
+
+  // ── Body metrics state callbacks ───────────────────────────────────────
   function handleBodySave(h: number, w: number, g: string) {
     if (!data) return;
     const bmi = Math.round((w / Math.pow(h / 100, 2)) * 10) / 10;
@@ -319,6 +551,7 @@ export default function AnalyticsPage() {
     });
   }
 
+  // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="space-y-6">
@@ -335,22 +568,18 @@ export default function AnalyticsPage() {
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Overview', icon: <BarChart2 className="w-3.5 h-3.5" /> },
     { key: 'body',     label: 'Body',     icon: <User className="w-3.5 h-3.5" /> },
+    { key: 'trends',   label: 'Trends',   icon: <TrendingUp className="w-3.5 h-3.5" /> },
     { key: 'calendar', label: 'Calendar', icon: <Calendar className="w-3.5 h-3.5" /> },
     { key: 'insights', label: 'Insights', icon: <Zap className="w-3.5 h-3.5" /> },
   ];
 
   const hasBody = !!(data?.bodyMetrics?.height_cm && data?.bodyMetrics?.weight_kg);
 
-  // Week label for navigation
-  const base = weekOffset < 0 ? subWeeks(new Date(), Math.abs(weekOffset)) : new Date();
-  const wLabel = weekOffset === 0
-    ? 'This Week'
-    : `${format(startOfWeek(base, { weekStartsOn: 1 }), 'MMM d')} – ${format(endOfWeek(base, { weekStartsOn: 1 }), 'MMM d')}`;
+  // Summary stats for the selected week
+  const weekTotalVol = weeklyData.reduce((s, d) => s + d.volume, 0);
+  const weekTotalCal = weeklyData.reduce((s, d) => s + d.calories, 0);
 
-  const mBase = monthOffset < 0 ? subMonths(new Date(), Math.abs(monthOffset)) : new Date();
-  const mLabel = monthOffset === 0 ? format(new Date(), 'MMMM yyyy') : format(mBase, 'MMMM yyyy');
-
-  // Earned badges
+  // Earned/unearned badges
   const earnedBadges = data?.badges?.filter(b => b.earned) || [];
   const unearnedBadges = data?.badges?.filter(b => !b.earned) || [];
 
@@ -358,17 +587,17 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-display text-5xl text-white leading-none">ANALYTICS</h1>
+        <h1 className="font-display text-3xl sm:text-5xl text-white leading-none">ANALYTICS</h1>
         <p className="text-sm text-slate-400 mt-0.5">Your complete training overview</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
+      <div className="flex gap-1 bg-white/5 p-1 rounded-xl overflow-x-auto scrollbar-hide">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg transition-all ${
+            className={`flex-shrink-0 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-lg transition-all ${
               tab === t.key ? 'bg-red-700 text-white shadow-lg shadow-red-900/30' : 'text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -380,7 +609,7 @@ export default function AnalyticsPage() {
       {/* ── OVERVIEW TAB ──────────────────────────────────────────────────── */}
       {tab === 'overview' && (
         <div className="space-y-5">
-          {/* Stat cards */}
+          {/* All-time stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="Total Workouts" value={data?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="red" />
             <StatCard label="Total Volume" value={formatVolume(data?.totalVolume ?? 0)} icon={<Weight className="w-5 h-5" />} color="violet" />
@@ -388,32 +617,39 @@ export default function AnalyticsPage() {
             <StatCard label="Longest Streak" value={`${data?.longestStreak ?? 0}d`} icon={<TrendingUp className="w-5 h-5" />} color="emerald" />
           </div>
 
-          {/* Calories row */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* All-time calorie totals */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {[
               { label: 'Today', value: data?.calories?.today ?? 0, color: 'text-amber-400' },
               { label: 'This Week', value: data?.calories?.week ?? 0, color: 'text-orange-400' },
               { label: 'This Month', value: data?.calories?.month ?? 0, color: 'text-red-400' },
             ].map((c) => (
-              <div key={c.label} className="glass-card p-4 text-center">
-                <Flame className="w-4 h-4 text-amber-500 mx-auto mb-1.5" />
-                <p className={`font-display text-2xl leading-none ${c.color}`}>{c.value.toLocaleString()}</p>
-                <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{c.label}</p>
-                <p className="text-[10px] text-slate-600">kcal</p>
+              <div key={c.label} className="glass-card p-3 sm:p-4 text-center">
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 mx-auto mb-1 sm:mb-1.5" />
+                <p className={`font-display text-lg sm:text-2xl leading-none ${c.color}`}>{c.value.toLocaleString()}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{c.label}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-600">kcal</p>
               </div>
             ))}
           </div>
 
-          {/* Weekly volume + calories chart with navigation */}
+          {/* ── Weekly Volume Chart (Sun–Sat, navigable) ──────────────────── */}
           <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-white text-sm">Weekly Overview</h2>
+            <div className="flex items-center justify-between mb-1">
+              <div>
+                <h2 className="font-semibold text-white text-sm">Weekly Overview</h2>
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  Volume: <span className="text-slate-300">{weekTotalVol.toLocaleString()} kg</span>
+                  <span className="mx-1.5 text-slate-700">·</span>
+                  Calories: <span className="text-amber-400/80">{weekTotalCal.toLocaleString()} kcal</span>
+                </p>
+              </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setWeekOffset(w => w - 1)}
                   className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
                   <ChevronLeft className="w-4 h-4 text-slate-400" />
                 </button>
-                <span className="text-xs text-slate-400 min-w-[90px] text-center">{wLabel}</span>
+                <span className="text-xs text-slate-400 min-w-[96px] text-center">{wLabel}</span>
                 <button onClick={() => setWeekOffset(w => Math.min(w + 1, 0))}
                   disabled={weekOffset === 0}
                   className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors disabled:opacity-30">
@@ -421,39 +657,85 @@ export default function AnalyticsPage() {
                 </button>
               </div>
             </div>
-            {(data?.weeklyWorkouts?.length ?? 0) > 0 ? (
+
+            <p className="text-[10px] text-slate-600 mb-3">Tap a bar to filter body distribution ↓</p>
+
+            <div className="relative">
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={data!.weeklyWorkouts} barCategoryGap="30%">
+                <BarChart data={weeklyData} barCategoryGap="30%">
                   <XAxis dataKey="date" stroke="#475569" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#475569" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={45} />
                   <Tooltip content={<VolumeTooltip />} cursor={{ fill: 'rgba(225,29,29,0.06)' }} />
-                  <Bar dataKey="volume" fill="#dc2626" radius={[5,5,0,0]} />
+                  <Bar
+                    dataKey="volume"
+                    radius={[5,5,0,0]}
+                    cursor="pointer"
+                    minPointSize={3}
+                    onClick={handleWeekBarClick}
+                  >
+                    {weeklyData.map((entry) => (
+                      <Cell
+                        key={entry.fullDate}
+                        fill={selectedDates?.includes(entry.fullDate) ? '#ef4444' : '#dc2626'}
+                        opacity={
+                          entry.volume === 0
+                            ? 0.15
+                            : selectedDates && !selectedDates.includes(entry.fullDate)
+                            ? 0.4
+                            : 1
+                        }
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            ) : (
-              <p className="text-slate-500 text-sm py-8 text-center">Log workouts to see volume data</p>
-            )}
+              {!weeklyData.some(d => d.volume > 0) && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <p className="text-slate-600 text-sm">No workouts this week</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Calories chart */}
+          {/* ── Daily Calories Chart (same week, navigable) ────────────────── */}
           <div className="glass-card p-5">
-            <h2 className="font-semibold text-white text-sm mb-4">Daily Calories Burned (kcal)</h2>
-            {data?.calories?.dailyBreakdown?.some(d => d.calories > 0) ? (
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-white text-sm">Daily Calories Burned</h2>
+              {/* Shares weekOffset navigation — same week as volume chart */}
+              <div className="flex items-center gap-2">
+                <button onClick={() => setWeekOffset(w => w - 1)}
+                  className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                  <ChevronLeft className="w-4 h-4 text-slate-400" />
+                </button>
+                <span className="text-xs text-slate-400 min-w-[96px] text-center">{wLabel}</span>
+                <button onClick={() => setWeekOffset(w => Math.min(w + 1, 0))}
+                  disabled={weekOffset === 0}
+                  className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors disabled:opacity-30">
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
+            </div>
+            <div className="relative">
               <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={data!.calories.dailyBreakdown} barCategoryGap="35%">
+                <BarChart data={weeklyData} barCategoryGap="35%">
                   <XAxis dataKey="date" stroke="#475569" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#475569" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={40} />
                   <Tooltip content={<CalTooltip />} cursor={{ fill: 'rgba(245,158,11,0.06)' }} />
-                  <Bar dataKey="calories" fill="#f59e0b" radius={[5,5,0,0]} />
+                  <Bar dataKey="calories" fill="#f59e0b" radius={[5,5,0,0]} minPointSize={3}
+                    style={{ opacity: weeklyData.some(d => d.calories > 0) ? 1 : 0.15 }} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : (
-              <p className="text-slate-500 text-sm py-6 text-center">Calories appear once workouts have a recorded duration</p>
-            )}
+              {!weeklyData.some(d => d.calories > 0) && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <p className="text-slate-600 text-sm">No workouts logged this week</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Monthly + Body part */}
+          {/* ── Monthly + Body Part Distribution ──────────────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Monthly chart */}
             <div className="glass-card p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-white text-sm">Monthly Workouts</h2>
@@ -470,27 +752,70 @@ export default function AnalyticsPage() {
                   </button>
                 </div>
               </div>
-              {(data?.monthlyWorkouts?.length ?? 0) > 0 ? (
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={data!.monthlyWorkouts} barCategoryGap="35%">
+              <p className="text-[10px] text-slate-600 mb-3">Tap a bar to filter body distribution →</p>
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={monthlyData} barCategoryGap="35%">
                     <XAxis dataKey="week" stroke="#475569" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                     <YAxis allowDecimals={false} stroke="#475569" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={25} />
-                    <Tooltip cursor={{ fill: 'rgba(225,29,29,0.06)' }} contentStyle={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }} />
-                    <Bar dataKey="count" fill="#f59e0b" radius={[5,5,0,0]} />
+                    <Tooltip content={<MonthTooltip />} cursor={{ fill: 'rgba(225,29,29,0.06)' }} />
+                    <Bar
+                      dataKey="count"
+                      radius={[5,5,0,0]}
+                      cursor="pointer"
+                      minPointSize={3}
+                      onClick={handleMonthBarClick}
+                    >
+                      {monthlyData.map((entry) => {
+                        const isSelected = selectedDates !== null &&
+                          rawWorkouts.some(w => w.date >= entry.startDate && w.date <= entry.endDate && selectedDates.includes(w.date));
+                        return (
+                          <Cell
+                            key={entry.week}
+                            fill={isSelected ? '#f59e0b' : '#dc2626'}
+                            opacity={
+                              entry.count === 0
+                                ? 0.15
+                                : selectedDates && !isSelected
+                                ? 0.4
+                                : 1
+                            }
+                          />
+                        );
+                      })}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
-                <p className="text-slate-500 text-sm py-8 text-center">No data yet</p>
-              )}
+                {!monthlyData.some(b => b.count > 0) && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <p className="text-slate-600 text-sm">No workouts this month</p>
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Body part distribution */}
             <div className="glass-card p-5">
-              <h2 className="font-semibold text-white text-sm mb-4">Body Part Distribution</h2>
-              {(data?.bodyPartDistribution?.length ?? 0) > 0 ? (
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-white text-sm">Body Part Distribution</h2>
+                {selectedDates && (
+                  <button
+                    onClick={clearSelection}
+                    className="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded-full transition-colors"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                    {selectedLabel || 'Clear'}
+                  </button>
+                )}
+              </div>
+              {!selectedDates && (
+                <p className="text-[10px] text-slate-600 mb-3">All-time · tap a chart bar to filter</p>
+              )}
+              {bodyDistData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
-                    <Pie data={data!.bodyPartDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
-                      {data!.bodyPartDistribution.map((e) => (
+                    <Pie data={bodyDistData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
+                      {bodyDistData.map((e) => (
                         <Cell key={e.name} fill={CATEGORY_COLORS[e.name] || '#dc2626'} />
                       ))}
                     </Pie>
@@ -499,7 +824,9 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-500 text-sm py-8 text-center">Log workouts to see distribution</p>
+                <p className="text-slate-500 text-sm py-8 text-center">
+                  {selectedDates ? 'No exercise data for this period' : 'Log workouts to see distribution'}
+                </p>
               )}
             </div>
           </div>
@@ -593,7 +920,7 @@ export default function AnalyticsPage() {
                   <h3 className="text-xs text-slate-500 uppercase tracking-wider mb-3">Trend</h3>
                   <ResponsiveContainer width="100%" height={180}>
                     <LineChart data={data!.weightLogs.map((l: WeightLog) => ({
-                      date: l.logged_at.slice(5), // MM-DD
+                      date: l.logged_at.slice(5),
                       weight: l.weight_kg,
                     }))}>
                       <CartesianGrid stroke="rgba(255,255,255,0.04)" />
@@ -625,10 +952,7 @@ export default function AnalyticsPage() {
 
           {/* Update body metrics */}
           {hasBody && (
-            <div className="glass-card p-5">
-              <h2 className="font-semibold text-white text-sm mb-3">Update Profile</h2>
-              <BodySetupCard onSave={handleBodySave} />
-            </div>
+            <BodySetupCard onSave={handleBodySave} title="Update Profile" />
           )}
         </div>
       )}
@@ -694,6 +1018,145 @@ export default function AnalyticsPage() {
               <p className="text-xs text-slate-500 mt-0.5">Longest Streak</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── TRENDS TAB ───────────────────────────────────────────────────── */}
+      {tab === 'trends' && (
+        <div className="space-y-5">
+          {exerciseNames.length === 0 ? (
+            <div className="glass-card p-8 text-center">
+              <TrendingUp className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+              <p className="text-slate-400 text-sm font-medium">No exercise data yet</p>
+              <p className="text-slate-600 text-xs mt-1">Log workouts with exercises to track your strength trends</p>
+            </div>
+          ) : (
+            <>
+              {/* Exercise selector */}
+              <div className="glass-card p-5">
+                <h2 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-red-400" /> Exercise Weight Trend
+                </h2>
+                <div className="relative">
+                  <select
+                    value={selectedExercise}
+                    onChange={e => setSelectedExercise(e.target.value)}
+                    className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600/50 focus:ring-1 focus:ring-red-600/20 pr-10 cursor-pointer"
+                  >
+                    <option value="" disabled className="bg-[#0f0f0f] text-slate-400">Select an exercise…</option>
+                    {exerciseNames.map(name => (
+                      <option key={name} value={name} className="bg-[#0f0f0f] text-white">{name}</option>
+                    ))}
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 rotate-90 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Trend chart */}
+              {selectedExercise && (
+                <div className="glass-card p-5">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-white text-sm">{selectedExercise}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">Max weight lifted per session</p>
+                    </div>
+                    {exerciseTrendData.length >= 2 && (() => {
+                      const delta = exerciseTrendData[exerciseTrendData.length - 1].maxWeight - exerciseTrendData[0].maxWeight;
+                      return (
+                        <div className={`text-right flex-shrink-0 ${delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          <p className="text-lg font-bold leading-none">{delta >= 0 ? '+' : ''}{delta.toFixed(1)} kg</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">overall change</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {exerciseTrendData.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <p className="text-slate-500 text-sm">No data for this exercise yet</p>
+                    </div>
+                  ) : exerciseTrendData.length === 1 ? (
+                    <div className="py-6 text-center space-y-2">
+                      <p className="text-3xl font-bold text-white">{exerciseTrendData[0].maxWeight} kg</p>
+                      <p className="text-xs text-slate-500">Logged once on {exerciseTrendData[0].date}</p>
+                      <p className="text-xs text-slate-600">Log more sessions to see a trend</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <LineChart data={exerciseTrendData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
+                        <CartesianGrid stroke="rgba(255,255,255,0.04)" />
+                        <XAxis
+                          dataKey="date"
+                          stroke="#475569"
+                          tick={{ fontSize: 10, fill: '#94a3b8' }}
+                          axisLine={false}
+                          tickLine={false}
+                          interval="preserveStartEnd"
+                        />
+                        <YAxis
+                          domain={['dataMin - 5', 'dataMax + 5']}
+                          stroke="#475569"
+                          tick={{ fontSize: 10, fill: '#94a3b8' }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={40}
+                          tickFormatter={v => `${v}kg`}
+                        />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (active && payload?.length) {
+                              return (
+                                <div className="bg-[#0f0f0f] border border-white/10 rounded-xl px-3 py-2 text-sm">
+                                  <p className="text-slate-400">{label}</p>
+                                  <p className="text-red-400 font-semibold">{payload[0].value} kg</p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                          cursor={{ stroke: 'rgba(255,255,255,0.08)' }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="maxWeight"
+                          stroke="#dc2626"
+                          strokeWidth={2.5}
+                          dot={{ fill: '#dc2626', r: 4, strokeWidth: 0 }}
+                          activeDot={{ r: 6, fill: '#ef4444', strokeWidth: 0 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+
+                  {/* Personal best callout */}
+                  {exerciseTrendData.length > 0 && (() => {
+                    const best = Math.max(...exerciseTrendData.map(d => d.maxWeight));
+                    const bestEntry = exerciseTrendData.findLast(d => d.maxWeight === best);
+                    return (
+                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                          <Award className="w-4 h-4 text-amber-400" />
+                          Personal Best
+                        </div>
+                        <div className="text-right">
+                          <span className="text-amber-400 font-bold text-lg leading-none">{best} kg</span>
+                          {bestEntry && <p className="text-[10px] text-slate-600 mt-0.5">{bestEntry.date}</p>}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Instruction when no exercise picked */}
+              {!selectedExercise && (
+                <div className="glass-card p-6 text-center border-dashed border-white/10">
+                  <Activity className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+                  <p className="text-slate-500 text-sm">Pick an exercise above to see how your strength has progressed over time</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -794,7 +1257,9 @@ export default function AnalyticsPage() {
             </h2>
             {(() => {
               const target = 4;
-              const done = data?.weeklyWorkouts?.filter(w => w.volume > 0).length ?? 0;
+              // Count distinct workout days in current week from rawWorkouts
+              const currentWeekDates = getWeekDates(0);
+              const done = currentWeekDates.filter(d => rawWorkouts.some(w => w.date === d)).length;
               const pct = Math.min((done / target) * 100, 100);
               return (
                 <div>
