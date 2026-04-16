@@ -102,15 +102,16 @@ export async function GET(
 
   // Aggregate attendance counts per user in JS
   const userCountMap = new Map<string, { name: string | null; phone: string; count: number }>();
-  (topUsersRaw ?? []).forEach((row: { user_id: string; users: { id: string; name: string | null; phone_number: string } | null }) => {
-    if (!row.users) return;
+  (topUsersRaw ?? []).forEach((row) => {
+    const user = row.users?.[0];
+    if (!user) return;
     const existing = userCountMap.get(row.user_id);
     if (existing) {
       existing.count++;
     } else {
       userCountMap.set(row.user_id, {
-        name:  row.users.name,
-        phone: row.users.phone_number,
+        name:  user.name,
+        phone: user.phone_number,
         count: 1,
       });
     }
