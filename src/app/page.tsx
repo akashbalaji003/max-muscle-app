@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
+import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight, ArrowRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
 import InstagramGallery from '@/components/InstagramGallery';
 
@@ -171,10 +171,166 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── About Section ─────────────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
+        <div className="flex items-baseline gap-3 mb-8">
+          <span className="font-display text-4xl text-red-500/40 leading-none">01</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">About</span>
+        </div>
+
+        {/* Section intro */}
+        <div className="mb-12">
+          <h2 className="font-display text-3xl sm:text-5xl text-white tracking-wide leading-none mb-4">
+            TRAIN WITH CHAMPIONS
+          </h2>
+          <p className="text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
+            We are not just a gym. We are built by champions. Train under world-class athletes who have represented India on the global stage.
+          </p>
+        </div>
+
+        {/* Coaches grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+          {/* Coach 1 — Rajendran Mani */}
+          <div className="group relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
+            <div className="relative bg-[#0a0a0a] border border-white/8 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all duration-300">
+              {/* Image container */}
+              <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/coaches/rajendran.jpg"
+                  alt="Dr. Rajendran Mani"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <div className="mb-3">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-2">Elite Coach</p>
+                  <h3 className="font-display text-2xl text-white tracking-wide mb-1">Dr. Rajendran Mani</h3>
+                </div>
+
+                {/* Credentials */}
+                <div className="space-y-2 mb-4">
+                  <p className="text-xs text-slate-400 flex items-start gap-2">
+                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
+                    <span>Multiple-time Mr. World Champion</span>
+                  </p>
+                  <p className="text-xs text-slate-400 flex items-start gap-2">
+                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
+                    <span>One of India's most decorated bodybuilders</span>
+                  </p>
+                  <p className="text-xs text-slate-400 flex items-start gap-2">
+                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
+                    <span>International competitor & elite coach</span>
+                  </p>
+                </div>
+
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  A legendary figure in Indian bodybuilding, Dr. Rajendran Mani has represented India globally and now mentors the next generation of champions.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Coach 2 — Benjamin Jerold */}
+          <div className="group relative">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
+            <div className="relative bg-[#0a0a0a] border border-white/8 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all duration-300">
+              {/* Image container */}
+              <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/coaches/benjamin.jpg"
+                  alt="Benjamin Jerold"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <div className="mb-3">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-2">Elite Coach</p>
+                  <h3 className="font-display text-2xl text-white tracking-wide mb-1">Benjamin Jerold</h3>
+                </div>
+
+                {/* Credentials */}
+                <div className="space-y-2 mb-4">
+                  <p className="text-xs text-slate-400 flex items-start gap-2">
+                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
+                    <span>International bodybuilder</span>
+                  </p>
+                  <p className="text-xs text-slate-400 flex items-start gap-2">
+                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
+                    <span>Known as the Indian Hulk</span>
+                  </p>
+                  <p className="text-xs text-slate-400 flex items-start gap-2">
+                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
+                    <span>Strength & conditioning specialist</span>
+                  </p>
+                </div>
+
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Known as the Indian Hulk, Benjamin Jerold represents modern bodybuilding excellence with unmatched discipline and stage performance.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Highlight banner — coaches together */}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-red-600/30 via-red-600/0 to-red-600/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-lg" />
+          <div className="relative rounded-2xl overflow-hidden border border-red-600/20 hover:border-red-600/40 transition-all duration-300 bg-gradient-to-br from-red-950/20 via-black to-black">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+              {/* Text side */}
+              <div className="p-8 sm:p-10 flex flex-col justify-center">
+                <p className="text-[10px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-3">Our Coaches</p>
+                <h3 className="font-display text-3xl sm:text-4xl text-white tracking-wide mb-4 leading-tight">
+                  Elite Coaching Team
+                </h3>
+                <p className="text-slate-300 leading-relaxed mb-6">
+                  Together, our coaches bring decades of championship experience, international stage performance, and proven training methodologies to help you achieve your goals.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <Link href="/signup"
+                    className="group/btn inline-flex items-center gap-2 bg-red-700 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg transition-all w-fit">
+                    <span>Start Your Journey</span>
+                    <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Image side */}
+              <div className="relative aspect-square md:aspect-auto overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/coaches/together.jpg"
+                  alt="Elite Coaching Team"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/40" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Info Cards ───────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">01</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">02</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Info</span>
         </div>
 
@@ -232,7 +388,7 @@ export default function LandingPage() {
       {/* ── Reviews + Instagram ──────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">02</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Community</span>
         </div>
 
@@ -289,7 +445,7 @@ export default function LandingPage() {
       {/* ── Gallery ──────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">04</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Gallery</span>
         </div>
 
@@ -320,7 +476,7 @@ export default function LandingPage() {
       {/* ── Map ──────────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">04</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">05</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
         </div>
 
@@ -378,6 +534,40 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* ── Floating Join Now CTA ────────────────────────────────────────── */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <style>{`
+          @keyframes float-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(220, 38, 38, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(220, 38, 38, 0.6), inset 0 0 20px rgba(220, 38, 38, 0.2); }
+          }
+          .float-cta {
+            animation: float-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          }
+        `}</style>
+        <Link
+          href="/signup"
+          className="float-cta group relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-700 border border-red-500/50 backdrop-blur-md hover:border-red-400 hover:from-red-500 hover:to-red-600 active:scale-95 transition-all duration-200 shadow-2xl shadow-red-900/50"
+        >
+          {/* Background glow */}
+          <div className="absolute inset-0 rounded-full bg-red-600/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Content */}
+          <div className="relative flex flex-col items-center justify-center gap-0.5">
+            <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-0.5 transition-transform" />
+            <span className="text-[9px] font-bold text-white tracking-widest leading-none whitespace-nowrap">JOIN</span>
+          </div>
+
+          {/* Tooltip on hover (mobile-friendly) */}
+          <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap font-medium">
+              Join Now
+              <div className="absolute top-full right-2 w-2 h-2 bg-white/10 rotate-45 border-r border-b border-white/20" />
+            </div>
+          </div>
+        </Link>
+      </div>
 
     </div>
   );
