@@ -397,7 +397,7 @@ export default function MemberAnalyticsPage() {
                 <Card className="print-card p-4 flex flex-col items-center">
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
-                      <Pie data={muscleData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                      <Pie data={muscleData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
                         {muscleData.map((_, i) => (
                           <Cell key={i} fill={COLOURS[i % COLOURS.length]} />
                         ))}
