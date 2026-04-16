@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import MouseGlow from "@/components/MouseGlow";
 import NavigationProgress from "@/components/NavigationProgress";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Maximum Muscle Lifestyle Fitness Studio",
@@ -51,7 +52,9 @@ export default function RootLayout({
       <body className="min-h-screen">
         <NavigationProgress />
         <MouseGlow />
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

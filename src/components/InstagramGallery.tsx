@@ -230,12 +230,13 @@ function VideoCard({
           vid.pause();
         }
       },
-      { threshold: 0.3 },
+      { threshold: 0.2 },
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [loaded]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── Error fallback ── */
   if (errored) {
@@ -288,8 +289,9 @@ function VideoCard({
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         onLoadedData={() => setLoaded(true)}
+        onCanPlay={() => setLoaded(true)}
         onError={() => setErrored(true)}
         aria-label={post.caption || `Reel ${index + 1}`}
       />

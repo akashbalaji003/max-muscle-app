@@ -4,16 +4,17 @@
    THEME TOKENS — Black + Red + White brand system
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --bg:         #0A0A0A;
-  --bg-card:    #111111;
-  --bg-raised:  #1A1A1A;
-  --bg-input:   #0f0f0f;
-  --bg-sidebar: #0f0f0f;
-  --border:     rgba(225, 29, 29, 0.14);
-  --border-sub: rgba(255,255,255,0.06);
-  --text:       #FFFFFF;
-  --text-muted: #B3B3B3;
-  --text-faint: #555555;
+  --bg:           #0A0A0A;
+  --bg-card:      #111111;
+  --bg-raised:    #1A1A1A;
+  --bg-input:     #0f0f0f;
+  --bg-sidebar:   #0f0f0f;
+  --border:       rgba(225, 29, 29, 0.14);
+  --border-sub:   rgba(255,255,255,0.06);
+  --text:         #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-muted:   #B3B3B3;
+  --text-faint:   #555555;
 
   --color-primary:      #E11D1D;
   --color-primary-dark: #B91C1C;
@@ -22,17 +23,33 @@
   --font-body:    'Clash Display', system-ui, sans-serif;
 }
 
+/* Explicit dark token block — mirrors :root, wins over media-query specificity */
+[data-theme="dark"] {
+  --bg:           #0A0A0A;
+  --bg-card:      #111111;
+  --bg-raised:    #1A1A1A;
+  --bg-input:     #0f0f0f;
+  --bg-sidebar:   #0f0f0f;
+  --border:       rgba(225, 29, 29, 0.14);
+  --border-sub:   rgba(255,255,255,0.06);
+  --text:         #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-muted:   #B3B3B3;
+  --text-faint:   #555555;
+}
+
 [data-theme="light"] {
-  --bg:         #F5F5F5;
-  --bg-card:    #FFFFFF;
-  --bg-raised:  #EBEBEB;
-  --bg-input:   #F8F8F8;
-  --bg-sidebar: #F8F8F8;
-  --border:     rgba(225, 29, 29, 0.20);
-  --border-sub: rgba(0,0,0,0.08);
-  --text:       #0A0A0A;
-  --text-muted: #444444;
-  --text-faint: #888888;
+  --bg:           #F5F5F5;
+  --bg-card:      #FFFFFF;
+  --bg-raised:    #EBEBEB;
+  --bg-input:     #F8F8F8;
+  --bg-sidebar:   #F8F8F8;
+  --border:       rgba(225, 29, 29, 0.20);
+  --border-sub:   rgba(0,0,0,0.08);
+  --text:         #0A0A0A;
+  --text-primary: #111111;
+  --text-muted:   #444444;
+  --text-faint:   #888888;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -95,8 +112,26 @@ body {
 [data-theme="light"] .bg-\[\#1A1A1A\]   { background-color: #E0E0E0; }
 [data-theme="light"] .bg-\[\#121212\]   { background-color: #EBEBEB; }
 
+/* opacity variants — Tailwind generates these as separate classes */
+[data-theme="light"] .bg-\[\#000000\]\/95  { background-color: rgba(248,248,248,0.97) !important; }
+[data-theme="light"] .bg-\[\#000000\]\/90  { background-color: rgba(248,248,248,0.95) !important; }
 [data-theme="light"] .bg-\[\#0f0f0f\]\/95  { background-color: rgba(248,248,248,0.97) !important; }
 [data-theme="light"] .bg-\[\#0f0f0f\]\/98  { background-color: rgba(248,248,248,0.98) !important; }
+
+/* bg-black utility variants */
+[data-theme="light"] .bg-black           { background-color: #F5F5F5; }
+[data-theme="light"] .bg-black\/5        { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .bg-black\/50       { background-color: rgba(248,248,248,0.85) !important; }
+
+/* hover variants for transparent whites */
+[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.06) !important; }
+[data-theme="light"] .hover\:bg-white\/15:hover { background-color: rgba(0,0,0,0.08) !important; }
+
+/* bg-white/* used for subtle raised elements */
+[data-theme="light"] .bg-white\/5   { background-color: rgba(0,0,0,0.04); }
+[data-theme="light"] .bg-white\/8   { background-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .bg-white\/10  { background-color: rgba(0,0,0,0.07); }
+[data-theme="light"] .bg-white\/15  { background-color: rgba(0,0,0,0.09); }
 
 /* ── White/transparent backgrounds ───────────────────────────────────────── */
 [data-theme="light"] .hover\:bg-white\/5:hover  { background-color: rgba(0,0,0,0.05); }

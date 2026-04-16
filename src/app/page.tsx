@@ -1,7 +1,12 @@
 import Link from 'next/link';
-import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight, ArrowRight } from 'lucide-react';
+import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
 import InstagramGallery from '@/components/InstagramGallery';
+import CoachContactModal from '@/components/CoachContactModal';
+import MobileAboutCarousel from '@/components/MobileAboutCarousel';
+import AnimatedCounter from '@/components/AnimatedCounter';
+import EliteTeamCTA from '@/components/EliteTeamCTA';
+import FloatingCTA from '@/components/FloatingCTA';
 
 // ─── Replace these with your real values ────────────────────────────────────
 const GYM_PHONE      = '07530007329';
@@ -135,11 +140,19 @@ export default function LandingPage() {
                 and a community that pushes you further every single day.
               </p>
 
-              <a href={GYM_PHONE_HREF}
-                className="flex items-center gap-2 text-sm text-slate-500 hover:text-red-400 transition-colors w-fit">
-                <Phone className="w-3.5 h-3.5" />
-                {GYM_PHONE}
-              </a>
+              <div className="flex items-center gap-3 flex-wrap">
+                <a href="tel:+918056329329"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-400 transition-colors">
+                  <Phone className="w-3.5 h-3.5" />
+                  8056329329
+                </a>
+                <span className="text-slate-700 text-xs">|</span>
+                <a href="tel:+447530007332"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-400 transition-colors">
+                  <Phone className="w-3.5 h-3.5" />
+                  7530007332
+                </a>
+              </div>
 
               {/* Desktop CTA — hidden on mobile (buttons are overlaid on image above) */}
               <div className="hidden sm:flex flex-col gap-2.5">
@@ -188,207 +201,169 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Coaches grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-          {/* Coach 1 — Rajendran Mani */}
-          <div className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
-            <div className="relative bg-[#0a0a0a] border border-white/8 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all duration-300">
-              {/* Image container */}
-              <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/coaches/rajendran.jpg"
-                  alt="Dr. Rajendran Mani"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <div className="mb-3">
-                  <p className="text-[10px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-2">Elite Coach</p>
-                  <h3 className="font-display text-2xl text-white tracking-wide mb-1">Dr. Rajendran Mani</h3>
-                </div>
-
-                {/* Credentials */}
-                <div className="space-y-2 mb-4">
-                  <p className="text-xs text-slate-400 flex items-start gap-2">
-                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
-                    <span>Multiple-time Mr. World Champion</span>
-                  </p>
-                  <p className="text-xs text-slate-400 flex items-start gap-2">
-                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
-                    <span>One of India's most decorated bodybuilders</span>
-                  </p>
-                  <p className="text-xs text-slate-400 flex items-start gap-2">
-                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
-                    <span>International competitor & elite coach</span>
-                  </p>
-                </div>
-
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  A legendary figure in Indian bodybuilding, Dr. Rajendran Mani has represented India globally and now mentors the next generation of champions.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Coach 2 — Benjamin Jerold */}
-          <div className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
-            <div className="relative bg-[#0a0a0a] border border-white/8 rounded-2xl overflow-hidden hover:border-red-600/30 transition-all duration-300">
-              {/* Image container */}
-              <div className="relative w-full aspect-[3/4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/coaches/benjamin.jpg"
-                  alt="Benjamin Jerold"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <div className="mb-3">
-                  <p className="text-[10px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-2">Elite Coach</p>
-                  <h3 className="font-display text-2xl text-white tracking-wide mb-1">Benjamin Jerold</h3>
-                </div>
-
-                {/* Credentials */}
-                <div className="space-y-2 mb-4">
-                  <p className="text-xs text-slate-400 flex items-start gap-2">
-                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
-                    <span>International bodybuilder</span>
-                  </p>
-                  <p className="text-xs text-slate-400 flex items-start gap-2">
-                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
-                    <span>Known as the Indian Hulk</span>
-                  </p>
-                  <p className="text-xs text-slate-400 flex items-start gap-2">
-                    <span className="text-red-500 mt-1 flex-shrink-0">•</span>
-                    <span>Strength & conditioning specialist</span>
-                  </p>
-                </div>
-
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Known as the Indian Hulk, Benjamin Jerold represents modern bodybuilding excellence with unmatched discipline and stage performance.
-                </p>
-              </div>
-            </div>
-          </div>
-
+        {/* Coaches: Swipe carousel on mobile, static grid on desktop */}
+        {/* Mobile — horizontal scroll-snap carousel with auto-advance */}
+        <div className="mb-8 md:hidden">
+          <MobileAboutCarousel />
         </div>
 
-        {/* Highlight banner — coaches together */}
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-red-600/30 via-red-600/0 to-red-600/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-lg" />
-          <div className="relative rounded-2xl overflow-hidden border border-red-600/20 hover:border-red-600/40 transition-all duration-300 bg-gradient-to-br from-red-950/20 via-black to-black">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-              {/* Text side */}
-              <div className="p-8 sm:p-10 flex flex-col justify-center">
-                <p className="text-[10px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-3">Our Coaches</p>
-                <h3 className="font-display text-3xl sm:text-4xl text-white tracking-wide mb-4 leading-tight">
-                  Elite Coaching Team
-                </h3>
-                <p className="text-slate-300 leading-relaxed mb-6">
-                  Together, our coaches bring decades of championship experience, international stage performance, and proven training methodologies to help you achieve your goals.
-                </p>
-                <div className="flex flex-col gap-3">
-                  <Link href="/signup"
-                    className="group/btn inline-flex items-center gap-2 bg-red-700 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg transition-all w-fit">
-                    <span>Start Your Journey</span>
-                    <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
-                  </Link>
+        {/* Desktop: Coaches + Elite Team Side by Side */}
+        <div className="hidden md:grid grid-cols-[1fr_280px] gap-5 mb-8">
+          {/* Left: Coach Cards Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Coach 1 — Rajendran Mani */}
+            <div className="group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
+              <div className="relative bg-[#0a0a0a] border border-white/8 rounded-lg overflow-hidden hover:border-red-600/30 transition-all duration-300">
+                {/* Image container */}
+                <div className="relative w-full aspect-[1/1.4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/coaches/rajendran.jpg"
+                    alt="DR Rajendra Mani"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  <div className="mb-2">
+                    <h3 className="font-display text-base text-white tracking-wide mb-1">🏆 DR Rajendra Mani</h3>
+                  </div>
+
+                  {/* Achievements */}
+                  <div className="space-y-1 text-[12px] text-slate-300">
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Multiple-time Mr. World Bodybuilding Champion</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>One of India's most decorated bodybuilders</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Represented India internationally</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Known for discipline & longevity</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Trained & mentored many athletes</span>
+                    </p>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Image side */}
-              <div className="relative aspect-square md:aspect-auto overflow-hidden">
+            {/* Coach 2 — Benjamin Jerold */}
+            <div className="group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
+              <div className="relative bg-[#0a0a0a] border border-white/8 rounded-lg overflow-hidden hover:border-red-600/30 transition-all duration-300">
+                {/* Image container */}
+                <div className="relative w-full aspect-[1/1.4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/coaches/benjamin.jpg"
+                    alt="Benjamin Jerold"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  <div className="mb-2">
+                    <h3 className="font-display text-base text-white tracking-wide mb-1">💪 DR Benjamin Jerold</h3>
+                  </div>
+
+                  {/* Achievements */}
+                  <div className="space-y-1 text-[12px] text-slate-300">
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Elite Indian bodybuilder</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Known as "Indian Hulk"</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>International-level competitor</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Extreme conditioning & stage presence</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
+                      <span>Modern Indian bodybuilding excellence</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Elite Team Banner */}
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
+            <div className="relative rounded-lg overflow-hidden border border-red-600/20 hover:border-red-600/40 transition-all duration-300 bg-gradient-to-br from-red-950/20 via-black to-black h-full flex flex-col">
+
+              {/* Image — TOP */}
+              <div className="relative overflow-hidden bg-gradient-to-b from-slate-900 to-black h-40">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/coaches/together.jpg"
                   alt="Elite Coaching Team"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   loading="lazy"
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+              </div>
+
+              {/* Content */}
+              <div className="p-4 flex-1 flex flex-col">
+                {/* Title & Subtitle */}
+                <div className="mb-2">
+                  <p className="text-[11px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-1">Elite Team</p>
+                  <h3 className="font-display text-xl text-white tracking-wide leading-tight">
+                    Champions Coaching Athletes to Success
+                  </h3>
+                </div>
+
+                {/* Animated Stat — LARGE */}
+                <div className="mb-2 py-2">
+                  <AnimatedCounter target={200} duration={5500} suffix="+" label="Athletes Trained" size="large" />
+                </div>
+
+                {/* Description */}
+                <p className="text-[13px] text-slate-400 leading-relaxed mb-3 flex-1">
+                  Led by world-class champions, our elite team has trained and transformed athletes across national and international stages. Proven experience, discipline, and coaching excellence.
+                </p>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="p-4 border-t border-white/5">
+                <EliteTeamCTA />
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── Info Cards ───────────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
-        <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">02</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Info</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
-
-          {/* Location */}
-          <a href={MAPS_OPEN_URL} target="_blank" rel="noopener noreferrer"
-            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-0.5 h-0 bg-red-600 group-hover:h-full transition-all duration-300" />
-            <div className="w-10 h-10 bg-red-600/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-600/20 transition-colors">
-              <MapPin className="w-5 h-5 text-red-400" />
-            </div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Location</p>
-            <h3 className="font-display text-2xl text-white tracking-wide mb-2">MAX MUSCLE</h3>
-            <p className="text-xs text-slate-500 leading-relaxed mb-3">Maximum Muscle Lifestyle Fitness Studio</p>
-            <span className="text-red-400 text-xs inline-flex items-center gap-1 group-hover:text-red-300">
-              View on Maps <ExternalLink className="w-3 h-3" />
-            </span>
-          </a>
-
-          {/* Phone */}
-          <a href={GYM_PHONE_HREF}
-            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-0.5 h-0 bg-emerald-500 group-hover:h-full transition-all duration-300" />
-            <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
-              <Phone className="w-5 h-5 text-emerald-400" />
-            </div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Contact</p>
-            <h3 className="font-display text-2xl text-white tracking-wide mb-2">CALL US</h3>
-            <p className="text-sm text-slate-300 font-mono mb-1">{GYM_PHONE}</p>
-            <p className="text-xs text-slate-600">Call or WhatsApp</p>
-          </a>
-
-          {/* Hours */}
-          <div className="group bg-[#0a0a0a] p-6 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-0.5 h-0 bg-amber-500 group-hover:h-full transition-all duration-300" />
-            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
-              <Clock className="w-5 h-5 text-amber-400" />
-            </div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Schedule</p>
-            <h3 className="font-display text-2xl text-white tracking-wide mb-3">OPEN HOURS</h3>
-            <div className="space-y-2.5">
-              {HOURS.map(({ day, time }) => (
-                <div key={day} className="flex flex-col gap-0.5 border-b border-white/5 pb-2 last:border-0 last:pb-0">
-                  <span className="text-[10px] text-slate-600 tracking-wider uppercase">{day}</span>
-                  <span className="text-sm text-slate-200 font-semibold font-display tracking-wide">{time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       </section>
 
       {/* ── Reviews + Instagram ──────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">02</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Community</span>
         </div>
 
@@ -445,7 +420,7 @@ export default function LandingPage() {
       {/* ── Gallery ──────────────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
         <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">04</span>
+          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Gallery</span>
         </div>
 
@@ -473,8 +448,66 @@ export default function LandingPage() {
         <InstagramGallery posts={GALLERY_POSTS} instagramUrl={GYM_INSTAGRAM} />
       </section>
 
+      {/* ── Info Cards ───────────────────────────────────────────────────── */}
+      <section id="info-section" className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
+        <div className="flex items-baseline gap-3 mb-6">
+          <span className="font-display text-4xl text-red-500/40 leading-none">04</span>
+          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Info</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+
+          {/* Location */}
+          <a href={MAPS_OPEN_URL} target="_blank" rel="noopener noreferrer"
+            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-0.5 h-0 bg-red-600 group-hover:h-full transition-all duration-300" />
+            <div className="w-10 h-10 bg-red-600/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-600/20 transition-colors">
+              <MapPin className="w-5 h-5 text-red-400" />
+            </div>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Location</p>
+            <h3 className="font-display text-2xl text-white tracking-wide mb-2">MAX MUSCLE</h3>
+            <p className="text-xs text-slate-500 leading-relaxed mb-3">Maximum Muscle Lifestyle Fitness Studio</p>
+            <span className="text-red-400 text-xs inline-flex items-center gap-1 group-hover:text-red-300">
+              View on Maps <ExternalLink className="w-3 h-3" />
+            </span>
+          </a>
+
+          {/* Phone */}
+          <a id="call-section" href={GYM_PHONE_HREF}
+            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-0.5 h-0 bg-emerald-500 group-hover:h-full transition-all duration-300" />
+            <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+              <Phone className="w-5 h-5 text-emerald-400" />
+            </div>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Contact</p>
+            <h3 className="font-display text-2xl text-white tracking-wide mb-2">CALL US</h3>
+            <p className="text-sm text-slate-300 font-mono mb-1">{GYM_PHONE}</p>
+            <p className="text-xs text-slate-600">Call or WhatsApp</p>
+          </a>
+
+          {/* Hours */}
+          <div className="group bg-[#0a0a0a] p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-0.5 h-0 bg-amber-500 group-hover:h-full transition-all duration-300" />
+            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
+              <Clock className="w-5 h-5 text-amber-400" />
+            </div>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Schedule</p>
+            <h3 className="font-display text-2xl text-white tracking-wide mb-3">OPEN HOURS</h3>
+            <div className="space-y-2.5">
+              {HOURS.map(({ day, time }) => (
+                <div key={day} className="flex flex-col gap-0.5 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                  <span className="text-[10px] text-slate-600 tracking-wider uppercase">{day}</span>
+                  <span className="text-sm text-slate-200 font-semibold font-display tracking-wide">{time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       {/* ── Map ──────────────────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
+      <section id="find-us-section" className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
         <div className="flex items-baseline gap-3 mb-6">
           <span className="font-display text-4xl text-red-500/40 leading-none">05</span>
           <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
@@ -536,38 +569,7 @@ export default function LandingPage() {
       </footer>
 
       {/* ── Floating Join Now CTA ────────────────────────────────────────── */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <style>{`
-          @keyframes float-pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(220, 38, 38, 0.1); }
-            50% { box-shadow: 0 0 40px rgba(220, 38, 38, 0.6), inset 0 0 20px rgba(220, 38, 38, 0.2); }
-          }
-          .float-cta {
-            animation: float-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-          }
-        `}</style>
-        <Link
-          href="/signup"
-          className="float-cta group relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-700 border border-red-500/50 backdrop-blur-md hover:border-red-400 hover:from-red-500 hover:to-red-600 active:scale-95 transition-all duration-200 shadow-2xl shadow-red-900/50"
-        >
-          {/* Background glow */}
-          <div className="absolute inset-0 rounded-full bg-red-600/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-          {/* Content */}
-          <div className="relative flex flex-col items-center justify-center gap-0.5">
-            <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-0.5 transition-transform" />
-            <span className="text-[9px] font-bold text-white tracking-widest leading-none whitespace-nowrap">JOIN</span>
-          </div>
-
-          {/* Tooltip on hover (mobile-friendly) */}
-          <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap font-medium">
-              Join Now
-              <div className="absolute top-full right-2 w-2 h-2 bg-white/10 rotate-45 border-r border-b border-white/20" />
-            </div>
-          </div>
-        </Link>
-      </div>
+      <FloatingCTA />
 
     </div>
   );
