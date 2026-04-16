@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Dumbbell, Shield, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
+import { Dumbbell, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
 import InstagramGallery from '@/components/InstagramGallery';
 import CoachContactModal from '@/components/CoachContactModal';
@@ -47,12 +47,8 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-1">
           <Link href="/login"
-            className="text-sm font-medium text-slate-400 hover:text-white px-4 py-2 min-h-[40px] flex items-center transition-colors">
-            Login
-          </Link>
-          <Link href="/admin/login"
             className="bg-red-700 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-red-900/30 min-h-[40px] flex items-center gap-1.5 transition-all">
-            <Shield className="w-3.5 h-3.5" /> Admin
+            Member Login
           </Link>
         </div>
       </nav>

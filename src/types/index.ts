@@ -84,9 +84,43 @@ export interface ProgressPhoto {
 export interface JWTPayload {
   userId: string;
   phone: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'super_admin';
   iat?: number;
   exp?: number;
+}
+
+// ── Multi-Gym / Super Admin Types ─────────────────────────────────────────────
+
+export interface Gym {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  primary_color: string;
+  secondary_color: string;
+  address: string | null;
+  phone: string | null;
+  status: 'active' | 'inactive' | 'suspended';
+  created_at: string;
+}
+
+export interface GymSubscription {
+  id: string;
+  gym_id: string;
+  plan_name: string;
+  status: 'trial' | 'active' | 'expired' | 'paused';
+  start_date: string;
+  renewal_date: string | null;
+  created_at: string;
+}
+
+export interface GymWithStats extends Gym {
+  member_count: number;
+  active_member_count: number;
+  workout_count: number;
+  attendance_this_month: number;
+  post_count: number;
+  subscription: GymSubscription | null;
 }
 
 export interface ApiResponse<T = unknown> {

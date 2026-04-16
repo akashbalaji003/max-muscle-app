@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Users, Shield, Calendar, Plus, LogOut, CheckCircle, XCircle,
-  Clock, QrCode, RefreshCw, Home, Trash2, Ban, UserCheck, RotateCcw,
+  Clock, QrCode, RefreshCw, Home, Trash2, Ban, UserCheck, RotateCcw, BarChart2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -374,6 +374,11 @@ export default function AdminDashboardPage() {
                                   : <Trash2 className="w-3.5 h-3.5" />}
                                 Delete
                               </button>
+                              <Link href={`/admin/members/${u.id}`}
+                                className="text-xs text-slate-500 hover:text-blue-400 transition-colors flex items-center gap-1">
+                                <BarChart2 className="w-3.5 h-3.5" />
+                                Analytics
+                              </Link>
                             </div>
                           </td>
                         </tr>
@@ -449,6 +454,11 @@ export default function AdminDashboardPage() {
                           {deletingId === u.id ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : <Trash2 className="w-3 h-3" />}
                           Delete
                         </button>
+                        <Link href={`/admin/members/${u.id}`}
+                          className="text-xs text-slate-600 hover:text-blue-400 transition-colors flex items-center gap-1">
+                          <BarChart2 className="w-3 h-3" />
+                          Analytics
+                        </Link>
                       </div>
                     </div>
                   );
