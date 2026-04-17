@@ -30,6 +30,16 @@ export default function AdminLoginPage() {
       return;
     }
 
+    // Check if admin needs to accept the latest terms
+    const consentRes = await fetch('/api/consent/check');
+    if (consentRes.ok) {
+      const consentData = await consentRes.json();
+      if (consentData.needs_consent) {
+        router.push('/consent?next=/admin/dashboard');
+        return;
+      }
+    }
+
     router.push('/admin/dashboard');
   }
 

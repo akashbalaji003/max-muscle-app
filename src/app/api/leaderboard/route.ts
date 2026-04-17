@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   const { data: prs } = await supabaseAdmin
     .from('prs')
-    .select(`id, max_weight, achieved_at, users (id, phone_number, name)`)
+    .select(`id, max_weight, achieved_at, users (id, name, avatar_url)`)
     .eq('exercise_id', targetExerciseId)
     .order('max_weight', { ascending: false })
     .limit(20);

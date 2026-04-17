@@ -420,17 +420,17 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 text-xs mb-3">
-                        <div>
+                        <div className="flex flex-col items-center justify-center text-center">
                           <p className="text-slate-600 mb-0.5">Days Left</p>
                           <p className={`font-semibold ${days === null ? 'text-slate-600' : days === 0 ? 'text-red-400' : days <= 7 ? 'text-amber-400' : 'text-emerald-400'}`}>
                             {days !== null ? `${days}d` : '—'}
                           </p>
                         </div>
-                        <div>
+                        <div className="flex flex-col items-center justify-center text-center">
                           <p className="text-slate-600 mb-0.5">Joined</p>
                           <p className="text-slate-400">{joinedDate ? formatDate(joinedDate) : '—'}</p>
                         </div>
-                        <div>
+                        <div className="flex flex-col items-center justify-center text-center">
                           <p className="text-slate-600 mb-0.5">Renewed</p>
                           <p className="text-slate-400">{renewedDate ? formatDate(renewedDate) : '—'}</p>
                         </div>

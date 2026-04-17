@@ -34,10 +34,15 @@ export async function GET(req: NextRequest) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const today = now.toISOString().split('T')[0];
 
+  const singleGym = gyms.length === 1;
+
   // Per-gym aggregates — parallel fetches for each gym
+  // When gym_id column isn't backfilled yet (NULL rows), fall back to counting all rows for single-gym setups
   const gymStats = await Promise.all(
     gyms.map(async (gym) => {
       const gymId = gym.id;
+      // For a single-gym platform, rows with gym_id IS NULL also belong to this gym
+      const gymFilter = `gym_id.eq.${gymId}${singleGym ? ',gym_id.is.null' : ''}`;
 
       const [
         { count: memberCount },
@@ -46,11 +51,11 @@ export async function GET(req: NextRequest) {
         { count: attendanceThisMonth },
         { count: postCount },
       ] = await Promise.all([
-        supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('gym_id', gymId),
-        supabaseAdmin.from('memberships').select('*', { count: 'exact', head: true }).eq('gym_id', gymId).gte('end_date', today),
-        supabaseAdmin.from('workouts').select('*', { count: 'exact', head: true }).eq('gym_id', gymId),
-        supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('gym_id', gymId).gte('checked_in_at', monthStart),
-        supabaseAdmin.from('progress_photos').select('*', { count: 'exact', head: true }).eq('gym_id', gymId),
+        supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).or(gymFilter),
+        supabaseAdmin.from('memberships').select('*', { count: 'exact', head: true }).or(gymFilter).gte('end_date', today),
+        supabaseAdmin.from('workouts').select('*', { count: 'exact', head: true }).or(gymFilter),
+        supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).or(gymFilter).gte('checked_in_at', monthStart),
+        supabaseAdmin.from('progress_photos').select('*', { count: 'exact', head: true }).or(gymFilter),
       ]);
 
       return {

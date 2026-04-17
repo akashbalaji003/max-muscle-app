@@ -3,6 +3,7 @@ import "./globals.css";
 import MouseGlow from "@/components/MouseGlow";
 import NavigationProgress from "@/components/NavigationProgress";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import NoContextMenu from "@/components/NoContextMenu";
 
 export const metadata: Metadata = {
   title: "Maximum Muscle Lifestyle Fitness Studio",
@@ -15,17 +16,8 @@ export const metadata: Metadata = {
   },
 };
 
-const themeScript = `
-(function(){
-  try {
-    var saved = localStorage.getItem('theme-override');
-    var theme = saved
-      ? saved
-      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
-  } catch(e){}
-})();
-`.trim();
+// Always dark — clears any stored light override before hydration
+const themeScript = `(function(){try{localStorage.removeItem('theme-override');document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -50,6 +42,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen">
+        <NoContextMenu />
         <NavigationProgress />
         <MouseGlow />
         <ThemeProvider>

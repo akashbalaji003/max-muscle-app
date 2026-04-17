@@ -59,6 +59,21 @@ interface ProfileSnap {
   bmi: number | null;
   bmiCategory: string | null;
   goal: 'fat_loss' | 'muscle_gain' | 'maintenance' | null;
+  assigned_plan: string | null;
+  plan_source: string | null;
+  custom_plan: AdminPlanDay[] | null;
+}
+
+// Admin-assigned custom plan types
+interface AdminPlanDay {
+  day: string;
+  exercises: {
+    exercise_id: string;
+    exercise_name: string;
+    muscle_group: string;
+    equipment: string;
+    sets: { weight: number; reps: number }[];
+  }[];
 }
 
 function fmtDuration(secs: number) {
@@ -202,7 +217,14 @@ export default function WorkoutPage() {
       }
       if (profileRes.ok) {
         const p = await profileRes.json();
-        setProfile({ bmi: p.bmi ?? null, bmiCategory: p.bmiCategory ?? null, goal: p.goal ?? null });
+        setProfile({
+          bmi: p.bmi ?? null,
+          bmiCategory: p.bmiCategory ?? null,
+          goal: p.goal ?? null,
+          assigned_plan: p.assigned_plan ?? null,
+          plan_source: p.plan_source ?? 'system',
+          custom_plan: p.custom_plan ?? null,
+        });
       }
     }
     load();
@@ -251,6 +273,24 @@ export default function WorkoutPage() {
 
   function openCustom() {
     setEntries([makeEmptyEntry()]);
+    setWorkoutType('custom');
+    setShowForm(true);
+    resetTimer();
+    startTimer();
+  }
+
+  // Load an admin-assigned custom plan day into the workout form
+  function loadAdminPlanDay(day: AdminPlanDay) {
+    const mapped: ExerciseEntry[] = day.exercises.map((ex) => ({
+      localId: newId(),
+      exercise_id: ex.exercise_id,
+      exercise_name: ex.exercise_name,
+      muscle_group: ex.muscle_group,
+      equipment: ex.equipment,
+      sets: ex.sets.map((s) => ({ weight: String(s.weight), reps: String(s.reps), completed: false })),
+      lastCompletedAt: null,
+    }));
+    setEntries(mapped.length > 0 ? mapped : [makeEmptyEntry()]);
     setWorkoutType('custom');
     setShowForm(true);
     resetTimer();
@@ -487,6 +527,59 @@ export default function WorkoutPage() {
           >
             <QrCode className="w-4 h-4" /> Go to Check-In
           </Link>
+        </div>
+      )}
+
+      {/* ── Admin-assigned preset plan banner ── */}
+      {!showForm && profile?.plan_source === 'admin' && profile?.assigned_plan && profile.assigned_plan !== 'custom' && (
+        <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 flex items-start gap-3">
+          <Zap className="w-4 h-4 text-violet-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-violet-300">Trainer-assigned plan active</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Your trainer set your plan to <span className="text-white font-medium capitalize">{profile.assigned_plan.replace(/_/g, ' ')}</span>.
+              Use the quick-start cards below to begin.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin-assigned custom plan ── */}
+      {!showForm && profile?.plan_source === 'admin' && profile?.assigned_plan === 'custom' && profile?.custom_plan && profile.custom_plan.length > 0 && (
+        <div className={checkedInToday === false ? 'opacity-30 pointer-events-none select-none' : ''}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Your Assigned Plan</p>
+            <span className="text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full font-semibold">
+              Admin plan
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {profile.custom_plan.map((day, i) => (
+              <button
+                key={i}
+                onClick={() => loadAdminPlanDay(day)}
+                disabled={checkedInToday === false}
+                className="glass-card p-4 text-left hover:border-violet-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
+              >
+                <div className="text-sm font-bold text-violet-300 mb-1">{day.day}</div>
+                <div className="text-xs text-slate-500">
+                  {day.exercises.length} exercise{day.exercises.length !== 1 ? 's' : ''}
+                  {' · '}
+                  {day.exercises.reduce((n, e) => n + e.sets.length, 0)} sets total
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {day.exercises.slice(0, 3).map((ex, j) => (
+                    <span key={j} className="text-[10px] bg-white/5 text-slate-400 px-1.5 py-0.5 rounded">
+                      {ex.exercise_name}
+                    </span>
+                  ))}
+                  {day.exercises.length > 3 && (
+                    <span className="text-[10px] text-slate-600">+{day.exercises.length - 3} more</span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

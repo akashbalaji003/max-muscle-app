@@ -21,7 +21,7 @@ export async function GET(
   // ── User ─────────────────────────────────────────────────────────────────
   const { data: user, error: userErr } = await supabaseAdmin
     .from('users')
-    .select('id, phone_number, name, created_at, height_cm, weight_kg, goal')
+    .select('*')
     .eq('id', userId)
     .single();
 
@@ -43,7 +43,7 @@ export async function GET(
     .from('attendance')
     .select('date, checked_in_at')
     .eq('user_id', userId)
-    .order('date', { ascending: true });
+    .order('date', { ascending: false });
 
   // ── Workouts with entries ─────────────────────────────────────────────────
   const { data: workouts } = await supabaseAdmin

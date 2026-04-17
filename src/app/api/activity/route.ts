@@ -4,10 +4,12 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 /**
  * GET /api/activity
- * Returns the current user's activity feed (notifications).
- * Ordered newest-first, limit 40.
+ * Returns:
+ *   activity      — activity_feed items (likes, comments, follows)
+ *   followRequests — pending follow_requests targeting the current user
+ *   unread        — count of unread activity items + pending requests
  *
- * POST /api/activity/read  — mark all as read (called on tab open)
+ * POST /api/activity — mark all activity_feed items as read
  */
 export async function GET(req: NextRequest) {
   const payload = getUserFromRequest(req);
@@ -15,23 +17,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('activity_feed')
-    .select(`
-      id, type, read, created_at, meta,
-      actor:actor_id ( id, name, phone_number, avatar_url ),
-      post:post_id ( id, image_url )
-    `)
-    .eq('recipient_id', payload.userId)
-    .order('created_at', { ascending: false })
-    .limit(40);
+  const [activityRes, requestsRes] = await Promise.all([
+    supabaseAdmin
+      .from('activity_feed')
+      .select(`
+        id, type, read, created_at, meta,
+        actor:actor_id ( id, name, phone_number, avatar_url ),
+        post:post_id ( id, image_url )
+      `)
+      .eq('recipient_id', payload.userId)
+      .order('created_at', { ascending: false })
+      .limit(40),
 
-  if (error) return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 });
+    supabaseAdmin
+      .from('follow_requests')
+      .select(`
+        id, requester_id, created_at,
+        requester:requester_id ( id, name, phone_number, avatar_url )
+      `)
+      .eq('target_id', payload.userId)
+      .order('created_at', { ascending: false }),
+  ]);
 
-  // Count unread
-  const unread = (data ?? []).filter((a) => !a.read).length;
+  const activity       = activityRes.data ?? [];
+  const followRequests = requestsRes.data ?? [];
+  const unread = activity.filter((a) => !a.read).length + followRequests.length;
 
-  return NextResponse.json({ activity: data ?? [], unread });
+  return NextResponse.json({ activity, followRequests, unread });
 }
 
 export async function POST(req: NextRequest) {
@@ -40,7 +52,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Mark all as read
   await supabaseAdmin
     .from('activity_feed')
     .update({ read: true })

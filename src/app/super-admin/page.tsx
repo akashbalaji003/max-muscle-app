@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Building2, Users, UserCheck, Dumbbell, CalendarCheck, ImageIcon,
-  LogOut, RefreshCw, ExternalLink, Shield, TrendingUp, Activity,
+  LogOut, RefreshCw, ExternalLink, Shield, TrendingUp, Activity, Brain,
+  CheckCircle2, XCircle, Database,
 } from 'lucide-react';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
+  LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { Badge } from '@/components/ui/Badge';
@@ -42,6 +44,23 @@ interface GymRow {
     status: 'trial' | 'active' | 'expired' | 'paused';
     renewal_date: string | null;
   } | null;
+}
+
+interface AiGlobalSummary {
+  summary: {
+    consented: number;
+    declined: number;
+    total_dataset_rows: number;
+    avg_workouts_per_week: number;
+  };
+  weekly_trends: {
+    week: string;
+    active_members: number;
+    avg_volume_kg: number;
+    avg_adherence_pct: number;
+    avg_sessions: number;
+    avg_progression: number;
+  }[];
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -81,8 +100,9 @@ export default function SuperAdminPage() {
   // Phase: 'loader' → show GymOSLoader; 'dashboard' → show content
   const [phase, setPhase] = useState<'loader' | 'dashboard'>('loader');
 
-  const [stats, setStats] = useState<PlatformStats | null>(null);
-  const [gyms,  setGyms]  = useState<GymRow[]>([]);
+  const [stats, setStats]     = useState<PlatformStats | null>(null);
+  const [gyms,  setGyms]      = useState<GymRow[]>([]);
+  const [aiGlobal, setAiGlobal] = useState<AiGlobalSummary | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Refs used to coordinate loader finish + API response without stale closures
@@ -102,9 +122,10 @@ export default function SuperAdminPage() {
   async function fetchAll(isRefresh = false) {
     if (isRefresh) setRefreshing(true);
 
-    const [sRes, gRes] = await Promise.all([
+    const [sRes, gRes, aiRes] = await Promise.all([
       fetch('/api/super-admin/stats'),
       fetch('/api/super-admin/gyms'),
+      fetch('/api/super-admin/ai-analytics/global'),
     ]);
 
     if (sRes.status === 401 || sRes.status === 403) {
@@ -118,6 +139,7 @@ export default function SuperAdminPage() {
     const [sData, gData] = await Promise.all([sRes.json(), gRes.json()]);
     setStats(sData);
     setGyms(gData.gyms ?? []);
+    if (aiRes.ok) setAiGlobal(await aiRes.json());
 
     resolvedRef.current.authDone = true;
     resolvedRef.current.authed   = true;
@@ -432,7 +454,109 @@ export default function SuperAdminPage() {
           </div>
         </div>
 
+        {/* ── AI Analytics Overview ────────────────────────────────────────── */}
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Brain className="w-4 h-4 text-violet-400" />
+            <h2 className="text-sm font-semibold text-white uppercase tracking-widest">AI Analytics Overview</h2>
+            <span className="text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full">
+              Anonymised · No PII
+            </span>
+          </div>
+
+          {/* AI summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            {[
+              { label: 'AI Consented',     value: aiGlobal?.summary.consented          ?? '—', icon: CheckCircle2, color: 'emerald' },
+              { label: 'AI Declined',      value: aiGlobal?.summary.declined           ?? '—', icon: XCircle,      color: 'rose'    },
+              { label: 'Dataset Rows',     value: aiGlobal?.summary.total_dataset_rows ?? '—', icon: Database,     color: 'violet'  },
+              { label: 'Avg Workouts/wk',  value: aiGlobal?.summary.avg_workouts_per_week ?? '—', icon: Dumbbell, color: 'amber'   },
+            ].map(({ label, value, icon: Icon, color }) => (
+              <Card key={label} className="p-4 flex items-center gap-3">
+                <div className={`p-2 rounded-xl shrink-0 bg-${color}-500/10 text-${color}-400`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-slate-500">{label}</p>
+                  <p className="text-xl font-bold text-white tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* AI trend charts */}
+          {aiGlobal && aiGlobal.weekly_trends.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Volume trend */}
+              <AiLineCard title="Weekly Training Volume (avg kg)" color="#8b5cf6">
+                <LineChart data={aiGlobal.weekly_trends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                  <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Line type="monotone" dataKey="avg_volume_kg" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Avg Volume (kg)" />
+                </LineChart>
+              </AiLineCard>
+
+              {/* Adherence trend */}
+              <AiLineCard title="Adherence Trend (avg %)" color="#10b981">
+                <LineChart data={aiGlobal.weekly_trends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                  <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} domain={[0, 100]} unit="%" />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}%`, 'Adherence']} />
+                  <Line type="monotone" dataKey="avg_adherence_pct" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Adherence %" />
+                </LineChart>
+              </AiLineCard>
+
+              {/* Strength progression score */}
+              <AiLineCard title="Avg Progression Score" color="#f59e0b">
+                <LineChart data={aiGlobal.weekly_trends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                  <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Line type="monotone" dataKey="avg_progression" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeDasharray="5 2" name="Progression" />
+                </LineChart>
+              </AiLineCard>
+
+              {/* Active members trend */}
+              <AiLineCard title="Active Members in Dataset" color="#3b82f6">
+                <LineChart data={aiGlobal.weekly_trends}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                  <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Line type="monotone" dataKey="active_members" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Active Members" />
+                </LineChart>
+              </AiLineCard>
+            </div>
+          ) : (
+            <div className="bg-[#0f0f0f] border border-dashed border-white/10 rounded-2xl p-8 text-center">
+              <Brain className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No AI dataset entries yet.</p>
+              <p className="text-xs text-slate-700 mt-1">Data appears after members accept Terms & AI consent.</p>
+            </div>
+          )}
+        </div>
+
       </div>
+    </div>
+  );
+}
+
+// ── Small chart wrapper ───────────────────────────────────────────────────────
+function AiLineCard({ title, color, children }: { title: string; color: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+        <p className="text-xs font-semibold text-slate-400">{title}</p>
+      </div>
+      <ResponsiveContainer width="100%" height={160}>
+        {children as React.ReactElement}
+      </ResponsiveContainer>
     </div>
   );
 }

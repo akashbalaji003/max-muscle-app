@@ -52,6 +52,10 @@ export async function GET(
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString();
 
+  // Rows with gym_id IS NULL belong to the default gym when there's only one gym.
+  // Use .or() so counts are never 0 just because the backfill migration hasn't run.
+  const gymFilter = `gym_id.eq.${gymId},gym_id.is.null`;
+
   // ── Aggregate counts ─────────────────────────────────────────────────────────
   const [
     { count: memberCount },
@@ -60,11 +64,11 @@ export async function GET(
     { count: attendanceThisMonth },
     { count: postCount },
   ] = await Promise.all([
-    supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('gym_id', gymId),
-    supabaseAdmin.from('memberships').select('*', { count: 'exact', head: true }).eq('gym_id', gymId).gte('end_date', today),
-    supabaseAdmin.from('workouts').select('*', { count: 'exact', head: true }).eq('gym_id', gymId),
-    supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).eq('gym_id', gymId).gte('checked_in_at', monthStart),
-    supabaseAdmin.from('progress_photos').select('*', { count: 'exact', head: true }).eq('gym_id', gymId),
+    supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).or(gymFilter),
+    supabaseAdmin.from('memberships').select('*', { count: 'exact', head: true }).or(gymFilter).gte('end_date', today),
+    supabaseAdmin.from('workouts').select('*', { count: 'exact', head: true }).or(gymFilter),
+    supabaseAdmin.from('attendance').select('*', { count: 'exact', head: true }).or(gymFilter).gte('checked_in_at', monthStart),
+    supabaseAdmin.from('progress_photos').select('*', { count: 'exact', head: true }).or(gymFilter),
   ]);
 
   // ── Trends (last 12 months) ──────────────────────────────────────────────────
@@ -73,9 +77,9 @@ export async function GET(
     { data: workoutsRaw },
     { data: newMembersRaw },
   ] = await Promise.all([
-    supabaseAdmin.from('attendance').select('checked_in_at').eq('gym_id', gymId).gte('checked_in_at', twelveMonthsAgo),
-    supabaseAdmin.from('workouts').select('date').eq('gym_id', gymId).gte('date', twelveMonthsAgo.split('T')[0]),
-    supabaseAdmin.from('users').select('created_at').eq('gym_id', gymId).gte('created_at', twelveMonthsAgo),
+    supabaseAdmin.from('attendance').select('checked_in_at').or(gymFilter).gte('checked_in_at', twelveMonthsAgo),
+    supabaseAdmin.from('workouts').select('date').or(gymFilter).gte('date', twelveMonthsAgo.split('T')[0]),
+    supabaseAdmin.from('users').select('created_at').or(gymFilter).gte('created_at', twelveMonthsAgo),
   ]);
 
   // Bucket into months
@@ -98,7 +102,7 @@ export async function GET(
   const { data: topUsersRaw } = await supabaseAdmin
     .from('attendance')
     .select('user_id, users(id, name, phone_number)')
-    .eq('gym_id', gymId);
+    .or(gymFilter);
 
   // Aggregate attendance counts per user in JS
   const userCountMap = new Map<string, { name: string | null; phone: string; count: number }>();

@@ -31,6 +31,16 @@ export default function LoginPage() {
       return;
     }
 
+    // Check if user needs to accept the latest terms before entering the app
+    const consentRes = await fetch('/api/consent/check');
+    if (consentRes.ok) {
+      const consentData = await consentRes.json();
+      if (consentData.needs_consent) {
+        router.push('/consent?next=/dashboard');
+        return;
+      }
+    }
+
     router.push('/dashboard');
   }
 

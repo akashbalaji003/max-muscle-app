@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select('id, name, phone_number, height_cm, weight_kg, goal, created_at')
+    .select('*')
     .eq('id', payload.userId)
     .single();
 
@@ -46,6 +46,11 @@ export async function GET(req: NextRequest) {
     bmi,
     bmiCategory: bmi ? bmiCategory(bmi) : null,
     created_at: data.created_at,
+    account_visibility: data.account_visibility ?? 'public',
+    is_private: data.is_private ?? false,
+    assigned_plan: data.assigned_plan ?? null,
+    plan_source: data.plan_source ?? 'system',
+    custom_plan: data.custom_plan ?? null,
   });
 }
 
@@ -57,7 +62,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, height_cm, weight_kg, goal } = body;
+  const { name, height_cm, weight_kg, goal, account_visibility, is_private } = body;
 
   // Validate
   if (name !== undefined && typeof name !== 'string') {
@@ -72,12 +77,20 @@ export async function POST(req: NextRequest) {
   if (goal !== undefined && !['fat_loss', 'muscle_gain', 'maintenance'].includes(goal)) {
     return NextResponse.json({ error: 'Invalid goal' }, { status: 400 });
   }
+  if (account_visibility !== undefined && !['public', 'private'].includes(account_visibility)) {
+    return NextResponse.json({ error: 'Invalid account_visibility' }, { status: 400 });
+  }
+  if (is_private !== undefined && typeof is_private !== 'boolean') {
+    return NextResponse.json({ error: 'Invalid is_private' }, { status: 400 });
+  }
 
   const updates: Record<string, unknown> = {};
   if (name !== undefined) updates.name = name.trim() || null;
   if (height_cm !== undefined) updates.height_cm = Number(height_cm);
   if (weight_kg !== undefined) updates.weight_kg = Number(weight_kg);
   if (goal !== undefined) updates.goal = goal;
+  if (account_visibility !== undefined) updates.account_visibility = account_visibility;
+  if (is_private !== undefined) updates.is_private = Boolean(is_private);
 
   const { error } = await supabaseAdmin
     .from('users')

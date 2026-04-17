@@ -27,10 +27,11 @@ export async function GET(req: NextRequest) {
   );
   alreadyFollowing.add(userId); // exclude self
 
-  // All active members
+  // Public-only members — no phone numbers returned
   const { data: users } = await supabaseAdmin
     .from('users')
-    .select('id, name, phone_number, avatar_url, created_at')
+    .select('id, name, avatar_url, created_at')
+    .eq('account_visibility', 'public')
     .order('created_at', { ascending: false })
     .limit(50);
 

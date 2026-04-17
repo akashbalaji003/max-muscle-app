@@ -7,7 +7,6 @@ import {
   LogOut, QrCode, Menu, ChevronLeft, UserCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import ThemeToggle from '@/components/ThemeToggle';
 
 const NAV_ITEMS = [
   { href: '/dashboard',   label: 'Home',     icon: LayoutDashboard },
@@ -112,7 +111,6 @@ export default function Sidebar() {
             </span>
           </Link>
         )}
-        <ThemeToggle />
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
@@ -158,8 +156,6 @@ export default function Sidebar() {
           )}
           <span className="font-display text-xl text-white leading-none tracking-wide truncate">{meta.title.toUpperCase()}</span>
         </div>
-
-        <ThemeToggle compact />
 
         {meta.back && (
           <button

@@ -4,6 +4,7 @@
    THEME TOKENS — Black + Red + White brand system
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
+  color-scheme: dark;
   --bg:           #0A0A0A;
   --bg-card:      #111111;
   --bg-raised:    #1A1A1A;
@@ -38,19 +39,7 @@
   --text-faint:   #555555;
 }
 
-[data-theme="light"] {
-  --bg:           #F5F5F5;
-  --bg-card:      #FFFFFF;
-  --bg-raised:    #EBEBEB;
-  --bg-input:     #F8F8F8;
-  --bg-sidebar:   #F8F8F8;
-  --border:       rgba(225, 29, 29, 0.20);
-  --border-sub:   rgba(0,0,0,0.08);
-  --text:         #0A0A0A;
-  --text-primary: #111111;
-  --text-muted:   #444444;
-  --text-faint:   #888888;
-}
+/* Light mode removed — app is dark-only */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RESET + BASE
@@ -84,10 +73,7 @@ body {
   user-select: none;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT-MODE: TAILWIND CLASS OVERRIDES
-   Higher specificity ([attr] + .class = 0,2,0) beats Tailwind (0,1,0).
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* Light-mode overrides removed — app is dark-only */
 
 /* ── Text colours ─────────────────────────────────────────────────────────── */
 [data-theme="light"] .text-white       { color: #0A0A0A; }

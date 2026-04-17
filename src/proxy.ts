@@ -1,74 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
-// Exact public paths (no auth required)
-const PUBLIC_EXACT = new Set(['/', '/login', '/signup', '/admin/login', '/checkin']);
+const COOKIE_NAME = 'gym_token';
 
-// Public API prefixes
-const PUBLIC_API_PREFIXES = [
-  '/api/auth/login',
-  '/api/auth/signup',
-  '/api/auth/logout',
-  '/api/admin/login',
-  '/api/qr',
-  '/api/exercises',
-];
-
-// Admin-only prefixes (require admin JWT)
-const ADMIN_PREFIXES = ['/admin/dashboard', '/admin/qr', '/api/admin/'];
-
-// User-protected prefixes
-const USER_PREFIXES = [
-  '/dashboard', '/workout', '/analytics', '/leaderboard', '/progress',
-  '/api/attendance', '/api/workout', '/api/analytics', '/api/leaderboard',
-  '/api/progress', '/api/upload', '/api/auth/me',
-];
-
+/**
+ * Server-side route protection (Next.js 16 proxy — replaces middleware.ts).
+ * Guards admin, super-admin, and member dashboard routes.
+ */
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Always allow static assets
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/manifest')) {
+  // ── Super Admin routes ───────────────────────────────────────────────────
+  if (pathname.startsWith('/super-admin') && pathname !== '/super-admin-login') {
+    const token   = req.cookies.get(COOKIE_NAME)?.value;
+    const payload = token ? verifyToken(token) : null;
+    if (!payload || payload.role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/super-admin-login', req.url));
+    }
     return NextResponse.next();
   }
 
-  // Allow exact public pages
-  if (PUBLIC_EXACT.has(pathname)) return NextResponse.next();
-
-  // Allow public API routes
-  if (PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
-
-  const token = req.cookies.get('gym_token')?.value;
-  const isApi = pathname.startsWith('/api/');
-
-  // ── Admin routes ────────────────────────────────────────
-  if (ADMIN_PREFIXES.some((p) => pathname.startsWith(p))) {
-    if (!token) {
-      return isApi
-        ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        : NextResponse.redirect(new URL('/admin/login', req.url));
-    }
-    const payload = verifyToken(token);
+  // ── Gym Admin routes (pages only — APIs guard themselves) ────────────────
+  if (
+    pathname.startsWith('/admin') &&
+    pathname !== '/admin/login' &&
+    !pathname.startsWith('/api/')
+  ) {
+    const token   = req.cookies.get(COOKIE_NAME)?.value;
+    const payload = token ? verifyToken(token) : null;
     if (!payload || payload.role !== 'admin') {
-      return isApi
-        ? NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-        : NextResponse.redirect(new URL('/admin/login', req.url));
+      return NextResponse.redirect(new URL('/admin/login', req.url));
     }
     return NextResponse.next();
   }
 
-  // ── User protected routes ───────────────────────────────
-  if (USER_PREFIXES.some((p) => pathname.startsWith(p))) {
-    if (!token) {
-      return isApi
-        ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        : NextResponse.redirect(new URL('/login', req.url));
-    }
-    const payload = verifyToken(token);
-    if (!payload) {
-      return isApi
-        ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        : NextResponse.redirect(new URL('/login', req.url));
+  // ── Member dashboard + app routes ────────────────────────────────────────
+  const memberPaths = [
+    '/dashboard', '/checkin', '/analytics', '/workout',
+    '/progress', '/leaderboard', '/profile', '/social',
+  ];
+  if (memberPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+    const token   = req.cookies.get(COOKIE_NAME)?.value;
+    const payload = token ? verifyToken(token) : null;
+    if (!payload || payload.role !== 'user') {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
     return NextResponse.next();
   }
@@ -77,5 +52,16 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/admin/:path*',
+    '/super-admin/:path*',
+    '/dashboard/:path*',
+    '/checkin/:path*',
+    '/analytics/:path*',
+    '/workout/:path*',
+    '/progress/:path*',
+    '/leaderboard/:path*',
+    '/profile/:path*',
+    '/social/:path*',
+  ],
 };

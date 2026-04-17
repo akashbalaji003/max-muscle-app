@@ -4,7 +4,8 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Building2, Users, UserCheck, Dumbbell,
-  CalendarCheck, ImageIcon, Shield, CreditCard,
+  CalendarCheck, ImageIcon, Shield, CreditCard, Brain, CheckCircle2, XCircle,
+  Search, ChevronLeft, ChevronRight, ExternalLink,
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar,
@@ -12,8 +13,37 @@ import {
 } from 'recharts';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import DarkSelect from '@/components/ui/DarkSelect';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+interface AiAnalyticsData {
+  consent_summary: { consented: number; declined: number; total: number };
+  weekly_trends: {
+    week: string;
+    members_active: number;
+    avg_sessions: number;
+    avg_volume_kg: number;
+    avg_adherence_pct: number;
+    total_attendance: number;
+  }[];
+  strength_trends: {
+    exercise: string;
+    weekly_data: { week: string; avg_top_weight: number; avg_volume: number }[];
+  }[];
+  profile_distribution: {
+    by_goal:       { label: string; count: number }[];
+    by_experience: { label: string; count: number }[];
+  };
+}
+
+interface MemberRow {
+  member_id: string;
+  assigned_plan: string | null;
+  plan_source: string | null;
+  adherence_percent: number | null;
+  last_active_date: string | null;
+}
+
 interface GymDetailData {
   gym: {
     id: string;
@@ -41,12 +71,6 @@ interface GymDetailData {
     workouts:     { month: string; count: number }[];
     memberGrowth: { month: string; count: number }[];
   };
-  topUsers: {
-    id: string;
-    name: string | null;
-    phone: string;
-    count: number;
-  }[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -76,23 +100,57 @@ export default function GymDetailPage() {
   const params = useParams<{ id: string }>();
   const gymId  = params?.id;
 
-  const [data, setData]       = useState<GymDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData]           = useState<GymDetailData | null>(null);
+  const [aiData, setAiData]       = useState<AiAnalyticsData | null>(null);
+  const [loading, setLoading]     = useState(true);
+
+  // Member explorer
+  const [members, setMembers]     = useState<MemberRow[]>([]);
+  const [membersTotal, setMembersTotal] = useState(0);
+  const [membersPage, setMembersPage]   = useState(0);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [memberSearch, setMemberSearch]     = useState('');
+  const [planFilter, setPlanFilter]         = useState('');
+  const [adherenceFilter, setAdherenceFilter] = useState<'all' | 'high' | 'low'>('all');
 
   useEffect(() => {
     if (!gymId) return;
-    fetch(`/api/super-admin/gyms/${gymId}`)
-      .then(async (res) => {
-        if (res.status === 401 || res.status === 403) {
-          router.push('/super-admin-login');
-          return;
-        }
-        if (!res.ok) { router.push('/super-admin'); return; }
-        const json = await res.json();
-        setData(json);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch(`/api/super-admin/gyms/${gymId}`),
+      fetch(`/api/super-admin/ai-analytics?gym_id=${gymId}`),
+    ]).then(async ([gymRes, aiRes]) => {
+      if (gymRes.status === 401 || gymRes.status === 403) {
+        router.push('/super-admin-login');
+        return;
+      }
+      if (!gymRes.ok) { router.push('/super-admin'); return; }
+      const gymJson = await gymRes.json();
+      setData(gymJson);
+      if (aiRes.ok) setAiData(await aiRes.json());
+      setLoading(false);
+    });
   }, [gymId]);
+
+  async function fetchMembers(page = 0, search = memberSearch, plan = planFilter, adh = adherenceFilter) {
+    if (!gymId) return;
+    setMembersLoading(true);
+    const minAdh = adh === 'high' ? 70 : 0;
+    const maxAdh = adh === 'low'  ? 50 : 100;
+    const url = `/api/super-admin/ai-analytics/members?gym_id=${gymId}&page=${page}&search=${encodeURIComponent(search)}&plan=${encodeURIComponent(plan)}&min_adherence=${minAdh}&max_adherence=${maxAdh}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const d = await res.json();
+      setMembers(d.members ?? []);
+      setMembersTotal(d.total ?? 0);
+      setMembersPage(page);
+    }
+    setMembersLoading(false);
+  }
+
+  // Load members once gym data is available
+  useEffect(() => {
+    if (gymId && !loading) fetchMembers(0);
+  }, [gymId, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading || !data) {
     return (
@@ -105,7 +163,7 @@ export default function GymDetailPage() {
     );
   }
 
-  const { gym, subscription, stats, trends, topUsers } = data;
+  const { gym, subscription, stats, trends } = data;
 
   // Format trend data for charts
   const attendanceChartData = trends.attendance.map((d) => ({ ...d, label: fmtMonth(d.month) }));
@@ -206,6 +264,134 @@ export default function GymDetailPage() {
           </div>
         </div>
 
+        {/* ── AI Analytics Section ────────────────────────────────────────── */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Brain className="w-4 h-4 text-violet-400" />
+            <h2 className="text-sm font-semibold text-white uppercase tracking-widest">AI Data Foundation</h2>
+            <span className="text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full ml-1">Anonymised · No PII</span>
+          </div>
+
+          {/* Consent summary cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-emerald-500/10">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-500">AI Consented</p>
+                <p className="text-xl font-bold text-white tabular-nums">{aiData?.consent_summary.consented ?? '—'}</p>
+              </div>
+            </div>
+            <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-rose-500/10">
+                <XCircle className="w-4 h-4 text-rose-400" />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-500">Declined / Withdrawn</p>
+                <p className="text-xl font-bold text-white tabular-nums">{aiData?.consent_summary.declined ?? '—'}</p>
+              </div>
+            </div>
+            <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4 flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-violet-500/10">
+                <Brain className="w-4 h-4 text-violet-400" />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-500">Total in Dataset</p>
+                <p className="text-xl font-bold text-white tabular-nums">{aiData?.consent_summary.total ?? '—'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly training trends from AI dataset */}
+          {aiData && aiData.weekly_trends.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
+                <h3 className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-3">Avg Weekly Volume (kg) — AI Cohort</h3>
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={aiData.weekly_trends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                    <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Line type="monotone" dataKey="avg_volume_kg" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Avg Volume (kg)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
+                <h3 className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-3">Avg Adherence % — AI Cohort</h3>
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={aiData.weekly_trends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                    <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                    <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} domain={[0, 100]} unit="%" />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}%`, 'Adherence']} />
+                    <Line type="monotone" dataKey="avg_adherence_pct" stroke="#10b981" strokeWidth={2} dot={false} name="Adherence %" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Profile distribution */}
+          {aiData && (aiData.profile_distribution.by_goal.length > 0 || aiData.profile_distribution.by_experience.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {aiData.profile_distribution.by_goal.length > 0 && (
+                <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
+                  <h3 className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-3">Goals Distribution</h3>
+                  <div className="space-y-2">
+                    {aiData.profile_distribution.by_goal.map(({ label, count }) => {
+                      const total = aiData.profile_distribution.by_goal.reduce((s, x) => s + x.count, 0);
+                      return (
+                        <div key={label}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-slate-300 capitalize">{label.replace(/_/g, ' ')}</span>
+                            <span className="text-slate-500">{count}</span>
+                          </div>
+                          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-violet-600 rounded-full" style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {aiData.profile_distribution.by_experience.length > 0 && (
+                <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
+                  <h3 className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-3">Experience Levels</h3>
+                  <div className="space-y-2">
+                    {aiData.profile_distribution.by_experience.map(({ label, count }) => {
+                      const total = aiData.profile_distribution.by_experience.reduce((s, x) => s + x.count, 0);
+                      return (
+                        <div key={label}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-slate-300 capitalize">{label}</span>
+                            <span className="text-slate-500">{count}</span>
+                          </div>
+                          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-600 rounded-full" style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {aiData && aiData.consent_summary.total === 0 && (
+            <div className="bg-[#0f0f0f] border border-dashed border-white/10 rounded-2xl p-8 text-center">
+              <Brain className="w-8 h-8 text-slate-700 mx-auto mb-3" />
+              <p className="text-sm text-slate-500">No AI dataset entries yet.</p>
+              <p className="text-xs text-slate-700 mt-1">Data will appear here once members accept the Terms & AI consent.</p>
+            </div>
+          )}
+        </div>
+
         {/* ── Bottom row: subscription + top users ────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -254,29 +440,134 @@ export default function GymDetailPage() {
             </div>
           </div>
 
-          {/* Top users */}
-          <div className="md:col-span-2 bg-[#0f0f0f] border border-white/8 rounded-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
-              <Users className="w-4 h-4 text-violet-400" />
-              <h2 className="text-sm font-semibold text-white">Most Active Members</h2>
-              <span className="ml-auto text-xs text-slate-500">by attendance</span>
+        </div>
+
+        {/* ── Member Explorer ──────────────────────────────────────────────── */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-4 h-4 text-violet-400" />
+            <h2 className="text-sm font-semibold text-white uppercase tracking-widest">Member Explorer</h2>
+            <span className="text-[10px] text-slate-500 ml-auto">UUID only · No PII</span>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+              <input
+                value={memberSearch}
+                onChange={(e) => setMemberSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && fetchMembers(0, memberSearch, planFilter, adherenceFilter)}
+                placeholder="Search UUID…"
+                className="pl-8 pr-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500 w-44"
+              />
             </div>
-            <div className="divide-y divide-white/5">
-              {topUsers.length > 0 ? topUsers.map((u, i) => (
-                <div key={u.id} className="flex items-center justify-between px-4 py-2.5">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-600 font-mono w-5 text-right">{i + 1}.</span>
-                    <div>
-                      <p className="text-sm font-medium text-white">{u.name || '—'}</p>
-                      <p className="text-xs text-slate-500 font-mono">{u.phone}</p>
+            <DarkSelect
+              value={planFilter}
+              onChange={(v) => { setPlanFilter(v); fetchMembers(0, memberSearch, v, adherenceFilter); }}
+              options={[
+                { value: '',              label: 'All Plans'      },
+                { value: 'push_pull_legs', label: 'PPL'           },
+                { value: 'full_body',      label: 'Full Body'     },
+                { value: 'upper_lower',    label: 'Upper / Lower' },
+                { value: 'custom',         label: 'Custom'        },
+              ]}
+            />
+            <DarkSelect
+              value={adherenceFilter}
+              onChange={(v) => { setAdherenceFilter(v as 'all'|'high'|'low'); fetchMembers(0, memberSearch, planFilter, v as 'all'|'high'|'low'); }}
+              options={[
+                { value: 'all',  label: 'All Adherence' },
+                { value: 'high', label: 'High ≥70%'     },
+                { value: 'low',  label: 'Low ≤50%'      },
+              ]}
+            />
+            <button
+              onClick={() => fetchMembers(0, memberSearch, planFilter, adherenceFilter)}
+              className="px-3 py-1.5 bg-violet-700/30 hover:bg-violet-700/50 text-violet-300 border border-violet-500/30 rounded-lg text-xs transition-all"
+            >
+              Search
+            </button>
+          </div>
+
+          <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl overflow-hidden">
+            {membersLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : members.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-slate-500 text-sm">No consented members in AI dataset yet.</p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="border-b border-white/5">
+                      <tr>
+                        {['Member ID (UUID)', 'Plan', 'Source', 'Adherence', 'Last Active', ''].map((h) => (
+                          <th key={h} className="px-4 py-2.5 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {members.map((m) => (
+                        <tr key={m.member_id} className="hover:bg-violet-500/5 transition-colors">
+                          <td className="px-4 py-3 font-mono text-slate-300 text-[11px]">
+                            {m.member_id.slice(0, 8)}…{m.member_id.slice(-6)}
+                          </td>
+                          <td className="px-4 py-3 text-slate-300 capitalize">
+                            {m.assigned_plan?.replace(/_/g, ' ') ?? '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {m.plan_source ? (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${m.plan_source === 'admin' ? 'bg-violet-500/15 text-violet-400' : 'bg-slate-700 text-slate-400'}`}>
+                                {m.plan_source}
+                              </span>
+                            ) : '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {m.adherence_percent !== null ? (
+                              <span className={`font-semibold tabular-nums ${m.adherence_percent >= 80 ? 'text-emerald-400' : m.adherence_percent >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>
+                                {Math.round(m.adherence_percent)}%
+                              </span>
+                            ) : <span className="text-slate-600">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500">
+                            {m.last_active_date
+                              ? new Date(m.last_active_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })
+                              : '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Link
+                              href={`/super-admin/ai/member/${m.member_id}?gym_id=${gymId}`}
+                              className="flex items-center gap-1 text-slate-600 hover:text-violet-400 transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {membersTotal > 50 && (
+                  <div className="px-4 py-3 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">
+                      {membersPage * 50 + 1}–{Math.min((membersPage + 1) * 50, membersTotal)} of {membersTotal}
+                    </span>
+                    <div className="flex gap-1">
+                      <button onClick={() => fetchMembers(membersPage - 1)} disabled={membersPage === 0} className="p-1.5 text-slate-400 hover:text-white disabled:opacity-30">
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => fetchMembers(membersPage + 1)} disabled={(membersPage + 1) * 50 >= membersTotal} className="p-1.5 text-slate-400 hover:text-white disabled:opacity-30">
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-violet-400 tabular-nums">{u.count} check-ins</span>
-                </div>
-              )) : (
-                <p className="px-4 py-8 text-center text-slate-600 text-sm">No attendance data yet</p>
-              )}
-            </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 

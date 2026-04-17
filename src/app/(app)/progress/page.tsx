@@ -5,13 +5,13 @@ import {
   Camera, Upload, X, Pencil, Check,
   Heart, MessageCircle, UserPlus, UserCheck, Bell, Send,
   Flame, Award, Users, Grid3X3, ChevronLeft, Trash2,
-  Scale, Ruler, Target, Activity, RefreshCw,
+  Scale, Ruler, Target, Activity, RefreshCw, Lock,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
-import type { SocialPost, PostComment, ActivityItem, SuggestedUser } from '@/types';
+import type { SocialPost, PostComment, ActivityItem, SuggestedUser, FollowRequest } from '@/types';
 import { formatDistanceToNowStrict } from 'date-fns';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -207,10 +207,12 @@ function CommentSheet({
 function SuggestedUsers({
   users,
   followingIds,
+  pendingRequestIds,
   onFollow,
 }: {
   users: SuggestedUser[];
   followingIds: Set<string>;
+  pendingRequestIds: Set<string>;
   onFollow: (id: string) => void;
 }) {
   // Filter out users already being followed
@@ -240,9 +242,13 @@ function SuggestedUsers({
             <p className="text-[11px] font-semibold text-white truncate">{u.name || u.phone_number.slice(-4)}</p>
             <button
               onClick={() => onFollow(u.id)}
-              className="mt-1.5 w-full text-[10px] font-medium py-1 rounded-full transition-colors bg-red-600/20 text-red-400 border border-red-600/30 hover:bg-red-600/30 active:scale-95"
+              className={`mt-1.5 w-full text-[10px] font-medium py-1 rounded-full transition-colors active:scale-95 border ${
+                pendingRequestIds.has(u.id)
+                  ? 'bg-amber-600/10 text-amber-400 border-amber-600/30'
+                  : 'bg-red-600/20 text-red-400 border-red-600/30 hover:bg-red-600/30'
+              }`}
             >
-              Follow
+              {pendingRequestIds.has(u.id) ? 'Requested' : 'Follow'}
             </button>
           </div>
         ))}
@@ -366,6 +372,7 @@ interface ProfileData {
   bmi: number | null;
   bmiCategory: string | null;
   avatar_url?: string | null;
+  is_private: boolean;
 }
 
 export default function SocialPage() {
@@ -391,9 +398,13 @@ export default function SocialPage() {
   const [commentCounts,  setCommentCounts]  = useState<Record<string, number>>({});
 
   // ── Activity ──
-  const [activity,       setActivity]       = useState<ActivityItem[]>([]);
-  const [unread,         setUnread]         = useState(0);
-  const [activityLoaded, setActivityLoaded] = useState(false);
+  const [activity,        setActivity]        = useState<ActivityItem[]>([]);
+  const [followRequests,  setFollowRequests]  = useState<FollowRequest[]>([]);
+  const [unread,          setUnread]          = useState(0);
+  const [activityLoaded,  setActivityLoaded]  = useState(false);
+
+  // ── Pending follow requests sent by me ──
+  const [pendingRequestIds, setPendingRequestIds] = useState<Set<string>>(new Set());
 
   // ── Suggested users ──
   const [suggested, setSuggested] = useState<SuggestedUser[]>([]);
@@ -469,7 +480,10 @@ export default function SocialPage() {
       await Promise.all([
         loadFeed(uid, 'all'),
         fetch('/api/users/suggested').then((r) => r.json()).then((d) => setSuggested(d.users ?? [])),
-        fetch('/api/activity').then((r) => r.json()).then((d) => setUnread(d.unread ?? 0)),
+        fetch('/api/activity').then((r) => r.json()).then((d) => {
+          setUnread(d.unread ?? 0);
+          setFollowRequests(d.followRequests ?? []);
+        }),
         // Check if social tables exist — show setup banner if missing
         fetch('/api/social/health')
           .then((r) => r.json())
@@ -489,22 +503,39 @@ export default function SocialPage() {
   // ── Load activity ────────────────────────────────────────────────────────────
   async function openActivityTab() {
     setTab('activity');
-    setActivityLoaded(false); // show loading spinner while refreshing
+    setActivityLoaded(false);
     try {
       const res = await fetch('/api/activity');
       if (res.ok) {
-        const { activity: items } = await res.json();
+        const { activity: items, followRequests: reqs } = await res.json();
         setActivity(items ?? []);
+        setFollowRequests(reqs ?? []);
       } else {
         setActivity([]);
+        setFollowRequests([]);
       }
     } catch {
       setActivity([]);
+      setFollowRequests([]);
     }
-    setActivityLoaded(true); // always mark done — no more infinite "Loading…"
-    // Mark all as read in background
+    setActivityLoaded(true);
     fetch('/api/activity', { method: 'POST' }).catch(() => null);
     setUnread(0);
+  }
+
+  // ── Handle accept/decline follow request ──────────────────────────────────────
+  async function handleFollowRequest(requestId: string, action: 'accept' | 'decline') {
+    const res = await fetch(`/api/follow-requests/${requestId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    });
+    if (res.ok) {
+      setFollowRequests((prev) => prev.filter((r) => r.id !== requestId));
+      showToast(action === 'accept' ? 'Follow request accepted!' : 'Follow request declined.');
+    } else {
+      showToast('Could not process request. Try again.');
+    }
   }
 
   // ── Load profile ─────────────────────────────────────────────────────────────
@@ -547,13 +578,7 @@ export default function SocialPage() {
   // ── Follow toggle ────────────────────────────────────────────────────────────
   async function handleFollow(authorId: string) {
     const wasFollowing = followingIds.has(authorId);
-    // Optimistic update
-    setFollowingIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(authorId)) next.delete(authorId); else next.add(authorId);
-      return next;
-    });
-    if (!wasFollowing) setSuggested((prev) => prev.filter((u) => u.id !== authorId));
+    const wasPending   = pendingRequestIds.has(authorId);
 
     const res = await fetch('/api/follow', {
       method: 'POST',
@@ -562,15 +587,34 @@ export default function SocialPage() {
     });
 
     if (!res.ok) {
-      // Revert on failure
-      setFollowingIds((prev) => {
-        const next = new Set(prev);
-        if (wasFollowing) next.add(authorId); else next.delete(authorId);
-        return next;
-      });
-      if (res.status === 503) setSetupNeeded(true); // nudge migration banner
+      if (res.status === 503) setSetupNeeded(true);
       else showToast('Could not update follow. Please try again.');
+      return;
     }
+
+    const { following, requested } = await res.json();
+
+    // Update following set
+    setFollowingIds((prev) => {
+      const next = new Set(prev);
+      if (following) next.add(authorId); else next.delete(authorId);
+      return next;
+    });
+
+    // Update pending requests set
+    setPendingRequestIds((prev) => {
+      const next = new Set(prev);
+      if (requested) next.add(authorId); else next.delete(authorId);
+      return next;
+    });
+
+    // Remove from suggestions once actioned
+    if (!wasFollowing && !wasPending) {
+      setSuggested((prev) => prev.filter((u) => u.id !== authorId));
+    }
+
+    if (requested) showToast('Follow request sent!');
+    else if (!following && wasPending) showToast('Follow request cancelled.');
   }
 
   // ── Delete ───────────────────────────────────────────────────────────────────
@@ -695,6 +739,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
     const captionText = photo.caption || photo.note;
     const isEditing   = editingId === photo.id;
     const isFollowing = followingIds.has(photo.user_id);
+    const isRequested = !isFollowing && pendingRequestIds.has(photo.user_id);
     const ls          = likeState[photo.id] ?? { liked: photo.liked_by_me, count: photo.like_count };
     const cc          = commentCounts[photo.id] ?? photo.comment_count;
 
@@ -720,11 +765,15 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
                 className={`flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-all flex-shrink-0 ${
                   isFollowing
                     ? 'border-slate-600 text-slate-400 bg-white/5'
+                    : isRequested
+                    ? 'border-amber-600/50 text-amber-400 bg-amber-600/10'
                     : 'border-red-600/50 text-red-400 hover:bg-red-600/10'
                 }`}
               >
                 {isFollowing
                   ? <><UserCheck className="w-3 h-3" /> Following</>
+                  : isRequested
+                  ? <><UserCheck className="w-3 h-3" /> Requested</>
                   : <><UserPlus className="w-3 h-3" /> Follow</>}
               </button>
             )}
@@ -1049,6 +1098,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
             <SuggestedUsers
               users={suggested}
               followingIds={followingIds}
+              pendingRequestIds={pendingRequestIds}
               onFollow={handleFollow}
             />
           )}
@@ -1075,25 +1125,73 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
         <div className="max-w-md mx-auto space-y-4">
           {!activityLoaded ? (
             <div className="text-center py-12 text-slate-600 text-sm">Loading…</div>
-          ) : activity.length === 0 ? (
-            <Card className="text-center py-12">
-              <Bell className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-              <p className="text-slate-400">No activity yet.</p>
-              <p className="text-slate-600 text-xs mt-1">
-                Post a photo and your gym-mates will start engaging!
-              </p>
-            </Card>
           ) : (
-            <div className="glass-card overflow-hidden divide-y divide-white/5">
-              {activity.filter((a) => a.type === 'pr_highlight' || a.type === 'streak').length > 0 && (
-                <div className="px-4 py-2 bg-amber-500/5 border-b border-amber-500/10">
-                  <p className="text-xs text-amber-400/80 font-medium flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5" /> Highlights
-                  </p>
+            <>
+              {/* ── Follow Requests section ── */}
+              {followRequests.length > 0 && (
+                <div className="glass-card overflow-hidden">
+                  <div className="px-4 py-2.5 border-b border-white/5 flex items-center gap-2">
+                    <UserPlus className="w-3.5 h-3.5 text-red-400" />
+                    <p className="text-xs font-semibold text-white uppercase tracking-wider">Follow Requests</p>
+                    <span className="ml-auto bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+                      {followRequests.length}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {followRequests.map((req) => {
+                      const requester = req.requester;
+                      if (!requester) return null;
+                      const name = requester.name || requester.phone_number;
+                      return (
+                        <div key={req.id} className="flex items-center gap-3 px-4 py-3">
+                          <Avatar user={requester} size={38} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{name}</p>
+                            <p className="text-[11px] text-slate-500">{relativeTime(req.created_at)}</p>
+                          </div>
+                          <div className="flex gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleFollowRequest(req.id, 'accept')}
+                              className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-all active:scale-95"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleFollowRequest(req.id, 'decline')}
+                              className="px-3 py-1.5 bg-white/8 hover:bg-white/15 text-slate-400 text-xs font-semibold rounded-lg transition-all active:scale-95"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-              {activity.map((item) => <ActivityRow key={item.id} item={item} />)}
-            </div>
+
+              {/* ── Regular activity ── */}
+              {activity.length === 0 && followRequests.length === 0 ? (
+                <Card className="text-center py-12">
+                  <Bell className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                  <p className="text-slate-400">No activity yet.</p>
+                  <p className="text-slate-600 text-xs mt-1">
+                    Post a photo and your gym-mates will start engaging!
+                  </p>
+                </Card>
+              ) : activity.length > 0 && (
+                <div className="glass-card overflow-hidden divide-y divide-white/5">
+                  {activity.filter((a) => a.type === 'pr_highlight' || a.type === 'streak').length > 0 && (
+                    <div className="px-4 py-2 bg-amber-500/5 border-b border-amber-500/10">
+                      <p className="text-xs text-amber-400/80 font-medium flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5" /> Highlights
+                      </p>
+                    </div>
+                  )}
+                  {activity.map((item) => <ActivityRow key={item.id} item={item} />)}
+                </div>
+              )}
+            </>
           )}
 
           <div className="glass-card p-4 space-y-2">
@@ -1207,6 +1305,50 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
             </div>
           </div>
 
+          {/* ── Privacy toggle ── */}
+          {profileLoaded && profileData && (
+            <div className="glass-card p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-4 h-4 text-slate-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">Private Account</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {profileData.is_private
+                      ? 'Only approved followers see your posts'
+                      : 'Anyone can see your posts'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const next = !profileData.is_private;
+                  setProfileData((p) => p ? { ...p, is_private: next } : p);
+                  const res = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_private: next }),
+                  });
+                  if (!res.ok) {
+                    // revert on failure
+                    setProfileData((p) => p ? { ...p, is_private: !next } : p);
+                    showToast('Could not update privacy. Try again.');
+                  } else {
+                    showToast(next ? 'Account set to private 🔒' : 'Account set to public 🌐');
+                  }
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 focus:outline-none ${
+                  profileData.is_private ? 'bg-red-600' : 'bg-white/10'
+                }`}
+              >
+                <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                  profileData.is_private ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
+            </div>
+          )}
+
           {/* ── Post Photo button ── */}
           {!showUploadForm && (
             <button
@@ -1234,6 +1376,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
             <SuggestedUsers
               users={suggested}
               followingIds={followingIds}
+              pendingRequestIds={pendingRequestIds}
               onFollow={handleFollow}
             />
           )}

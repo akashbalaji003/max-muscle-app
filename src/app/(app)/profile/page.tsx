@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   User, Scale, Ruler, Target, Edit3, Check, X, ChevronRight,
-  TrendingUp, AlertTriangle, Award, Activity, Camera,
+  TrendingUp, AlertTriangle, Award, Activity, Camera, Lock,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -19,6 +19,7 @@ interface ProfileData {
   bmi: number | null;
   bmiCategory: string | null;
   created_at: string;
+  is_private: boolean;
 }
 
 // ── BMI helpers ───────────────────────────────────────────────────────────────
@@ -223,7 +224,7 @@ export default function ProfilePage() {
     setTimeout(() => setToast(null), 2800);
   }
 
-  async function patchProfile(patch: Record<string, string | number | null>) {
+  async function patchProfile(patch: Record<string, string | number | boolean | null>) {
     setSaving(true);
     const r = await fetch('/api/profile', {
       method: 'POST',
@@ -244,7 +245,7 @@ export default function ProfilePage() {
   async function saveField(field: string, raw: string) {
     const numFields = ['height_cm', 'weight_kg'];
     const val = numFields.includes(field) ? Number(raw) : raw;
-    await patchProfile({ [field]: val as number | string });
+    await patchProfile({ [field]: val });
   }
 
   async function saveGoal(goal: Goal) {
@@ -493,6 +494,37 @@ export default function ProfilePage() {
             )}
           </div>
         )}
+
+        {/* Privacy toggle */}
+        <div className="glass-card rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <Lock className="w-4 h-4 text-red-400" />
+            <h2 className="text-sm font-semibold text-white">Privacy</h2>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">Control who can see your posts and activity</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white font-medium">Private Account</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {profile.is_private ? 'Only you can see your posts' : 'Your posts are visible to everyone'}
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                const next = !profile.is_private;
+                await patchProfile({ is_private: next });
+                setProfile((p) => p ? { ...p, is_private: next } : p);
+              }}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+                profile.is_private ? 'bg-red-600' : 'bg-white/10'
+              }`}
+            >
+              <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                profile.is_private ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
+          </div>
+        </div>
 
         {/* Link to full analytics */}
         <button

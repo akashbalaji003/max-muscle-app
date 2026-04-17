@@ -238,7 +238,14 @@ export interface PostComment {
   users: Pick<User, 'id' | 'name' | 'phone_number' | 'avatar_url'>;
 }
 
-export type ActivityType = 'like' | 'comment' | 'follow' | 'pr_highlight' | 'streak';
+export type ActivityType = 'like' | 'comment' | 'follow' | 'follow_request' | 'pr_highlight' | 'streak';
+
+export interface FollowRequest {
+  id:           string;
+  requester_id: string;
+  created_at:   string;
+  requester: Pick<User, 'id' | 'name' | 'phone_number' | 'avatar_url'> | null;
+}
 
 export interface ActivityItem {
   id:           string;
