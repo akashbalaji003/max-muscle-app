@@ -1,14 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="14" fill="#6366f1"/>
-  <!-- Dumbbell shape -->
-  <!-- Left weight plate -->
-  <rect x="4" y="22" width="10" height="20" rx="3" fill="white" opacity="0.95"/>
-  <!-- Right weight plate -->
-  <rect x="50" y="22" width="10" height="20" rx="3" fill="white" opacity="0.95"/>
-  <!-- Bar left collar -->
-  <rect x="14" y="26" width="6" height="12" rx="2" fill="white" opacity="0.8"/>
-  <!-- Bar right collar -->
-  <rect x="44" y="26" width="6" height="12" rx="2" fill="white" opacity="0.8"/>
-  <!-- Bar handle -->
-  <rect x="20" y="29" width="24" height="6" rx="3" fill="white"/>
+<svg width="32" height="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="12" fill="#0A0A16"/>
+  <rect x="12" y="12" width="40" height="10" fill="#7C3AED"/>
+  <rect x="12" y="12" width="10" height="40" fill="#7C3AED"/>
+  <rect x="12" y="42" width="40" height="10" fill="#7C3AED"/>
+  <rect x="42" y="32" width="10" height="20" fill="#7C3AED"/>
+  <rect x="32" y="32" width="20" height="10" fill="#7C3AED"/>
+  <rect x="32" y="32" width="10" height="10" fill="#E11D48"/>
 </svg>

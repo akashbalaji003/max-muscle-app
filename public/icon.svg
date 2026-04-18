@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="p" x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse">
+      <circle cx="3.5" cy="3.5" r="0.6" fill="#1A1A2A"/>
+    </pattern>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0A0A16"/>
+  <rect x="3" y="3" width="58" height="58" rx="11" fill="#10101E"/>
+  <rect x="3" y="3" width="58" height="58" rx="11" fill="url(#p)"/>
+  <rect width="64" height="64" rx="14" fill="none" stroke="#7C3AED" stroke-width="1.2" opacity="0.2"/>
+  <rect x="12" y="12" width="40" height="10" fill="#7C3AED"/>
+  <rect x="12" y="12" width="10" height="40" fill="#7C3AED"/>
+  <rect x="12" y="42" width="40" height="10" fill="#7C3AED"/>
+  <rect x="42" y="32" width="10" height="20" fill="#7C3AED"/>
+  <rect x="32" y="32" width="20" height="10" fill="#7C3AED"/>
+  <rect x="32" y="32" width="10" height="10" fill="#E11D48"/>
+  <rect x="30" y="30" width="14" height="14" rx="1" fill="none" stroke="#E11D48" stroke-width="0.8" opacity="0.4"/>
+</svg>

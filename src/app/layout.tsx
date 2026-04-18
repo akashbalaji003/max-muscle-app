@@ -6,13 +6,18 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import NoContextMenu from "@/components/NoContextMenu";
 
 export const metadata: Metadata = {
-  title: "Maximum Muscle Lifestyle Fitness Studio",
-  description: "Premium unisex gym — workout tracking, QR attendance & smart analytics. Join Max Muscle Lifestyle Fitness Studio.",
+  title: "GymOS",
+  description: "The gym management platform built for modern fitness businesses. Memberships, check-ins, workouts, and analytics — all in one place.",
   manifest: "/manifest.json",
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192x192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512x512.png', type: 'image/png', sizes: '512x512' },
     ],
+    shortcut: '/favicon.ico',
+    apple: '/icon-192x192.png',
   },
 };
 

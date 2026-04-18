@@ -5,6 +5,26 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/layout/Sidebar';
 import NoMembershipScreen from '@/components/NoMembershipScreen';
 import PageTransition from '@/components/PageTransition';
+import type { Metadata } from 'next';
+
+// Map slugs to display names; falls back to capitalised slug
+const GYM_NAMES: Record<string, string> = {
+  maxmuscle: 'Maximum Muscle',
+};
+
+function gymDisplayName(slug: string) {
+  return GYM_NAMES[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ gymSlug: string }> }
+): Promise<Metadata> {
+  const { gymSlug } = await params;
+  return {
+    title: `${gymDisplayName(gymSlug)} | Member`,
+    description: `Member dashboard for ${gymDisplayName(gymSlug)}.`,
+  };
+}
 
 interface Props {
   children: React.ReactNode;

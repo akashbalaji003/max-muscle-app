@@ -552,8 +552,8 @@ export default function GymOSHomePage() {
                 </div>
 
                 <h1 className={['hero-item mt-10 font-display text-5xl leading-[0.95] tracking-wide text-white sm:text-6xl lg:text-7xl', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '120ms' }}>
-                  <span className="block gradient-text-animated">Run your entire gym</span>
-                  <span className="mt-2 block">from one place.</span>
+                  <span className="block gradient-text-animated">Gyms run better</span>
+                  <span className="mt-2 block">on GymOS.</span>
                 </h1>
 
                 <p className={['hero-item mx-auto mt-6 max-w-xl text-center text-lg leading-8 text-slate-400 font-body', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '220ms' }}>
