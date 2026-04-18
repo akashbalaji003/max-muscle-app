@@ -8,7 +8,6 @@ import NoContextMenu from "@/components/NoContextMenu";
 export const metadata: Metadata = {
   title: "GymOS",
   description: "The gym management platform built for modern fitness businesses. Memberships, check-ins, workouts, and analytics — all in one place.",
-  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -43,7 +42,6 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap"
           rel="stylesheet"
         />
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen">
