@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Loader, QrCode, ArrowLeft, Dumbbell } from 'lucide-react';
+import { CheckCircle, XCircle, Loader, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
@@ -79,32 +79,8 @@ export default function CheckInPage() {
   const todayDisplay = formatDateLarge(new Date());
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#000000] p-4 sm:p-6">
-      {/* Background blobs */}
-      <div className="pointer-events-none absolute left-1/3 top-0 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-1/3 h-64 w-64 rounded-full bg-indigo-700/5 blur-3xl" />
-
-      <div className="w-full max-w-sm relative">
-        {/* Back link */}
-        <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-400 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="w-4 h-4" /> Dashboard
-          </Link>
-        </div>
-
-        {/* Gym logo — Max Muscle branding */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 shadow-[0_0_24px_rgba(124,58,237,0.18)]">
-            <Dumbbell className="h-5 w-5 text-violet-400" />
-          </div>
-          <div className="text-left">
-            <span className="font-display block text-xl font-bold leading-none tracking-wide text-white">MAX MUSCLE</span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest">Check-In</span>
-          </div>
-        </div>
+    <div className="flex flex-col items-center justify-center min-h-[calc(100svh-9rem)] sm:min-h-[calc(100svh-2rem)] lg:min-h-[calc(100svh-4rem)]">
+      <div className="w-full max-w-sm">
 
         {/* ── Idle state ── */}
         {status === 'idle' && (
@@ -163,7 +139,7 @@ export default function CheckInPage() {
               ✅ Checked In — Have a great workout!
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Link href="/workout">
                 <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Start Workout</Button>
               </Link>
@@ -198,7 +174,7 @@ export default function CheckInPage() {
 
             <p className="text-slate-400 text-sm mb-8">Already checked in today. See you tomorrow!</p>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Link href="/workout">
                 <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Log a Workout</Button>
               </Link>
@@ -217,7 +193,7 @@ export default function CheckInPage() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Membership Expired</h1>
             <p className="text-slate-400 text-sm mb-8">{message || 'Please renew your membership to check in.'}</p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Link href="/dashboard">
                 <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Go to Dashboard</Button>
               </Link>
@@ -234,7 +210,7 @@ export default function CheckInPage() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Check-in Failed</h1>
             <p className="text-slate-400 text-sm mb-8">{message || 'Something went wrong. Please try again.'}</p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">
                 Try Again
               </Button>
@@ -254,7 +230,7 @@ export default function CheckInPage() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Sign In Required</h1>
             <p className="text-slate-400 text-sm mb-8">Please sign in to your Max Muscle account to check in.</p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Link href="/login">
                 <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Sign In</Button>
               </Link>
@@ -268,3 +244,4 @@ export default function CheckInPage() {
     </div>
   );
 }
+

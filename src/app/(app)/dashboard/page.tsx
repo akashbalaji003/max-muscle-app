@@ -100,22 +100,46 @@ export default function DashboardPage() {
   const earnedBadges = analytics?.badges?.filter(b => b.earned) || [];
 
   return (
-    <div className="relative space-y-6 overflow-hidden">
-      {/* Header */}
-      <div>
-        <p className="text-[11px] tracking-[0.28em] uppercase text-slate-500">{greeting()}</p>
-        <div className="mt-1 flex items-center gap-3">
-          {user?.avatar_url && (
+    <>
+      <style>{`
+        @keyframes fadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-up {
+          animation: fadeUp 0.5s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
+      <div className="relative space-y-3 sm:space-y-4 lg:space-y-6 overflow-hidden pb-10 sm:pb-0 lg:pb-0">
+      {/* Premium Greeting Section */}
+      <div className="animate-fade-up">
+        <p className="text-xs font-medium tracking-[0.15em] uppercase text-violet-400">{greeting()} 👋</p>
+        <div className="mt-2 sm:mt-3 flex items-center gap-3 sm:gap-4">
+          {user?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.avatar_url}
               alt="Profile"
-              className="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-2 ring-violet-500/25"
+              className="h-10 sm:h-14 w-10 sm:w-14 flex-shrink-0 rounded-lg sm:rounded-xl object-cover ring-2 ring-violet-500/40 shadow-[0_0_24px_rgba(124,58,237,0.15)]"
             />
+          ) : (
+            <div className="flex h-10 sm:h-14 w-10 sm:w-14 flex-shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-violet-600 to-violet-700 font-display text-base sm:text-xl font-bold text-white shadow-[0_0_24px_rgba(124,58,237,0.15)]">
+              {(user?.name || user?.phone_number || '?').slice(0, 1).toUpperCase()}
+            </div>
           )}
-          <h1 className="font-display text-3xl leading-none truncate text-white sm:text-5xl">
-            {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
-          </h1>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-display text-xl sm:text-3xl lg:text-5xl leading-tight tracking-wide text-white">
+              {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5 sm:mt-1">Keep crushing your goals 💪</p>
+          </div>
         </div>
       </div>
 
@@ -136,26 +160,26 @@ export default function DashboardPage() {
 
       {/* Membership status */}
       {membership ? (
-        <div className="flex items-center justify-between rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_40px_rgba(124,58,237,0.06)]">
-          <div className="flex items-center gap-3">
-            {memberActive ? <Calendar className="h-5 w-5 text-violet-400" /> : <AlertTriangle className="h-5 w-5 text-violet-400" />}
-            <div>
-              <p className="font-medium text-white text-sm">{memberActive ? 'Membership Active' : 'Membership Expired'}</p>
-              <p className="text-xs text-slate-400">
+        <div className="flex items-center justify-between rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 sm:p-4 shadow-[0_0_40px_rgba(124,58,237,0.06)] gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            {memberActive ? <Calendar className="h-4 sm:h-5 w-4 sm:w-5 text-violet-400 flex-shrink-0" /> : <AlertTriangle className="h-4 sm:h-5 w-4 sm:w-5 text-violet-400 flex-shrink-0" />}
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-white text-xs sm:text-sm">{memberActive ? 'Membership Active' : 'Membership Expired'}</p>
+              <p className="text-xs text-slate-400 truncate">
                 {memberActive
                   ? `${daysLeft} days remaining · Expires ${formatDate(membership.end_date)}`
                   : `Expired on ${formatDate(membership.end_date)} — Contact gym to renew`}
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-0.5 text-xs font-medium text-violet-400">
+          <span className="inline-flex items-center rounded-full border border-violet-500/20 bg-violet-500/10 px-2 sm:px-2.5 py-0.5 text-xs font-medium text-violet-400 flex-shrink-0 whitespace-nowrap">
             {memberActive ? `${daysLeft}d left` : 'Expired'}
           </span>
         </div>
       ) : (
-        <div className="rounded-2xl border border-violet-500/15 bg-[#0a0a0a] p-4">
-          <p className="flex items-center gap-2 text-sm font-medium text-violet-300">
-            <AlertTriangle className="h-4 w-4" /> No membership found. Contact your gym admin.
+        <div className="rounded-2xl border border-violet-500/15 bg-[#0a0a0a] p-3 sm:p-4">
+          <p className="flex items-center gap-2 text-xs sm:text-sm font-medium text-violet-300">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" /> No membership found. Contact your gym admin.
           </p>
         </div>
       )}
@@ -164,51 +188,72 @@ export default function DashboardPage() {
       {memberActive && (
         <Link
           href="/checkin"
-          className={`flex items-center gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)] ${checkedInToday ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
+          className={`flex items-center gap-3 sm:gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 sm:p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)] ${checkedInToday ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
         >
-          <div className="rounded-xl bg-violet-500/10 p-3">
-            <QrCode className="h-5 w-5 text-violet-400" />
+          <div className="rounded-xl bg-violet-500/10 p-2 sm:p-3">
+            <QrCode className="h-4 sm:h-5 w-4 sm:w-5 text-violet-400" />
           </div>
-          <div>
-            <p className="font-medium text-white text-sm">{checkedInToday ? 'Checked in today ✓' : 'Check in for today'}</p>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-white text-xs sm:text-sm">{checkedInToday ? 'Checked in today ✓' : 'Check in for today'}</p>
             <p className="text-xs text-slate-400">{checkedInToday ? 'See you tomorrow!' : 'Tap to scan QR or check in now'}</p>
           </div>
-          {!checkedInToday && <span className="ml-auto text-violet-400 text-sm">→</span>}
+          {!checkedInToday && <span className="ml-auto text-violet-400 text-sm flex-shrink-0">→</span>}
         </Link>
       )}
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <StatCard label="Total Workouts" value={analytics?.totalWorkouts ?? 0} icon={<Dumbbell className="h-5 w-5" />} color="violet" />
-        <StatCard label="Current Streak" value={`${analytics?.currentStreak ?? 0}d`} icon={<Flame className="h-5 w-5" />} color="violet" />
+      {/* Primary Stat Cards — Larger & More Prominent */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="animate-fade-up" style={{ animationDelay: '80ms' }}>
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 sm:p-5 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)] transition-all duration-300">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-violet-500/15 text-violet-400">
+                <Dumbbell className="h-4 sm:h-5 w-4 sm:w-5" />
+              </div>
+            </div>
+            <p className="font-display text-3xl sm:text-4xl leading-none text-white font-bold">{analytics?.totalWorkouts ?? 0}</p>
+            <p className="text-xs text-slate-400 mt-1.5 sm:mt-2 uppercase tracking-wider font-medium">Total Workouts</p>
+          </div>
+        </div>
+
+        <div className="animate-fade-up" style={{ animationDelay: '160ms' }}>
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 sm:p-5 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)] transition-all duration-300">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-violet-500/15 text-violet-400">
+                <Flame className="h-4 sm:h-5 w-4 sm:w-5" />
+              </div>
+            </div>
+            <p className="font-display text-3xl sm:text-4xl leading-none text-white font-bold">{analytics?.currentStreak ?? 0}<span className="text-lg sm:text-2xl ml-0.5">d</span></p>
+            <p className="text-xs text-slate-400 mt-1.5 sm:mt-2 uppercase tracking-wider font-medium">Current Streak</p>
+          </div>
+        </div>
       </div>
 
       {/* Calories today + BMI strip */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {/* Calories today */}
-        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
-            <Flame className="w-4 h-4 text-violet-400" />
+        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 sm:p-4 flex items-center gap-3">
+          <div className="p-2 sm:p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
+            <Flame className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-violet-400" />
           </div>
           <div className="min-w-0">
-            <p className="font-display text-2xl leading-none text-violet-400">{(analytics?.calories?.today ?? 0).toLocaleString()}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">kcal today</p>
+            <p className="font-display text-xl sm:text-2xl leading-none text-violet-400">{(analytics?.calories?.today ?? 0).toLocaleString()}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">kcal today</p>
           </div>
         </div>
 
         {/* BMI or goal nudge */}
         {analytics?.bmi ? (
-          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 flex items-center gap-3">
-            <div className="p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
-              <Activity className="w-4 h-4 text-violet-400" />
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 sm:p-4 flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
+              <Activity className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-violet-400" />
             </div>
             <div className="min-w-0">
-              <p className="font-display text-2xl leading-none text-violet-400">{analytics.bmi}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">BMI · {analytics.bmiCategory}</p>
+              <p className="font-display text-xl sm:text-2xl leading-none text-violet-400">{analytics.bmi}</p>
+              <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">BMI · {analytics.bmiCategory}</p>
             </div>
           </div>
         ) : (
-          <Link href="/analytics" className="flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]">
+          <Link href="/analytics" className="flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 sm:p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]">
             <div className="p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
               <Target className="w-4 h-4 text-violet-400" />
             </div>
@@ -221,22 +266,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick start workout */}
-      <Link href="/workout" className="flex items-center gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]">
-        <div className="p-3 bg-violet-500/10 rounded-xl">
-          <Dumbbell className="w-5 h-5 text-violet-400" />
+      <Link href="/workout" className="flex items-center gap-3 sm:gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 sm:p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]">
+        <div className="p-2 sm:p-3 bg-violet-500/10 rounded-xl flex-shrink-0">
+          <Dumbbell className="w-4 sm:w-5 h-4 sm:h-5 text-violet-400" />
         </div>
-        <div>
-          <p className="font-medium text-white text-sm">Start a Workout</p>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-white text-xs sm:text-sm">Start a Workout</p>
           <p className="text-xs text-slate-400">Push · Pull · Legs · Custom</p>
         </div>
-        <span className="ml-auto text-violet-400 text-sm">→</span>
+        <span className="ml-auto text-violet-400 text-sm flex-shrink-0">→</span>
       </Link>
 
       {/* 14-day workout history */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-white">Recent Workouts</h2>
-          <Link href="/workout" className="text-xs text-violet-400 hover:text-violet-300">View all →</Link>
+      <div className="animate-fade-up" style={{ animationDelay: '240ms' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl font-bold text-white tracking-wide">Recent Workouts</h2>
+          <Link href="/workout" className="text-xs text-violet-400 hover:text-violet-300 font-medium">View all →</Link>
         </div>
         <div className="space-y-2">
           {workouts.length === 0 && (
@@ -313,5 +358,6 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

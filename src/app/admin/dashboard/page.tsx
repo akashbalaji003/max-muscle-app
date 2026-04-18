@@ -287,38 +287,42 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="stagger mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* Stats — Enhanced with larger numbers and better glow */}
+        <div className="stagger mb-6 sm:mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {STATS.map(({ label, value, icon: Icon, color }, index) => (
             <Card
               key={label}
-              className="group flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-500/20 hover:shadow-[0_0_30px_rgba(124,58,237,0.10)]"
+              className="group flex flex-col gap-3 sm:gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.12)]"
               style={{ animation: 'fade-up 300ms ease-out both', animationDelay: `${index * 80}ms` }}
             >
-              <div className={`rounded-xl p-2.5 flex-shrink-0 bg-${color}-500/10 text-violet-400 transition-transform duration-200 group-hover:scale-110`}>
-                <Icon className="h-4 w-4" />
+              <div className="rounded-lg p-2 sm:p-3 flex-shrink-0 bg-violet-500/15 text-violet-400 transition-transform duration-200 group-hover:scale-110 w-fit">
+                <Icon className="h-5 sm:h-6 w-5 sm:w-6" />
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-xs text-slate-500">{label}</p>
-                <p className="font-display text-3xl font-black text-white tabular-nums" style={{ animation: 'count-in 400ms ease both', animationDelay: `${index * 80 + 80}ms` }}>{value}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-xs uppercase tracking-widest text-slate-500 font-medium">{label}</p>
+                <p className="font-display text-3xl sm:text-4xl font-bold text-white tabular-nums mt-0.5 sm:mt-1" style={{ animation: 'count-in 400ms ease both', animationDelay: `${index * 80 + 80}ms` }}>{value}</p>
               </div>
             </Card>
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="mb-5 flex gap-1 overflow-x-auto rounded-2xl border border-white/6 bg-[#0a0a0a] p-1">
-          {TABS.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex min-h-[44px] flex-shrink-0 items-center whitespace-nowrap rounded-xl px-4 py-2 text-xs font-medium transition-all duration-200 sm:text-sm ${
-                tab === key ? 'bg-violet-600 text-white shadow-[0_0_24px_rgba(124,58,237,0.18)]' : 'text-slate-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        {/* Tabs — Improved styling with underline indicator */}
+        <div className="mb-6 border-b border-white/6">
+          <div className="flex gap-6 overflow-x-auto">
+            {TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`flex min-h-[44px] items-center whitespace-nowrap px-1 py-3 text-sm font-medium transition-all duration-200 border-b-2 ${
+                  tab === key
+                    ? 'text-violet-400 border-b-violet-500'
+                    : 'text-slate-400 border-b-transparent hover:text-white hover:border-b-violet-500/50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Members ── */}

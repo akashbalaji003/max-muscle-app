@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Dumbbell, BarChart2, Trophy, Users,
-  LogOut, QrCode, Menu, ChevronLeft, UserCircle,
+  LogOut, QrCode, Menu, UserCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -88,20 +88,20 @@ export default function Sidebar() {
   const navContent = (
     <div className="flex h-full flex-col bg-[#0a0a0a] text-white">
       {/* Logo */}
-      <div className="border-b border-white/6 p-5">
+      <div className="border-b border-white/6 bg-gradient-to-br from-violet-500/5 to-transparent p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 text-violet-400 shadow-[0_0_24px_rgba(124,58,237,0.15)]">
-            <Dumbbell className="h-5 w-5" />
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-500/15 text-violet-300 shadow-[0_0_30px_rgba(124,58,237,0.18)]">
+            <Dumbbell className="h-6 w-6" />
           </div>
           <div className="min-w-0">
-            <span className="font-display block text-xl leading-none tracking-wide text-white">MAX MUSCLE</span>
-            <span className="mt-0.5 block text-[9px] uppercase tracking-widest text-slate-500 leading-tight">Lifestyle Fitness Studio</span>
+            <span className="font-display block text-lg leading-tight tracking-wide text-white">MAX MUSCLE</span>
+            <span className="mt-0.5 block text-[8px] uppercase tracking-widest text-slate-600 leading-tight font-medium">Lifestyle Fitness</span>
           </div>
         </div>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
@@ -110,49 +110,50 @@ export default function Sidebar() {
               href={href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200',
                 active
-                  ? 'border border-violet-500/20 bg-violet-500/10 text-violet-400 shadow-[0_0_20px_rgba(124,58,237,0.08)]'
+                  ? 'border-l-2 border-l-violet-500 bg-violet-500/10 text-violet-400 shadow-[0_0_30px_rgba(124,58,237,0.12)]'
                   : 'text-slate-400 hover:bg-white/5 hover:text-white'
               )}
             >
-              <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform duration-200', active ? 'scale-110' : 'group-hover:scale-110')} />
-              {label}
-              {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400" />}
+              <Icon className={cn('h-5 w-5 flex-shrink-0 transition-all duration-200', active ? 'text-violet-400' : 'group-hover:text-slate-300')} />
+              <span className="flex-1">{label}</span>
+              {active && <span className="h-2 w-2 rounded-full bg-violet-400" />}
             </Link>
           );
         })}
       </nav>
 
       {/* Bottom section */}
-      <div className="space-y-2 border-t border-white/6 p-3">
+      <div className="space-y-2 border-t border-white/6 bg-gradient-to-t from-violet-500/3 to-transparent p-3">
         {/* User chip */}
         {me && (
           <Link
             href={gymSlug ? `/${gymSlug}/profile` : '/profile'}
             onClick={() => setMobileOpen(false)}
-            className="mb-1 flex items-center gap-2.5 rounded-xl border border-white/6 bg-white/3 px-3 py-2 transition-all duration-200 hover:border-violet-500/15 hover:bg-white/5"
+            className="flex items-center gap-2 rounded-xl border border-violet-500/20 bg-violet-500/5 px-3 py-2 transition-all duration-200 hover:border-violet-500/30 hover:bg-violet-500/10 hover:shadow-[0_0_24px_rgba(124,58,237,0.10)]"
           >
             {me.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={me.avatar_url} alt="avatar" className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-1 ring-violet-500/40" />
+              <img src={me.avatar_url} alt="avatar" className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-2 ring-violet-500/40" />
             ) : (
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/10">
-                <span className="text-xs font-bold text-violet-300">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-violet-600 font-display">
+                <span className="text-xs font-bold text-white">
                   {(me.name || me.phone_number || '?').slice(0, 1).toUpperCase()}
                 </span>
               </div>
             )}
-            <span className="flex-1 truncate text-sm font-medium text-slate-300">
-              {me.name || me.phone_number?.slice(-6) || 'My Profile'}
+            <span className="flex-1 truncate text-xs sm:text-sm font-medium text-slate-200">
+              {me.name || me.phone_number?.slice(-6) || 'Profile'}
             </span>
           </Link>
         )}
         <button
           onClick={handleLogout}
-          className="flex min-h-[44px] w-full items-center gap-3 rounded-xl border border-red-500/20 px-3 py-2.5 text-sm font-medium text-slate-500 transition-all duration-200 hover:border-red-400/25 hover:bg-red-500/10 hover:text-red-400"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 px-3 py-2 text-xs sm:text-sm font-medium text-red-400 transition-all duration-200 hover:border-red-500/30 hover:bg-red-500/10"
         >
-          <LogOut className="w-4 h-4" /> Logout
+          <LogOut className="w-4 h-4" />
+          <span>Logout</span>
         </button>
       </div>
     </div>
@@ -166,46 +167,25 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile top header */}
-      <div className="mobile-header lg:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center gap-2 border-b border-white/6 bg-[#0a0a0a]/95 px-4 backdrop-blur-xl">
-        {meta.back ? (
-          <button
-            onClick={() => router.push(meta.back!)}
-            className="-ml-1 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition-all duration-200 hover:bg-white/5 hover:text-white"
-            aria-label="Go back"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-        ) : (
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition-all duration-200 hover:bg-white/5 hover:text-white"
-            aria-label="Open menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        )}
+      <div className="mobile-header lg:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center gap-3 border-b border-white/6 bg-[#0a0a0a]/95 px-4 backdrop-blur-xl">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition-all duration-200 hover:bg-white/5 hover:text-white"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
 
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {!meta.back && (
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
-              <Dumbbell className="h-3.5 w-3.5" />
-            </div>
-          )}
-          <span className="font-display truncate text-xl leading-none tracking-wide text-white">{meta.title.toUpperCase()}</span>
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
+            <Dumbbell className="h-3.5 w-3.5" />
+          </div>
+          <span className="font-display truncate text-lg leading-none tracking-wide text-white">{meta.title.toUpperCase()}</span>
         </div>
-
-        {meta.back && (
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-500 transition-all duration-200 hover:bg-white/5 hover:text-white"
-          >
-            <Menu className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {/* Mobile bottom navigation bar */}
-      <nav className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 border-t border-white/6 bg-[#0a0a0a]/98 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+      <nav className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 border-t border-white/6 bg-[#0a0a0a]/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         {MOBILE_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
@@ -213,17 +193,19 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex min-h-[56px] min-w-[56px] flex-col items-center justify-center gap-0.5 px-0.5 py-2 transition-all duration-200',
-                active ? 'text-violet-400' : 'text-slate-500 active:scale-90'
+                'flex min-h-[60px] min-w-[52px] flex-col items-center justify-center gap-1 px-1 py-2 transition-all duration-200',
+                active ? 'text-violet-400' : 'text-slate-500 active:scale-95'
               )}
             >
               <div className={cn(
-                'rounded-xl px-2 py-1 transition-all duration-200',
-                active ? 'bg-violet-500/10 scale-105 shadow-[0_0_20px_rgba(124,58,237,0.10)]' : ''
+                'flex items-center justify-center rounded-xl p-2 transition-all duration-200',
+                active
+                  ? 'bg-violet-600/20 shadow-[0_0_24px_rgba(124,58,237,0.15)] scale-105'
+                  : 'group-hover:bg-white/5'
               )}>
-                <Icon className="h-[18px] w-[18px]" />
+                <Icon className={cn('h-5 w-5 transition-all duration-200', active ? 'text-violet-400' : 'text-slate-400')} />
               </div>
-              <span className="text-[9px] font-medium leading-tight">{label}</span>
+              <span className={cn('text-[10px] font-medium leading-tight transition-all duration-200', active ? 'text-violet-400' : 'text-slate-500')}>{label}</span>
             </Link>
           );
         })}
