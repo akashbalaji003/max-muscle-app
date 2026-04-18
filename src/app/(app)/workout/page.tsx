@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus, Dumbbell, Trophy, ChevronDown, ChevronLeft, ChevronRight, Timer,
@@ -117,6 +117,38 @@ interface ExerciseEntry {
   lastCompletedAt: number | null; // timestamp for rest timer
 }
 
+interface SavedWorkoutSet {
+  weight: string;
+  reps: string;
+  completed: boolean;
+}
+
+interface SavedWorkoutEntry {
+  localId: string;
+  exercise_id: string;
+  exercise_name: string;
+  muscle_group: string;
+  equipment: string;
+  sets: SavedWorkoutSet[];
+  lastCompletedAt: number | null;
+}
+
+interface ActiveWorkoutState {
+  isActive: boolean;
+  startTime: number;
+  elapsedBeforePause: number;
+  timerRunning: boolean;
+  currentExerciseIndex: number;
+  workoutType: WorkoutType;
+  notes: string;
+  restTargetSeconds: number;
+  entries: SavedWorkoutEntry[];
+  showForm: boolean;
+}
+
+const ACTIVE_WORKOUT_STORAGE_KEY = 'activeWorkout';
+const WORKOUT_START_STORAGE_KEY = 'workoutStart';
+
 let _idCounter = 0;
 function newId() { return String(++_idCounter); }
 
@@ -126,6 +158,38 @@ function makeEmptyEntry(): ExerciseEntry {
     muscle_group: '', equipment: '',
     sets: [{ weight: '', reps: '10', completed: false }],
     lastCompletedAt: null,
+  };
+}
+
+function serializeEntry(entry: ExerciseEntry): SavedWorkoutEntry {
+  return {
+    localId: entry.localId,
+    exercise_id: entry.exercise_id,
+    exercise_name: entry.exercise_name,
+    muscle_group: entry.muscle_group,
+    equipment: entry.equipment,
+    sets: entry.sets.map((set) => ({
+      weight: set.weight,
+      reps: set.reps,
+      completed: set.completed,
+    })),
+    lastCompletedAt: entry.lastCompletedAt,
+  };
+}
+
+function deserializeEntry(entry: SavedWorkoutEntry): ExerciseEntry {
+  return {
+    localId: entry.localId || newId(),
+    exercise_id: entry.exercise_id || '',
+    exercise_name: entry.exercise_name || '',
+    muscle_group: entry.muscle_group || '',
+    equipment: entry.equipment || '',
+    sets: (entry.sets || []).map((set) => ({
+      weight: String(set.weight ?? ''),
+      reps: String(set.reps ?? ''),
+      completed: Boolean(set.completed),
+    })),
+    lastCompletedAt: typeof entry.lastCompletedAt === 'number' ? entry.lastCompletedAt : null,
   };
 }
 
@@ -152,35 +216,131 @@ export default function WorkoutPage() {
   // Global workout timer
   const [elapsed, setElapsed] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [elapsedBeforePause, setElapsedBeforePause] = useState(0);
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [hydrated, setHydrated] = useState(false);
 
   // Tick every second to keep rest timers accurate
   const [, setTick] = useState(0);
 
   const stopTimer = useCallback(() => {
+    if (timerRunning && sessionStartTime !== null) {
+      setElapsedBeforePause((prev) => prev + Math.floor((Date.now() - sessionStartTime) / 1000));
+    }
     setTimerRunning(false);
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-  }, []);
+    setSessionStartTime(null);
+  }, [sessionStartTime, timerRunning]);
 
   const startTimer = useCallback(() => {
-    if (intervalRef.current) return;
+    if (timerRunning) return;
+    setSessionStartTime(Date.now());
     setTimerRunning(true);
-    intervalRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
-  }, []);
+  }, [timerRunning]);
 
   const resetTimer = useCallback(() => {
-    stopTimer();
+    setTimerRunning(false);
+    setSessionStartTime(null);
+    setElapsedBeforePause(0);
     setElapsed(0);
-  }, [stopTimer]);
+  }, []);
 
   // Global 1-second tick for rest timers
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => {
       clearInterval(id);
-      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const savedRaw = window.localStorage.getItem(ACTIVE_WORKOUT_STORAGE_KEY);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw) as Partial<ActiveWorkoutState>;
+        const savedEntries = Array.isArray(saved.entries) ? saved.entries : [];
+
+        if (savedEntries.length > 0) {
+          setEntries(savedEntries.map((entry) => deserializeEntry(entry as SavedWorkoutEntry)));
+          setNotes(typeof saved.notes === 'string' ? saved.notes : '');
+          setWorkoutType((saved.workoutType as WorkoutType) || 'custom');
+          setShowForm(Boolean(saved.showForm ?? true));
+          setRestTargetSeconds(typeof saved.restTargetSeconds === 'number' ? saved.restTargetSeconds : 180);
+          setCurrentExerciseIndex(typeof saved.currentExerciseIndex === 'number' ? saved.currentExerciseIndex : 0);
+          setSessionStartTime(typeof saved.startTime === 'number' ? saved.startTime : Date.now());
+          setElapsedBeforePause(typeof saved.elapsedBeforePause === 'number' ? saved.elapsedBeforePause : 0);
+          setTimerRunning(Boolean(saved.timerRunning));
+          const baseElapsed = typeof saved.elapsedBeforePause === 'number' ? saved.elapsedBeforePause : 0;
+          const elapsedNow = Boolean(saved.timerRunning) && typeof saved.startTime === 'number'
+            ? baseElapsed + Math.max(0, Math.floor((Date.now() - saved.startTime) / 1000))
+            : baseElapsed;
+          setElapsed(elapsedNow);
+        }
+      }
+    } catch {
+      window.localStorage.removeItem(ACTIVE_WORKOUT_STORAGE_KEY);
+      window.localStorage.removeItem(WORKOUT_START_STORAGE_KEY);
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const computedElapsed = elapsedBeforePause + (timerRunning && sessionStartTime !== null
+      ? Math.max(0, Math.floor((Date.now() - sessionStartTime) / 1000))
+      : 0);
+    setElapsed(computedElapsed);
+
+    if (!timerRunning || sessionStartTime === null) return;
+
+    const id = window.setInterval(() => {
+      setElapsed(elapsedBeforePause + Math.max(0, Math.floor((Date.now() - sessionStartTime) / 1000)));
+    }, 1000);
+
+    return () => window.clearInterval(id);
+  }, [elapsedBeforePause, hydrated, sessionStartTime, timerRunning]);
+
+  useEffect(() => {
+    if (!hydrated || typeof window === 'undefined') return;
+
+    const hasActiveWorkout = showForm || timerRunning;
+    if (!hasActiveWorkout) {
+      window.localStorage.removeItem(ACTIVE_WORKOUT_STORAGE_KEY);
+      window.localStorage.removeItem(WORKOUT_START_STORAGE_KEY);
+      return;
+    }
+
+    const payload: ActiveWorkoutState = {
+      isActive: true,
+      startTime: sessionStartTime ?? Date.now(),
+      elapsedBeforePause,
+      timerRunning,
+      currentExerciseIndex,
+      workoutType,
+      notes,
+      restTargetSeconds,
+      entries: entries.map(serializeEntry),
+      showForm,
+    };
+
+    window.localStorage.setItem(ACTIVE_WORKOUT_STORAGE_KEY, JSON.stringify(payload));
+    window.localStorage.setItem(WORKOUT_START_STORAGE_KEY, String(payload.startTime));
+  }, [
+    currentExerciseIndex,
+    elapsedBeforePause,
+    entries,
+    hydrated,
+    notes,
+    restTargetSeconds,
+    sessionStartTime,
+    showForm,
+    timerRunning,
+    workoutType,
+  ]);
 
   useEffect(() => {
     async function load() {
@@ -245,6 +405,7 @@ export default function WorkoutPage() {
       };
     });
     setEntries(mapped);
+    setCurrentExerciseIndex(0);
     setWorkoutType(type);
     setShowForm(true);
     resetTimer();
@@ -265,6 +426,7 @@ export default function WorkoutPage() {
       };
     });
     setEntries(mapped);
+    setCurrentExerciseIndex(0);
     setWorkoutType('custom'); // full_body saved as custom for compatibility
     setShowForm(true);
     resetTimer();
@@ -273,6 +435,7 @@ export default function WorkoutPage() {
 
   function openCustom() {
     setEntries([makeEmptyEntry()]);
+    setCurrentExerciseIndex(0);
     setWorkoutType('custom');
     setShowForm(true);
     resetTimer();
@@ -291,6 +454,7 @@ export default function WorkoutPage() {
       lastCompletedAt: null,
     }));
     setEntries(mapped.length > 0 ? mapped : [makeEmptyEntry()]);
+    setCurrentExerciseIndex(0);
     setWorkoutType('custom');
     setShowForm(true);
     resetTimer();
@@ -299,42 +463,75 @@ export default function WorkoutPage() {
 
   function updateExercise(localId: string, exercise_id: string) {
     const ex = exercises.find((e) => e.id === exercise_id);
-    setEntries((prev) => prev.map((entry) =>
-      entry.localId !== localId ? entry : {
-        ...entry, exercise_id,
-        exercise_name: ex?.name || '',
-        muscle_group: ex?.muscle_group || '',
-        equipment: ex?.equipment || '',
-      }
-    ));
+    setEntries((prev) => {
+      const index = prev.findIndex((entry) => entry.localId === localId);
+      if (index >= 0) setCurrentExerciseIndex(index);
+      return prev.map((entry) =>
+        entry.localId !== localId ? entry : {
+          ...entry, exercise_id,
+          exercise_name: ex?.name || '',
+          muscle_group: ex?.muscle_group || '',
+          equipment: ex?.equipment || '',
+        }
+      );
+    });
   }
 
   function updateSet(localId: string, setIdx: number, field: keyof SetRow, value: string | boolean) {
-    setEntries((prev) => prev.map((entry) => {
-      if (entry.localId !== localId) return entry;
-      const newSets = entry.sets.map((s, i) => i === setIdx ? { ...s, [field]: value } : s);
-      const lastCompletedAt = (field === 'completed' && value === true) ? Date.now() : entry.lastCompletedAt;
-      return { ...entry, sets: newSets, lastCompletedAt };
-    }));
+    setEntries((prev) => {
+      const index = prev.findIndex((entry) => entry.localId === localId);
+      if (index >= 0) setCurrentExerciseIndex(index);
+      return prev.map((entry) => {
+        if (entry.localId !== localId) return entry;
+        const newSets = entry.sets.map((s, i) => i === setIdx ? { ...s, [field]: value } : s);
+        const lastCompletedAt = (field === 'completed' && value === true) ? Date.now() : entry.lastCompletedAt;
+        return { ...entry, sets: newSets, lastCompletedAt };
+      });
+    });
   }
 
   function addSet(localId: string) {
-    setEntries((prev) => prev.map((entry) => {
-      if (entry.localId !== localId) return entry;
-      const last = entry.sets[entry.sets.length - 1];
-      return { ...entry, sets: [...entry.sets, { weight: last?.weight || '', reps: last?.reps || '10', completed: false }] };
-    }));
+    setEntries((prev) => {
+      const index = prev.findIndex((entry) => entry.localId === localId);
+      if (index >= 0) setCurrentExerciseIndex(index);
+      return prev.map((entry) => {
+        if (entry.localId !== localId) return entry;
+        const last = entry.sets[entry.sets.length - 1];
+        return { ...entry, sets: [...entry.sets, { weight: last?.weight || '', reps: last?.reps || '10', completed: false }] };
+      });
+    });
   }
 
   function removeSet(localId: string, setIdx: number) {
-    setEntries((prev) => prev.map((entry) => {
-      if (entry.localId !== localId || entry.sets.length <= 1) return entry;
-      return { ...entry, sets: entry.sets.filter((_, i) => i !== setIdx) };
-    }));
+    setEntries((prev) => {
+      const index = prev.findIndex((entry) => entry.localId === localId);
+      if (index >= 0) setCurrentExerciseIndex(index);
+      return prev.map((entry) => {
+        if (entry.localId !== localId || entry.sets.length <= 1) return entry;
+        return { ...entry, sets: entry.sets.filter((_, i) => i !== setIdx) };
+      });
+    });
   }
 
-  function addExercise() { setEntries((prev) => [...prev, makeEmptyEntry()]); }
-  function removeExercise(localId: string) { setEntries((prev) => prev.filter((e) => e.localId !== localId)); }
+  function addExercise() {
+    setEntries((prev) => {
+      setCurrentExerciseIndex(prev.length);
+      return [...prev, makeEmptyEntry()];
+    });
+  }
+  function removeExercise(localId: string) {
+    setEntries((prev) => {
+      const next = prev.filter((e) => e.localId !== localId);
+      setCurrentExerciseIndex((current) => Math.max(0, Math.min(current, next.length - 1)));
+      return next.length > 0 ? next : [makeEmptyEntry()];
+    });
+  }
+
+  function clearWorkoutSessionStorage() {
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem(ACTIVE_WORKOUT_STORAGE_KEY);
+    window.localStorage.removeItem(WORKOUT_START_STORAGE_KEY);
+  }
 
   async function handleFinish() {
     setError('');
@@ -371,6 +568,8 @@ export default function WorkoutPage() {
     setEntries([makeEmptyEntry()]);
     setNotes('');
     resetTimer();
+    setCurrentExerciseIndex(0);
+    clearWorkoutSessionStorage();
     setAlreadyLoggedToday(true); // still track for the "logged today" banner
 
     const woRes = await fetch('/api/workout?limit=90');
@@ -383,6 +582,8 @@ export default function WorkoutPage() {
     setShowForm(false);
     setEntries([makeEmptyEntry()]);
     setNotes(''); setError('');
+    setCurrentExerciseIndex(0);
+    clearWorkoutSessionStorage();
   }
 
   const completedSets = entries.reduce((n, e) => n + e.sets.filter((s) => s.completed).length, 0);

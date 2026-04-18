@@ -62,6 +62,9 @@ select {
 
 html.auth-zoom-lock,
 body.auth-zoom-lock {
+  height: 100%;
+  background: #0B0B0F;
+  overflow: hidden;
   touch-action: manipulation;
   overscroll-behavior: none;
 }

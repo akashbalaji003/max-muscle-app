@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import NoMembershipScreen from '@/components/NoMembershipScreen';
 import PageTransition from '@/components/PageTransition';
 import ZoomLock from '@/components/ZoomLock';
+import WorkoutSessionGate from '@/components/WorkoutSessionGate';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -30,21 +31,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .maybeSingle();
 
   if (!membership) {
-    return <NoMembershipScreen />;
+    return (
+      <ZoomLock>
+        <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
+          <NoMembershipScreen />
+        </div>
+      </ZoomLock>
+    );
   }
 
   return (
     <ZoomLock>
-      <div className="min-h-screen bg-[#000000] text-white overflow-hidden">
+      <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
         <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute left-1/2 top-0 h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-violet-600/6 blur-[120px]" />
           <div className="absolute bottom-0 right-0 h-[320px] w-[320px] rounded-full bg-indigo-700/5 blur-[120px]" />
           <div className="absolute left-[-120px] top-1/2 h-[300px] w-[300px] rounded-full bg-purple-800/4 blur-[120px]" />
         </div>
+        <WorkoutSessionGate />
         <Sidebar />
         {/* pt-14 for mobile top header, pb-20 for mobile bottom nav, lg resets both */}
-        <main className="lg:pl-56 pt-14 lg:pt-0 pb-20 lg:pb-0">
-          <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+        <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] lg:pl-56 pt-14 lg:pt-0 pb-20 lg:pb-0">
+          <div className="mx-auto max-w-5xl p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8">
             <PageTransition>{children}</PageTransition>
           </div>
         </main>

@@ -9,5 +9,13 @@ export const viewport: Viewport = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <ZoomLock>{children}</ZoomLock>;
+  return (
+    <ZoomLock>
+      <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
+        <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+          {children}
+        </main>
+      </div>
+    </ZoomLock>
+  );
 }
