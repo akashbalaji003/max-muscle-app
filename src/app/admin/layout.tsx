@@ -1,4 +1,5 @@
 import type { Viewport } from 'next';
+import ZoomLock from '@/components/ZoomLock';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -8,5 +9,5 @@ export const viewport: Viewport = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <ZoomLock>{children}</ZoomLock>;
 }

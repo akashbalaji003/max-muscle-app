@@ -6,6 +6,8 @@ import Sidebar from '@/components/layout/Sidebar';
 import NoMembershipScreen from '@/components/NoMembershipScreen';
 import PageTransition from '@/components/PageTransition';
 import type { Metadata } from 'next';
+import type { Viewport } from 'next';
+import ZoomLock from '@/components/ZoomLock';
 
 // Map slugs to display names; falls back to capitalised slug
 const GYM_NAMES: Record<string, string> = {
@@ -25,6 +27,13 @@ export async function generateMetadata(
     description: `Member dashboard for ${gymDisplayName(gymSlug)}.`,
   };
 }
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 interface Props {
   children: React.ReactNode;
@@ -46,14 +55,16 @@ export default async function ProtectedGymLayout({ children, params }: Props) {
   // Super admin: allow through without membership check
   if (payload.role === 'super_admin') {
     return (
-      <div className="min-h-screen">
-        <Sidebar />
-        <main className="lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
-          <div className="max-w-5xl mx-auto p-4 lg:p-8">
-            <PageTransition>{children}</PageTransition>
-          </div>
-        </main>
-      </div>
+      <ZoomLock>
+        <div className="min-h-screen">
+          <Sidebar />
+          <main className="lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
+            <div className="max-w-5xl mx-auto p-4 lg:p-8">
+              <PageTransition>{children}</PageTransition>
+            </div>
+          </main>
+        </div>
+      </ZoomLock>
     );
   }
 
@@ -74,13 +85,15 @@ export default async function ProtectedGymLayout({ children, params }: Props) {
   }
 
   return (
-    <div className="min-h-screen">
-      <Sidebar />
-      <main className="lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
-        <div className="max-w-5xl mx-auto p-4 lg:p-8">
-          <PageTransition>{children}</PageTransition>
-        </div>
-      </main>
-    </div>
+    <ZoomLock>
+      <div className="min-h-screen">
+        <Sidebar />
+        <main className="lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
+          <div className="max-w-5xl mx-auto p-4 lg:p-8">
+            <PageTransition>{children}</PageTransition>
+          </div>
+        </main>
+      </div>
+    </ZoomLock>
   );
 }
