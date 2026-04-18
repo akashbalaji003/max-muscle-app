@@ -148,6 +148,7 @@ export default function SuperAdminPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll(); // API call starts immediately on mount — runs parallel with loader
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -159,7 +160,7 @@ export default function SuperAdminPage() {
 
   // ── Loader phase ─────────────────────────────────────────────────────────────
   if (phase === 'loader') {
-    return <GymOSLoader duration={5500} onComplete={handleLoaderComplete} />;
+    return <GymOSLoader visible={true} gymName="GymOS" onComplete={handleLoaderComplete} />;
   }
 
   // ── Dashboard ────────────────────────────────────────────────────────────────

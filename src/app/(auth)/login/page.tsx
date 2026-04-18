@@ -62,7 +62,7 @@ export default function PlatformLoginPage() {
   }
 
   if (showLoader) {
-    return <GymOSLoader duration={3500} onComplete={handleLoaderComplete} />;
+    return <GymOSLoader visible={true} gymName="GymOS" onComplete={handleLoaderComplete} />;
   }
 
   return (
