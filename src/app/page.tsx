@@ -129,7 +129,7 @@ function FeatureCard({
   index: number;
   visible: boolean;
   delay: number;
-  refCallback: (node: HTMLArticleElement | null) => void;
+  refCallback: (node: HTMLElement | null) => void;
 }) {
   const Icon = feature.icon;
   const accent = PURPLE_ACCENTS[index % Math.min(PURPLE_ACCENTS.length, FEATURE_VARIANT_COUNT)];
@@ -229,7 +229,7 @@ export default function GymOSHomePage() {
   const [visibleSections, setVisibleSections] = useState([false, false]);
   const [visibleSteps, setVisibleSteps] = useState([false, false, false]);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const featureRefs = useRef<(HTMLArticleElement | null)[]>([]);
+  const featureRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
