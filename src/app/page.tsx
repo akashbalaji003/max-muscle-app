@@ -1,572 +1,727 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Dumbbell, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
-import ReviewCarousel from '@/components/ReviewCarousel';
-import InstagramGallery from '@/components/InstagramGallery';
-import CoachContactModal from '@/components/CoachContactModal';
-import MobileAboutCarousel from '@/components/MobileAboutCarousel';
-import AnimatedCounter from '@/components/AnimatedCounter';
-import EliteTeamCTA from '@/components/EliteTeamCTA';
-import FloatingCTA from '@/components/FloatingCTA';
+import {
+  Dumbbell, BarChart2, Users, Calendar, Camera, Trophy,
+  ChevronRight, ArrowRight, Shield, Check, Zap
+} from 'lucide-react';
 
-// ─── Replace these with your real values ────────────────────────────────────
-const GYM_PHONE      = '07530007329';
-const GYM_PHONE_HREF = 'tel:+447530007329';   // adjust country code if needed
-const GYM_INSTAGRAM  = 'https://www.instagram.com/maximum_muscle_fitness_studio/';
-// Google Maps — paste your exact Maps URL here:
-const MAPS_EMBED_URL = 'https://maps.google.com/maps?q=Maximum+Muscle+Lifestyle+Fitness+Studio&output=embed&z=16';
-const MAPS_OPEN_URL  = 'https://www.google.com/maps/search/Maximum+Muscle+Lifestyle+Fitness+Studio';
-const MAPS_DIRECTIONS_URL = 'https://www.google.com/maps/dir/?api=1&destination=Maximum+Muscle+Lifestyle+Fitness+Studio';
-
-// ─── Gallery: local video files in /public/videos/ ───────────────────────────
-const GALLERY_POSTS = [
-  { src: '/videos/reel1.mp4', caption: 'Latest Reel'          },
-  { src: '/videos/reel2.mp4', caption: 'Workout Highlight'    },
-  { src: '/videos/reel3.mp4', caption: 'Transformation Story' },
+const FEATURES = [
+  {
+    icon: Users,
+    color: 'violet',
+    title: 'Member System',
+    desc: 'Personal login and account access for every member. Track workouts, monitor progress, and view weekly activity — clean and simple.',
+    points: ['Personal login and account access', 'Track workouts and training sessions', 'Monitor progress over time'],
+  },
+  {
+    icon: Shield,
+    color: 'blue',
+    title: 'Admin Control',
+    desc: 'Full control over memberships. Add and manage members, assign and renew plans, and handle day-to-day gym operations from one place.',
+    points: ['Add and manage members', 'Assign and renew plans', 'Manage day-to-day operations'],
+  },
+  {
+    icon: Calendar,
+    color: 'emerald',
+    title: 'Attendance & Check-Ins',
+    desc: 'QR-based check-in system. Real-time attendance tracking with no registers or manual entry required.',
+    points: ['QR code self check-in', 'Real-time attendance tracking', 'No manual entry'],
+  },
+  {
+    icon: Dumbbell,
+    color: 'amber',
+    title: 'Workout Logger',
+    desc: 'Members log every exercise, set, and rep. Track strength improvements and build consistent training habits over time.',
+    points: ['Log exercises, sets, and reps', 'Track strength improvements', 'Build consistent training habits'],
+  },
+  {
+    icon: Camera,
+    color: 'pink',
+    title: 'Progress & Social',
+    desc: 'Visual progress over time. See how members improve, identify drop-offs, and guide them using real performance data.',
+    points: ['Photo progress timeline', 'Body measurement history', 'Social feed with likes & comments'],
+  },
+  {
+    icon: BarChart2,
+    color: 'red',
+    title: 'Analytics',
+    desc: 'Understand your gym at a glance. Attendance trends, member consistency tracking, and clear gym activity overview.',
+    points: ['Attendance trends', 'Member consistency tracking', 'Gym activity overview'],
+  },
 ];
-// ────────────────────────────────────────────────────────────────────────────
 
-const HOURS = [
-  { day: 'Monday – Saturday', time: '5:00 AM – 10:00 PM' },
-  { day: 'Sunday',            time: '5:00 AM – 12:30 PM' },
+const COLOR_MAP: Record<string, { bg: string; border: string; text: string; glow: string }> = {
+  violet: { bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400', glow: 'from-violet-600/20' },
+  blue:   { bg: 'bg-blue-500/10',   border: 'border-blue-500/20',   text: 'text-blue-400',   glow: 'from-blue-600/20'   },
+  emerald:{ bg: 'bg-emerald-500/10',border: 'border-emerald-500/20',text: 'text-emerald-400',glow: 'from-emerald-600/20'},
+  amber:  { bg: 'bg-amber-500/10',  border: 'border-amber-500/20',  text: 'text-amber-400',  glow: 'from-amber-600/20'  },
+  pink:   { bg: 'bg-pink-500/10',   border: 'border-pink-500/20',   text: 'text-pink-400',   glow: 'from-pink-600/20'   },
+  red:    { bg: 'bg-red-500/10',    border: 'border-red-500/20',    text: 'text-red-400',    glow: 'from-red-600/20'    },
+};
+
+const FEATURE_VARIANT_COUNT = Object.keys(COLOR_MAP).length;
+
+const PURPLE_ACCENTS = [
+  {
+    iconBg: 'bg-violet-500/10',
+    border: 'border-violet-500/20',
+    text: 'text-violet-400',
+    glow: 'from-violet-600/20 via-violet-500/10 to-transparent',
+    hoverBorder: 'hover:border-violet-500/30',
+    hoverShadow: 'hover:shadow-[0_24px_70px_rgba(124,58,237,0.12)]',
+  },
+  {
+    iconBg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/20',
+    text: 'text-indigo-400',
+    glow: 'from-indigo-600/20 via-indigo-500/10 to-transparent',
+    hoverBorder: 'hover:border-indigo-500/30',
+    hoverShadow: 'hover:shadow-[0_24px_70px_rgba(79,70,229,0.12)]',
+  },
+  {
+    iconBg: 'bg-purple-500/10',
+    border: 'border-purple-500/20',
+    text: 'text-purple-400',
+    glow: 'from-purple-600/20 via-purple-500/10 to-transparent',
+    hoverBorder: 'hover:border-purple-500/30',
+    hoverShadow: 'hover:shadow-[0_24px_70px_rgba(126,34,206,0.12)]',
+  },
 ];
 
-export default function LandingPage() {
+function SectionTitle({
+  eyebrow,
+  title,
+  description,
+  visible = false,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  visible?: boolean;
+}) {
   return (
-    <div className="min-h-screen flex flex-col bg-[#000000] font-body overflow-x-hidden">
+    <div className={['text-center fade-up', visible ? 'visible' : ''].join(' ')}>
+      <p className="font-display text-xs uppercase tracking-[0.2em] text-violet-400 mb-3">
+        {eyebrow}
+      </p>
+      <h2 className="font-display text-4xl sm:text-5xl tracking-wide text-white">
+        {title}
+      </h2>
+      {description ? (
+        <p className="mt-4 mx-auto max-w-2xl text-sm sm:text-base text-slate-400 font-body">
+          {description}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
-      {/* ── Nav ──────────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 inset-x-0 z-30 flex items-center justify-between px-5 sm:px-8 py-3 border-b border-white/5 bg-[#000000]/95 backdrop-blur-xl">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 bg-red-700 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-900/50">
-            <Dumbbell className="w-5 h-5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <span className="font-display text-lg text-white leading-none tracking-wide block">MAX MUSCLE</span>
-            <span className="text-[10px] text-slate-500 leading-tight tracking-widest uppercase block">Lifestyle Fitness Studio</span>
-          </div>
+function FeatureCard({
+  feature,
+  index,
+  visible,
+  delay,
+  refCallback,
+}: {
+  feature: (typeof FEATURES)[number];
+  index: number;
+  visible: boolean;
+  delay: number;
+  refCallback: (node: HTMLArticleElement | null) => void;
+}) {
+  const Icon = feature.icon;
+  const accent = PURPLE_ACCENTS[index % Math.min(PURPLE_ACCENTS.length, FEATURE_VARIANT_COUNT)];
+
+  return (
+    <article
+      ref={refCallback}
+      data-feature-index={index}
+      className={[
+        'card-fade group relative overflow-hidden rounded-2xl border bg-[#0a0a0a] p-6 transition-all duration-300 hover:-translate-y-1',
+        'border-white/6',
+        visible ? 'visible' : '',
+        accent.hoverBorder,
+        accent.hoverShadow,
+      ].join(' ')}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div
+        aria-hidden="true"
+        className={[
+          'absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100',
+          `bg-gradient-to-br ${accent.glow}`,
+        ].join(' ')}
+      />
+
+      <div className="relative">
+        <div className={[
+          'mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border',
+          accent.iconBg,
+          accent.border,
+        ].join(' ')}>
+          <Icon className={['h-5 w-5', accent.text].join(' ')} />
         </div>
-        <div className="flex items-center gap-1">
-          <Link href="/login"
-            className="bg-red-700 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-red-900/30 min-h-[40px] flex items-center gap-1.5 transition-all">
-            Member Login
+
+        <h3 className="font-display text-lg tracking-wide text-white">
+          {feature.title}
+        </h3>
+        <p className="mt-2 text-sm leading-6 text-slate-400 font-body">
+          {feature.desc}
+        </p>
+
+        <ul className="mt-5 space-y-2.5">
+          {feature.points.map((point) => (
+            <li key={point} className="flex items-start gap-2 text-sm text-slate-300 font-body">
+              <Check className={['mt-0.5 h-4 w-4 flex-none', accent.text].join(' ')} />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </article>
+  );
+}
+
+function HowItWorksCard({
+  step,
+  title,
+  desc,
+  index,
+  visible,
+  refCallback,
+}: {
+  step: string;
+  title: string;
+  desc: string;
+  index: number;
+  visible: boolean;
+  refCallback: (node: HTMLDivElement | null) => void;
+}) {
+  return (
+    <div
+      ref={refCallback}
+      data-step-index={index}
+      className={[
+        'fade-up relative overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a] p-6 transition-all duration-700',
+        visible ? 'visible' : '',
+      ].join(' ')}
+      style={{ transitionDelay: `${index * 150}ms` }}
+    >
+      <span className="block font-display text-5xl leading-none text-violet-500/15">
+        {step}
+      </span>
+      <h3 className="mt-4 font-display text-xl tracking-wide text-white">
+        {title}
+      </h3>
+      <p className="mt-3 text-sm leading-6 text-slate-400 font-body">
+        {desc}
+      </p>
+    </div>
+  );
+}
+
+export default function GymOSHomePage() {
+  const [scrolled, setScrolled] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(false);
+  const [visibleFeatures, setVisibleFeatures] = useState<boolean[]>(Array(6).fill(false));
+  const [visibleSections, setVisibleSections] = useState([false, false]);
+  const [visibleSteps, setVisibleSteps] = useState([false, false, false]);
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const featureRefs = useRef<(HTMLArticleElement | null)[]>([]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 60);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setHeroVisible(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const sectionNodes = Array.from(document.querySelectorAll<HTMLElement>('[data-section-index]'));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisibleSections((current) => {
+          let next = current;
+          let mutated = false;
+
+          for (const entry of entries) {
+            if (!entry.isIntersecting) {
+              continue;
+            }
+
+            const index = Number((entry.target as HTMLElement).dataset.sectionIndex);
+            if (!Number.isInteger(index) || current[index]) {
+              continue;
+            }
+
+            if (!mutated) {
+              next = [...current];
+              mutated = true;
+            }
+
+            next[index] = true;
+          }
+
+          return mutated ? next : current;
+        });
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '0px 0px -5% 0px',
+      },
+    );
+
+    sectionNodes.forEach((node) => observer.observe(node));
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisibleFeatures((current) => {
+          let next = current;
+          let mutated = false;
+
+          for (const entry of entries) {
+            if (!entry.isIntersecting) {
+              continue;
+            }
+
+            const index = Number((entry.target as HTMLElement).dataset.featureIndex);
+            if (!Number.isInteger(index) || current[index]) {
+              continue;
+            }
+
+            if (!mutated) {
+              next = [...current];
+              mutated = true;
+            }
+
+            next[index] = true;
+          }
+
+          return mutated ? next : current;
+        });
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '0px 0px -5% 0px',
+      },
+    );
+
+    featureRefs.current.forEach((node) => {
+      if (node) {
+        observer.observe(node);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setVisibleSteps((current) => {
+          let next = current;
+          let mutated = false;
+
+          for (const entry of entries) {
+            if (!entry.isIntersecting) {
+              continue;
+            }
+
+            const index = Number((entry.target as HTMLElement).dataset.stepIndex);
+            if (!Number.isInteger(index) || current[index]) {
+              continue;
+            }
+
+            if (!mutated) {
+              next = [...current];
+              mutated = true;
+            }
+
+            next[index] = true;
+          }
+
+          return mutated ? next : current;
+        });
+      },
+      {
+        threshold: 0.35,
+        rootMargin: '0px 0px -10% 0px',
+      },
+    );
+
+    stepRefs.current.forEach((node) => {
+      if (node) {
+        observer.observe(node);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-black text-white">
+      <style>{`
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        @keyframes orb-pulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+          50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
+        }
+
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 40px rgba(124,58,237,0.2); }
+          50% { box-shadow: 0 0 80px rgba(124,58,237,0.45); }
+        }
+
+        @keyframes orb-drift-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-30px, 20px) scale(1.05); }
+          66% { transform: translate(20px, -15px) scale(0.97); }
+        }
+
+        @keyframes orb-drift-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          40% { transform: translate(25px, -20px) scale(1.08); }
+          70% { transform: translate(-20px, 10px) scale(0.95); }
+        }
+
+        @keyframes shine-sweep {
+          0% { transform: translateX(-100%) skewX(-12deg); }
+          100% { transform: translateX(250%) skewX(-12deg); }
+        }
+
+        @keyframes icon-glow {
+          0%, 100% { box-shadow: 0 0 16px rgba(124,58,237,0.18); }
+          50% { box-shadow: 0 0 32px rgba(124,58,237,0.45); }
+        }
+
+        .gradient-text-animated {
+          background: linear-gradient(135deg, #a78bfa, #6366f1, #7c3aed, #a78bfa);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: gradient-shift 4s ease infinite;
+        }
+
+        .fade-up {
+          opacity: 0;
+          transform: translateY(24px);
+          transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .fade-up.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .hero-item {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .hero-item.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .card-fade {
+          opacity: 0;
+          transform: translateY(28px);
+          transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .card-fade.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .btn-shine {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .btn-shine::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+          transform: translateX(-100%) skewX(-12deg);
+          transition: none;
+        }
+
+        .btn-shine:hover::after {
+          animation: shine-sweep 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+      `}</style>
+
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.08),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(67,56,202,0.08),transparent_30%)]" />
+        <div
+          className="absolute top-1/3 -left-32 h-[350px] w-[350px] rounded-full bg-indigo-700/8 blur-[100px]"
+          style={{ animation: 'orb-drift-1 14s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute bottom-1/4 -right-32 h-[300px] w-[300px] rounded-full bg-purple-700/8 blur-[90px]"
+          style={{ animation: 'orb-drift-2 18s ease-in-out infinite' }}
+        />
+      </div>
+
+      <nav
+        className={[
+          'fixed top-0 inset-x-0 z-50 border-b bg-black/80 backdrop-blur-xl transition-all duration-300',
+          scrolled ? 'border-violet-500/20 shadow-[0_1px_0_rgba(139,92,246,0.30),0_16px_50px_rgba(124,58,237,0.08)]' : 'border-white/5',
+        ].join(' ')}
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10">
+          <Link href="/maxmuscle" className="group flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 shadow-[0_0_30px_rgba(124,58,237,0.18)] transition-transform duration-300 group-hover:scale-105" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
+              <Dumbbell className="h-5 w-5 text-violet-400" />
+            </div>
+            <span className="font-display text-xl tracking-wide text-white">
+              GYMOS
+            </span>
           </Link>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/maxmuscle"
+              className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm text-slate-400 transition-colors hover:text-white sm:inline-flex"
+            >
+              Live Demo →
+            </Link>
+          </div>
         </div>
       </nav>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative pt-20 pb-0 overflow-hidden">
-        {/* Background ghost text */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
-        >
-          <span
-            className="font-display leading-none text-white/[0.025] whitespace-nowrap"
-            style={{ fontSize: 'clamp(120px, 22vw, 340px)', letterSpacing: '-0.02em' }}
-          >
-            IRON
-          </span>
-        </div>
+      <main>
+        <section className="relative px-5 pb-24 pt-32 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-7xl">
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-[#070707]/70 px-6 py-16 text-center sm:px-10 sm:py-20">
+              <div
+                aria-hidden="true"
+                className="absolute left-1/2 top-1/2 h-[400px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-[120px]"
+                style={{ animation: 'orb-pulse 6s ease-in-out infinite' }}
+              />
 
-        <div className="relative max-w-6xl mx-auto px-5 sm:px-8 pt-12 pb-10">
-          {/* Label row */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-px flex-1 max-w-[32px] bg-red-600/50" />
-            <span className="text-[11px] font-semibold tracking-[0.25em] text-red-400 uppercase">Premium Unisex Gym</span>
-            <div className="h-px flex-1 bg-red-600/20" />
-          </div>
+              <div className="relative mx-auto max-w-4xl">
+                <div className={['hero-item inline-flex items-center gap-3 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2 font-display text-[11px] uppercase tracking-[0.25em] text-violet-400', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '0ms' }}>
+                  <span>✦</span>
+                  <span className="relative flex h-2 w-2 items-center justify-center">
+                    <span className="absolute inline-flex h-2 w-2 rounded-full bg-violet-400/70 animate-pulse" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-violet-400" />
+                  </span>
+                  GYM MANAGEMENT PLATFORM
+                </div>
 
-          {/* Editorial hero grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-end">
-            {/* Display text */}
-            <div>
-              <h1
-                className="font-display leading-[0.92] text-white mb-0"
-                style={{ fontSize: 'clamp(72px, 12vw, 168px)', letterSpacing: '-0.01em' }}
-              >
-                <span className="block">MAXIMUM</span>
-                <span className="block gradient-text">MUSCLE</span>
-                <span className="block text-white/80" style={{ fontSize: '0.55em', letterSpacing: '0.08em' }}>
-                  LIFESTYLE FITNESS STUDIO
-                </span>
-              </h1>
-            </div>
+                <h1 className={['hero-item mt-10 font-display text-5xl leading-[0.95] tracking-wide text-white sm:text-6xl lg:text-7xl', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '120ms' }}>
+                  <span className="block gradient-text-animated">Run your entire gym</span>
+                  <span className="mt-2 block">from one place.</span>
+                </h1>
 
-            {/* Right column: description + CTA */}
-            <div className="lg:max-w-[280px] flex flex-col gap-5 lg:pb-4">
-              <div className="h-px w-full bg-gradient-to-r from-indigo-500/40 to-transparent lg:hidden" />
+                <p className={['hero-item mx-auto mt-6 max-w-xl text-center text-lg leading-8 text-slate-400 font-body', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '220ms' }}>
+                  Memberships, check-ins, workouts, and progress tracking — all connected in a single system. Coaches get real-time visibility into member activity so they can guide clients with real data, not guesswork.
+                </p>
 
-              {/* Gym photo
-                  Mobile : aspect-[4/3] (landscape, compact) + CTA buttons overlaid at bottom
-                  Desktop: aspect-square — no overlay (buttons live below as usual)       */}
-              <div className="relative w-full overflow-hidden rounded-2xl border border-white/8 shadow-xl shadow-black/60 aspect-[4/3] sm:aspect-square">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/gym-hero.jpg"
-                  alt="Maximum Muscle Fitness Studio"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                {/* Subtle inner vignette */}
-                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/5 pointer-events-none" />
+                <div className={['hero-item mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '340ms' }}>
+                  <Link
+                    href="/maxmuscle"
+                    className="btn-shine group inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3.5 text-sm font-medium text-white shadow-xl shadow-violet-900/50 transition-all hover:bg-violet-500 hover:shadow-[0_20px_60px_rgba(124,58,237,0.35)]"
+                  >
+                    Start Live Demo
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-medium text-slate-200 transition-all hover:border-violet-500/25 hover:bg-white/8 hover:text-white"
+                  >
+                    <Shield className="h-4 w-4 text-violet-400" />
+                    Platform Login
+                  </Link>
+                </div>
 
-                {/* ── Mobile-only CTA overlay ──────────────────────────────────
-                    Buttons sit on the lower third of the image so they are
-                    immediately visible without scrolling. Hidden on sm+.       */}
-                <div className="sm:hidden absolute inset-x-0 bottom-0 z-10">
-                  {/* gradient scrim so text stays readable over any photo */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-transparent" />
-                  <div className="relative px-4 pb-4 pt-12 flex flex-col gap-2">
-                    <Link href="/signup"
-                      className="flex items-center justify-between bg-red-600 active:bg-red-700 text-white font-semibold px-5 py-3 rounded-xl text-sm shadow-lg shadow-red-900/50 active:scale-[0.98] transition-all duration-150">
-                      <span>Join Now</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </Link>
-                    <Link href="/login"
-                      className="flex items-center justify-between bg-black/50 backdrop-blur-sm active:bg-black/70 text-slate-100 font-medium px-5 py-3 rounded-xl text-sm border border-white/15 active:scale-[0.98] transition-all duration-150">
-                      <span>Member Login</span>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </Link>
-                  </div>
+                <div className={['hero-item mt-10 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-[0.22em] text-slate-500', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '460ms' }}>
+                  <span className="inline-flex items-center gap-2 text-slate-300">
+                    <Trophy className="h-3.5 w-3.5 text-violet-400" />
+                    6 feature modules
+                  </span>
+                  <span className="hidden text-white/20 sm:inline">|</span>
+                  <span className="text-slate-300">Mobile-first experience</span>
+                  <span className="hidden text-white/20 sm:inline">|</span>
+                  <span className="text-slate-300">Coaches get real-time member insights</span>
                 </div>
               </div>
-
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Your transformation starts here. State-of-the-art equipment, expert trainers,
-                and a community that pushes you further every single day.
-              </p>
-
-              <div className="flex items-center gap-3 flex-wrap">
-                <a href="tel:+918056329329"
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-400 transition-colors">
-                  <Phone className="w-3.5 h-3.5" />
-                  8056329329
-                </a>
-                <span className="text-slate-700 text-xs">|</span>
-                <a href="tel:+447530007332"
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-400 transition-colors">
-                  <Phone className="w-3.5 h-3.5" />
-                  7530007332
-                </a>
-              </div>
-
-              {/* Desktop CTA — hidden on mobile (buttons are overlaid on image above) */}
-              <div className="hidden sm:flex flex-col gap-2.5">
-                <Link href="/signup"
-                  className="group relative bg-red-700 hover:bg-red-600 text-white font-semibold px-6 py-3.5 rounded-xl text-sm shadow-xl shadow-red-900/40 flex items-center justify-between overflow-hidden transition-all">
-                  <span>Join Now</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-                <Link href="/login"
-                  className="bg-white/5 hover:bg-white/8 text-slate-200 font-medium px-6 py-3.5 rounded-xl text-sm border border-white/8 hover:border-red-600/30 flex items-center justify-between transition-all">
-                  <span>Member Login</span>
-                  <ChevronRight className="w-4 h-4 text-slate-500" />
-                </Link>
-              </div>
             </div>
           </div>
+        </section>
 
-          {/* Accent rule */}
-          <div className="mt-10 flex items-center gap-4">
-            <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/40 via-indigo-500/10 to-transparent" />
-            <div className="flex items-center gap-1.5">
-              {[1,2,3,4,5].map(s => (
-                <Star key={s} className="w-3 h-3 text-amber-400 fill-amber-400" />
+        <section className="px-5 pb-24 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-7xl">
+            <div data-section-index="0">
+              <SectionTitle
+                eyebrow="Everything Included"
+                title="Built for real gyms"
+                description="From member check-ins to coach insights — every tool your gym needs, connected in one place."
+                visible={visibleSections[0]}
+              />
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((feature, index) => (
+                <FeatureCard
+                  key={feature.title}
+                  feature={feature}
+                  index={index}
+                  visible={visibleFeatures[index]}
+                  delay={index * 90}
+                  refCallback={(node) => {
+                    featureRefs.current[index] = node;
+                  }}
+                />
               ))}
-              <span className="text-xs font-bold text-white ml-1">4.9</span>
-              <span className="text-xs text-slate-600 ml-0.5">Google Reviews</span>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── About Section ─────────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
-        <div className="flex items-baseline gap-3 mb-8">
-          <span className="font-display text-4xl text-red-500/40 leading-none">01</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">About</span>
-        </div>
-
-        {/* Section intro */}
-        <div className="mb-12">
-          <h2 className="font-display text-3xl sm:text-5xl text-white tracking-wide leading-none mb-4">
-            TRAIN WITH CHAMPIONS
-          </h2>
-          <p className="text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
-            We are not just a gym. We are built by champions. Train under world-class athletes who have represented India on the global stage.
-          </p>
-        </div>
-
-        {/* Coaches: Swipe carousel on mobile, static grid on desktop */}
-        {/* Mobile — horizontal scroll-snap carousel with auto-advance */}
-        <div className="mb-8 md:hidden">
-          <MobileAboutCarousel />
-        </div>
-
-        {/* Desktop: Coaches + Elite Team Side by Side */}
-        <div className="hidden md:grid grid-cols-[1fr_280px] gap-5 mb-8">
-          {/* Left: Coach Cards Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Coach 1 — Rajendran Mani */}
-            <div className="group relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
-              <div className="relative bg-[#0a0a0a] border border-white/8 rounded-lg overflow-hidden hover:border-red-600/30 transition-all duration-300">
-                {/* Image container */}
-                <div className="relative w-full aspect-[1/1.4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/coaches/rajendran.jpg"
-                    alt="DR Rajendra Mani"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <div className="mb-2">
-                    <h3 className="font-display text-base text-white tracking-wide mb-1">🏆 DR Rajendra Mani</h3>
-                  </div>
-
-                  {/* Achievements */}
-                  <div className="space-y-1 text-[12px] text-slate-300">
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Multiple-time Mr. World Bodybuilding Champion</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>One of India's most decorated bodybuilders</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Represented India internationally</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Known for discipline & longevity</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Trained & mentored many athletes</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Coach 2 — Benjamin Jerold */}
-            <div className="group relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
-              <div className="relative bg-[#0a0a0a] border border-white/8 rounded-lg overflow-hidden hover:border-red-600/30 transition-all duration-300">
-                {/* Image container */}
-                <div className="relative w-full aspect-[1/1.4] overflow-hidden bg-gradient-to-b from-slate-900 to-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/coaches/benjamin.jpg"
-                    alt="Benjamin Jerold"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <div className="mb-2">
-                    <h3 className="font-display text-base text-white tracking-wide mb-1">💪 DR Benjamin Jerold</h3>
-                  </div>
-
-                  {/* Achievements */}
-                  <div className="space-y-1 text-[12px] text-slate-300">
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Elite Indian bodybuilder</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Known as "Indian Hulk"</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>International-level competitor</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Extreme conditioning & stage presence</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <span className="text-red-500 mt-0.5 flex-shrink-0">•</span>
-                      <span>Modern Indian bodybuilding excellence</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Elite Team Banner */}
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur" />
-            <div className="relative rounded-lg overflow-hidden border border-red-600/20 hover:border-red-600/40 transition-all duration-300 bg-gradient-to-br from-red-950/20 via-black to-black h-full flex flex-col">
-
-              {/* Image — TOP */}
-              <div className="relative overflow-hidden bg-gradient-to-b from-slate-900 to-black h-40">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/coaches/together.jpg"
-                  alt="Elite Coaching Team"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-              </div>
-
-              {/* Content */}
-              <div className="p-4 flex-1 flex flex-col">
-                {/* Title & Subtitle */}
-                <div className="mb-2">
-                  <p className="text-[11px] tracking-[0.2em] uppercase text-red-400 font-semibold mb-1">Elite Team</p>
-                  <h3 className="font-display text-xl text-white tracking-wide leading-tight">
-                    Champions Coaching Athletes to Success
-                  </h3>
-                </div>
-
-                {/* Animated Stat — LARGE */}
-                <div className="mb-2 py-2">
-                  <AnimatedCounter target={200} duration={5500} suffix="+" label="Athletes Trained" size="large" />
-                </div>
-
-                {/* Description */}
-                <p className="text-[13px] text-slate-400 leading-relaxed mb-3 flex-1">
-                  Led by world-class champions, our elite team has trained and transformed athletes across national and international stages. Proven experience, discipline, and coaching excellence.
-                </p>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="p-4 border-t border-white/5">
-                <EliteTeamCTA />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Reviews + Instagram ──────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
-        <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">02</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Community</span>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-          {/* Reviews */}
-          <div className="flex flex-col gap-4 h-full">
-            <div className="flex-shrink-0">
-              <h2 className="font-display text-2xl lg:text-4xl text-white tracking-wide leading-none">WHAT MEMBERS SAY</h2>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
-                </div>
-                <span className="text-sm font-bold text-white">4.9</span>
-                <span className="text-xs text-slate-500">on Google Reviews</span>
-              </div>
-            </div>
-            <ReviewCarousel />
-          </div>
-
-          {/* Instagram */}
-          <div className="flex flex-col gap-4 h-full">
-            <div className="flex-shrink-0">
-              <h2 className="font-display text-2xl lg:text-4xl text-white tracking-wide leading-none">FOLLOW OUR JOURNEY</h2>
-              <p className="text-sm text-slate-500 mt-2">See transformations &amp; daily highlights</p>
-            </div>
-            <a
-              href={GYM_INSTAGRAM}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 group relative flex flex-col items-center justify-center gap-4 text-center p-8 rounded-2xl border border-white/5 bg-[#0a0a0a] hover:border-pink-500/30 transition-all overflow-hidden"
-            >
-              {/* Gradient glow on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-purple-500/0 to-amber-500/0 group-hover:from-pink-500/5 group-hover:via-purple-500/5 group-hover:to-amber-500/5 transition-all duration-500 pointer-events-none" />
-
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-amber-500/20 border border-pink-500/30 flex items-center justify-center group-hover:scale-105 transition-transform relative z-10">
-                <svg className="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-              </div>
-              <div className="relative z-10">
-                <p className="font-mono text-sm text-white tracking-tight">@maximum_muscle_fitness_studio</p>
-                <p className="text-sm text-slate-400 mt-3 max-w-xs leading-relaxed">
-                  Workout tips, transformation stories, and daily motivation
-                </p>
-              </div>
-              <span className="relative z-10 inline-flex items-center gap-1.5 text-sm font-semibold text-pink-400 group-hover:text-pink-300 transition-colors">
-                Open Instagram <ExternalLink className="w-3.5 h-3.5" />
-              </span>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Gallery ──────────────────────────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-12 w-full">
-        <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">03</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Gallery</span>
-        </div>
-
-        {/* Section heading + Instagram handle link */}
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-          <div>
-            <h2 className="font-display text-3xl sm:text-5xl text-white tracking-wide leading-none">
-              LATEST REELS
-            </h2>
-            <p className="text-sm text-slate-500 mt-2">
-              Follow our journey on Instagram
-            </p>
-          </div>
-          <a
-            href={GYM_INSTAGRAM}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors"
+        <section className="px-5 pb-24 sm:px-8 lg:px-10">
+          <div
+            className="mx-auto max-w-5xl rounded-[2rem] border border-violet-500/25 bg-gradient-to-br from-violet-950/40 via-[#0a0a0a] to-indigo-950/30 p-6 sm:p-10 lg:p-14"
+            style={{ animation: 'glow-pulse 5s ease-in-out infinite' }}
           >
-            @maximum_muscle_fitness_studio
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-white/5 bg-black/40 px-6 py-10 text-center sm:px-10 sm:py-14">
+              <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.18),transparent_45%)]" />
 
-        <InstagramGallery posts={GALLERY_POSTS} instagramUrl={GYM_INSTAGRAM} />
-      </section>
+              <div className="relative mx-auto max-w-3xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 font-display text-[11px] uppercase tracking-widest text-violet-400">
+                  <span className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
+                  LIVE — MAXIMUM MUSCLE FITNESS STUDIO
+                </div>
 
-      {/* ── Info Cards ───────────────────────────────────────────────────── */}
-      <section id="info-section" className="max-w-6xl mx-auto px-5 sm:px-8 py-12 w-full">
-        <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">04</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Info</span>
-        </div>
+                <h2 className="mt-6 font-display text-4xl tracking-wide text-white sm:text-5xl">
+                  See GymOS in action
+                </h2>
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-400 font-body sm:text-base">
+                  Maximum Muscle Fitness Studio runs on GymOS. Visit their page to see the member app, check-in flow, and workout tracker live.
+                </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
-
-          {/* Location */}
-          <a href={MAPS_OPEN_URL} target="_blank" rel="noopener noreferrer"
-            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-0.5 h-0 bg-red-600 group-hover:h-full transition-all duration-300" />
-            <div className="w-10 h-10 bg-red-600/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-600/20 transition-colors">
-              <MapPin className="w-5 h-5 text-red-400" />
+                <Link
+                  href="/maxmuscle"
+                  className="btn-shine group mt-8 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3.5 text-sm font-medium text-white shadow-xl shadow-violet-900/50 transition-all hover:bg-violet-500 hover:shadow-[0_20px_60px_rgba(124,58,237,0.35)]"
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  Open Max Muscle
+                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </div>
             </div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Location</p>
-            <h3 className="font-display text-2xl text-white tracking-wide mb-2">MAX MUSCLE</h3>
-            <p className="text-xs text-slate-500 leading-relaxed mb-3">Maximum Muscle Lifestyle Fitness Studio</p>
-            <span className="text-red-400 text-xs inline-flex items-center gap-1 group-hover:text-red-300">
-              View on Maps <ExternalLink className="w-3 h-3" />
+          </div>
+        </section>
+
+        <section className="px-5 pb-24 sm:px-8 lg:px-10">
+          <div className="mx-auto max-w-5xl">
+            <div data-section-index="1">
+              <SectionTitle
+                eyebrow="How It Works"
+                title="Three clear steps"
+                description="Simple for members. Powerful for coaches. Clear for admins."
+                visible={visibleSections[1]}
+              />
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {[
+                {
+                  step: '01',
+                  title: 'Add your members',
+                  desc: 'Set up member accounts, assign plans, and get everyone into the system.',
+                },
+                {
+                  step: '02',
+                  title: 'Members log in and check in',
+                  desc: 'Members sign in, log workouts, and check in via QR — no manual work needed.',
+                },
+                {
+                  step: '03',
+                  title: 'Coaches guide with real data',
+                  desc: 'Coaches see member activity, track consistency, and use real progress data to guide clients — no guesswork.',
+                },
+              ].map((step, index) => (
+                <HowItWorksCard
+                  key={step.step}
+                  index={index}
+                  step={step.step}
+                  title={step.title}
+                  desc={step.desc}
+                  visible={visibleSteps[index]}
+                  refCallback={(node) => {
+                    stepRefs.current[index] = node;
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-white/5 px-5 py-8 sm:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/10">
+              <Zap className="h-4 w-4 text-violet-400" />
+            </div>
+            <span className="font-display text-sm tracking-wider text-white">
+              GYMOS
             </span>
-          </a>
-
-          {/* Phone */}
-          <a id="call-section" href={GYM_PHONE_HREF}
-            className="group bg-[#0a0a0a] hover:bg-[#0f0f0f] p-6 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-0.5 h-0 bg-emerald-500 group-hover:h-full transition-all duration-300" />
-            <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
-              <Phone className="w-5 h-5 text-emerald-400" />
-            </div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Contact</p>
-            <h3 className="font-display text-2xl text-white tracking-wide mb-2">CALL US</h3>
-            <p className="text-sm text-slate-300 font-mono mb-1">{GYM_PHONE}</p>
-            <p className="text-xs text-slate-600">Call or WhatsApp</p>
-          </a>
-
-          {/* Hours */}
-          <div className="group bg-[#0a0a0a] p-6 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-0.5 h-0 bg-amber-500 group-hover:h-full transition-all duration-300" />
-            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
-              <Clock className="w-5 h-5 text-amber-400" />
-            </div>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-slate-600 mb-1">Schedule</p>
-            <h3 className="font-display text-2xl text-white tracking-wide mb-3">OPEN HOURS</h3>
-            <div className="space-y-2.5">
-              {HOURS.map(({ day, time }) => (
-                <div key={day} className="flex flex-col gap-0.5 border-b border-white/5 pb-2 last:border-0 last:pb-0">
-                  <span className="text-[10px] text-slate-600 tracking-wider uppercase">{day}</span>
-                  <span className="text-sm text-slate-200 font-semibold font-display tracking-wide">{time}</span>
-                </div>
-              ))}
-            </div>
+            <span className="text-xs text-slate-500">© {new Date().getFullYear()}</span>
           </div>
 
-        </div>
-      </section>
-
-      {/* ── Map ──────────────────────────────────────────────────────────── */}
-      <section id="find-us-section" className="max-w-6xl mx-auto px-5 sm:px-8 pb-16 w-full">
-        <div className="flex items-baseline gap-3 mb-6">
-          <span className="font-display text-4xl text-red-500/40 leading-none">05</span>
-          <span className="text-xs tracking-[0.2em] text-slate-500 uppercase">Find Us</span>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="font-display text-3xl sm:text-5xl text-white tracking-wide leading-none">FIND US</h2>
-          <div className="flex gap-2">
-            <a
-              href={MAPS_OPEN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-white/5 border border-white/8 text-slate-300 hover:text-white hover:border-red-600/40 transition-all"
-            >
-              <MapPin className="w-3.5 h-3.5 text-red-400" />
-              Open in Maps
-            </a>
-            <a
-              href={MAPS_DIRECTIONS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white font-semibold transition-all"
-            >
-              <Navigation className="w-3.5 h-3.5" />
-              Get Directions
-            </a>
-          </div>
-        </div>
-        <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl shadow-black/60" style={{ height: '320px' }}>
-          <iframe
-            src={MAPS_EMBED_URL}
-            width="100%"
-            height="100%"
-            style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) saturate(0.8)' }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Gym Location"
-          />
-        </div>
-      </section>
-
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5 py-6 px-5 sm:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 bg-red-700 rounded-md flex items-center justify-center">
-              <Dumbbell className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="font-display tracking-wider text-slate-500">MAX MUSCLE</span>
-            <span className="text-slate-700">© {new Date().getFullYear()}</span>
-          </div>
-          <div className="flex items-center gap-5">
-            <Link href="/login" className="hover:text-slate-400 transition-colors">Member Login</Link>
-            <Link href="/admin/login" className="hover:text-slate-400 transition-colors">Admin</Link>
-            <a href={GYM_INSTAGRAM} target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 transition-colors">Instagram</a>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <Link href="/maxmuscle" className="transition-colors hover:text-violet-300">
+              Live Demo
+            </Link>
+            <Link href="/login" className="transition-colors hover:text-violet-300">
+              Platform Login
+            </Link>
           </div>
         </div>
       </footer>
-
-      {/* ── Floating Join Now CTA ────────────────────────────────────────── */}
-      <FloatingCTA />
-
     </div>
   );
 }

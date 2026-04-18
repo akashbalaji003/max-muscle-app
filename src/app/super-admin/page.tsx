@@ -112,7 +112,7 @@ export default function SuperAdminPage() {
     const r = resolvedRef.current;
     if (!r.loaderDone || !r.authDone) return; // wait until both ready
     if (!r.authed) {
-      router.push('/super-admin-login');
+      router.push('/login');
     } else {
       setPhase('dashboard');
     }
@@ -131,7 +131,7 @@ export default function SuperAdminPage() {
     if (sRes.status === 401 || sRes.status === 403) {
       resolvedRef.current.authDone  = true;
       resolvedRef.current.authed    = false;
-      if (isRefresh) router.push('/super-admin-login');
+      if (isRefresh) router.push('/login');
       else           checkTransition();
       return;
     }
@@ -183,17 +183,45 @@ export default function SuperAdminPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#000000] p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="relative min-h-screen overflow-hidden bg-[#000000] p-4 text-white md:p-6">
+      <style>{`
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes count-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+          50% { box-shadow: 0 0 40px rgba(124,58,237,0.35); }
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
+
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-violet-600/6 blur-[140px]" />
+        <div className="absolute bottom-[-120px] right-[-90px] h-[460px] w-[460px] rounded-full bg-indigo-700/5 blur-[140px]" />
+        <div className="absolute left-[-120px] top-1/2 h-[420px] w-[420px] rounded-full bg-purple-800/4 blur-[150px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/5 bg-[#050505]/70 px-4 py-4 backdrop-blur-xl md:px-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-violet-700/30 border border-violet-500/30 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10" style={{ animation: 'glow-pulse 3s ease-in-out infinite' }}>
               <Shield className="w-5 h-5 text-violet-400" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white leading-tight">Super Admin</h1>
+              <h1 className="font-display text-xl tracking-wide text-white leading-tight">Super Admin</h1>
               <p className="text-xs text-slate-500">GymOS Platform Dashboard</p>
             </div>
           </div>
@@ -201,16 +229,16 @@ export default function SuperAdminPage() {
             <button
               onClick={() => fetchAll(true)}
               disabled={refreshing}
-              className="p-2 text-slate-400 hover:text-white transition-colors"
+              className="rounded-xl border border-white/8 bg-white/0 p-2 text-slate-400 transition-all hover:border-violet-500/20 hover:bg-violet-500/8 hover:text-white"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={async () => {
                 await fetch('/api/auth/logout', { method: 'POST' });
-                router.push('/super-admin-login');
+                router.push('/login');
               }}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
+              className="flex items-center gap-1.5 rounded-xl border border-white/8 px-3 py-2 text-xs text-slate-400 transition-all hover:border-violet-500/20 hover:bg-violet-500/8 hover:text-white"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Logout</span>
@@ -228,14 +256,32 @@ export default function SuperAdminPage() {
             { label: 'Check-ins',      value: stats?.totalAttendance ?? 0, icon: CalendarCheck, color: 'amber'   },
             { label: 'Posts',          value: stats?.totalPosts      ?? 0, icon: ImageIcon,     color: 'rose'    },
           ] as const).map(({ label, value, icon: Icon, color }) => (
-            <Card key={label} className="p-4 flex items-center gap-3">
-              <div className={`p-2 rounded-xl flex-shrink-0 bg-${color}-500/10 text-${color}-400`}>
+            <Card
+              key={label}
+              className="group flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-500/20"
+              style={{ animation: 'fade-up 0.5s cubic-bezier(0.22,1,0.36,1) both', animationDelay: `${([
+                'Total Gyms',
+                'Total Members',
+                'Active Members',
+                'Workouts',
+                'Check-ins',
+                'Posts',
+              ].indexOf(label) * 80)}ms` }}
+            >
+              <div className={`rounded-xl p-2.5 flex-shrink-0 bg-${color}-500/10 text-${color}-400 transition-transform duration-300 group-hover:scale-110`}>
                 <Icon className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 {/* No truncate — allow wrapping on small screens */}
                 <p className="text-[10px] text-slate-500 whitespace-normal break-words leading-tight">{label}</p>
-                <p className="text-xl font-bold text-white tabular-nums">{value.toLocaleString()}</p>
+                <p className="text-2xl font-black text-white tabular-nums" style={{ animation: 'count-in 0.4s ease both', animationDelay: `${([
+                  'Total Gyms',
+                  'Total Members',
+                  'Active Members',
+                  'Workouts',
+                  'Check-ins',
+                  'Posts',
+                ].indexOf(label) * 80 + 80)}ms` }}>{value.toLocaleString()}</p>
               </div>
             </Card>
           ))}
@@ -245,14 +291,14 @@ export default function SuperAdminPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
           {/* Attendance + Workouts bar chart */}
-          <div className="col-span-1 md:col-span-2 bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <Activity className="w-4 h-4 text-violet-400 flex-shrink-0" />
-              <h2 className="text-sm font-semibold text-white whitespace-normal break-words">
+          <div className="col-span-1 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 md:col-span-2" style={{ animation: 'fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 0.2s both' }}>
+            <div className="mb-4 flex flex-wrap items-center gap-2 border-l-2 border-violet-500 pl-3">
+              <Activity className="w-4 h-4 flex-shrink-0 text-violet-400" />
+              <h2 className="font-display text-sm tracking-wide text-white whitespace-normal break-words">
                 Attendance &amp; Workouts by Gym (this month)
               </h2>
             </div>
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={attendanceBarData} barGap={4} barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" vertical={false} />
                 <XAxis
@@ -267,11 +313,11 @@ export default function SuperAdminPage() {
                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
                 {/* cursor colour instead of white flash */}
                 <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
+                  contentStyle={{ ...TOOLTIP_STYLE, background: '#0a0a0a', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 10, fontSize: 12, color: '#e2e8f0', padding: '8px 12px' }}
                   cursor={{ fill: 'rgba(139,92,246,0.08)' }}
                 />
-                <Bar dataKey="attendance" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Attendance" />
-                <Bar dataKey="workouts"   fill="#E11D1D" radius={[4, 4, 0, 0]} name="Workouts" />
+                <Bar dataKey="attendance" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Attendance" animationDuration={800} />
+                <Bar dataKey="workouts"   fill="#E11D1D" radius={[4, 4, 0, 0]} name="Workouts" animationDuration={800} />
               </BarChart>
             </ResponsiveContainer>
             {/* Legend */}
@@ -286,10 +332,10 @@ export default function SuperAdminPage() {
           </div>
 
           {/* Subscription status pie */}
-          <div className="col-span-1 bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-4 h-4 text-violet-400 flex-shrink-0" />
-              <h2 className="text-sm font-semibold text-white">Subscription Status</h2>
+          <div className="col-span-1 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5" style={{ animation: 'fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 0.3s both' }}>
+            <div className="mb-4 flex items-center gap-2 border-l-2 border-violet-500 pl-3">
+              <TrendingUp className="w-4 h-4 flex-shrink-0 text-violet-400" />
+              <h2 className="font-display text-sm tracking-wide text-white">Subscription Status</h2>
             </div>
             {subPieData.length > 0 ? (
               <>
@@ -299,10 +345,12 @@ export default function SuperAdminPage() {
                       data={subPieData}
                       cx="50%"
                       cy="50%"
-                      outerRadius={68}
+                      outerRadius={75}
                       dataKey="value"
                       label={({ name, value }) => `${name} (${value})`}
                       labelLine={false}
+                      animationBegin={200}
+                      animationDuration={800}
                     >
                       {subPieData.map((entry, i) => (
                         <Cell key={i} fill={entry.color} />
@@ -314,7 +362,7 @@ export default function SuperAdminPage() {
                 <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-2">
                   {subPieData.map((d) => (
                     <span key={d.name} className="flex items-center gap-1 text-[11px] text-slate-400">
-                      <span className="w-2 h-2 rounded-full inline-block flex-shrink-0" style={{ background: d.color }} />
+                      <span className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0" style={{ background: d.color }} />
                       {d.name}
                     </span>
                   ))}
@@ -327,10 +375,10 @@ export default function SuperAdminPage() {
         </div>
 
         {/* ── Gyms table ───────────────────────────────────────────────────── */}
-        <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
+        <div className="overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a]">
+          <div className="flex items-center gap-2 border-b border-white/5 bg-[#050505] px-4 py-3">
             <Building2 className="w-4 h-4 text-violet-400 flex-shrink-0" />
-            <h2 className="text-sm font-semibold text-white">All Gyms</h2>
+            <h2 className="font-display text-sm tracking-wide text-white">All Gyms</h2>
             <span className="ml-auto text-xs text-slate-500 flex-shrink-0">
               {gyms.length} gym{gyms.length !== 1 ? 's' : ''}
             </span>
@@ -350,10 +398,10 @@ export default function SuperAdminPage() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {gyms.map((g) => (
-                  <tr key={g.id} className="hover:bg-violet-500/5 transition-colors">
+                  <tr key={g.id} className="transition-colors duration-150 hover:bg-violet-500/5">
                     <td className="px-4 py-3 max-w-[220px]">
                       {/* No truncation — wrap naturally */}
-                      <p className="font-medium text-white text-sm whitespace-normal break-words">{g.name}</p>
+                      <p className="font-display text-sm tracking-wide text-white whitespace-normal break-words">{g.name}</p>
                       {g.address && (
                         <p className="text-xs text-slate-500 mt-0.5 whitespace-normal break-words">{g.address}</p>
                       )}
@@ -386,10 +434,10 @@ export default function SuperAdminPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/super-admin/gyms/${g.id}`}
-                        className="flex items-center gap-1 text-xs text-slate-500 hover:text-violet-400 transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-1 rounded-lg bg-violet-500/0 px-2 py-1 text-xs text-slate-500 transition-all whitespace-nowrap hover:bg-violet-500/10 hover:text-violet-400"
                       >
                         <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                        View
+                        View →
                       </Link>
                     </td>
                   </tr>
@@ -408,10 +456,10 @@ export default function SuperAdminPage() {
           {/* Mobile cards */}
           <div className="md:hidden divide-y divide-white/5">
             {gyms.map((g) => (
-              <div key={g.id} className="p-4">
+              <div key={g.id} className="mb-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all hover:border-violet-500/15">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-white text-sm whitespace-normal break-words">{g.name}</p>
+                    <p className="font-display text-sm tracking-wide text-white whitespace-normal break-words">{g.name}</p>
                     {g.address && (
                       <p className="text-xs text-slate-500 mt-0.5 whitespace-normal break-words">{g.address}</p>
                     )}
@@ -456,9 +504,9 @@ export default function SuperAdminPage() {
 
         {/* ── AI Analytics Overview ────────────────────────────────────────── */}
         <div className="mt-6">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <Brain className="w-4 h-4 text-violet-400" />
-            <h2 className="text-sm font-semibold text-white uppercase tracking-widest">AI Analytics Overview</h2>
+            <h2 className="font-display text-sm tracking-widest text-white uppercase">AI Analytics Overview</h2>
             <span className="text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full">
               Anonymised · No PII
             </span>
@@ -471,14 +519,18 @@ export default function SuperAdminPage() {
               { label: 'AI Declined',      value: aiGlobal?.summary.declined           ?? '—', icon: XCircle,      color: 'rose'    },
               { label: 'Dataset Rows',     value: aiGlobal?.summary.total_dataset_rows ?? '—', icon: Database,     color: 'violet'  },
               { label: 'Avg Workouts/wk',  value: aiGlobal?.summary.avg_workouts_per_week ?? '—', icon: Dumbbell, color: 'amber'   },
-            ].map(({ label, value, icon: Icon, color }) => (
-              <Card key={label} className="p-4 flex items-center gap-3">
-                <div className={`p-2 rounded-xl shrink-0 bg-${color}-500/10 text-${color}-400`}>
+            ].map(({ label, value, icon: Icon, color }, index) => (
+              <Card
+                key={label}
+                className="group flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-500/20"
+                style={{ animation: 'fade-up 0.5s cubic-bezier(0.22,1,0.36,1) both', animationDelay: `${400 + index * 80}ms` }}
+              >
+                <div className={`rounded-xl p-2.5 shrink-0 bg-${color}-500/10 text-${color}-400 transition-transform duration-300 group-hover:scale-110`}>
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] text-slate-500">{label}</p>
-                  <p className="text-xl font-bold text-white tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</p>
+                  <p className="text-2xl font-black text-white tabular-nums" style={{ animation: 'count-in 0.4s ease both', animationDelay: `${480 + index * 80}ms` }}>{typeof value === 'number' ? value.toLocaleString() : value}</p>
                 </div>
               </Card>
             ))}
@@ -486,54 +538,62 @@ export default function SuperAdminPage() {
 
           {/* AI trend charts */}
           {aiGlobal && aiGlobal.weekly_trends.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
               {/* Volume trend */}
-              <AiLineCard title="Weekly Training Volume (avg kg)" color="#8b5cf6">
+              <div style={{ animation: 'fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 0ms both' }}>
+                <AiLineCard title="Weekly Training Volume (avg kg)" color="#8b5cf6">
                 <LineChart data={aiGlobal.weekly_trends}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
                   <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Line type="monotone" dataKey="avg_volume_kg" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Avg Volume (kg)" />
+                  <Line type="monotone" dataKey="avg_volume_kg" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Avg Volume (kg)" animationDuration={1000} animationEasing="ease-out" />
                 </LineChart>
-              </AiLineCard>
+                </AiLineCard>
+              </div>
 
               {/* Adherence trend */}
-              <AiLineCard title="Adherence Trend (avg %)" color="#10b981">
+              <div style={{ animation: 'fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 100ms both' }}>
+                <AiLineCard title="Adherence Trend (avg %)" color="#10b981">
                 <LineChart data={aiGlobal.weekly_trends}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
                   <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} domain={[0, 100]} unit="%" />
                   <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}%`, 'Adherence']} />
-                  <Line type="monotone" dataKey="avg_adherence_pct" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Adherence %" />
+                  <Line type="monotone" dataKey="avg_adherence_pct" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Adherence %" animationDuration={1000} animationEasing="ease-out" />
                 </LineChart>
-              </AiLineCard>
+                </AiLineCard>
+              </div>
 
               {/* Strength progression score */}
-              <AiLineCard title="Avg Progression Score" color="#f59e0b">
+              <div style={{ animation: 'fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 200ms both' }}>
+                <AiLineCard title="Avg Progression Score" color="#f59e0b">
                 <LineChart data={aiGlobal.weekly_trends}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
                   <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Line type="monotone" dataKey="avg_progression" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeDasharray="5 2" name="Progression" />
+                  <Line type="monotone" dataKey="avg_progression" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeDasharray="5 2" name="Progression" animationDuration={1000} animationEasing="ease-out" />
                 </LineChart>
-              </AiLineCard>
+                </AiLineCard>
+              </div>
 
               {/* Active members trend */}
-              <AiLineCard title="Active Members in Dataset" color="#3b82f6">
+              <div style={{ animation: 'fade-up 0.6s cubic-bezier(0.22,1,0.36,1) 300ms both' }}>
+                <AiLineCard title="Active Members in Dataset" color="#3b82f6">
                 <LineChart data={aiGlobal.weekly_trends}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
                   <XAxis dataKey="week" tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Line type="monotone" dataKey="active_members" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Active Members" />
+                  <Line type="monotone" dataKey="active_members" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Active Members" animationDuration={1000} animationEasing="ease-out" />
                 </LineChart>
-              </AiLineCard>
+                </AiLineCard>
+              </div>
             </div>
           ) : (
-            <div className="bg-[#0f0f0f] border border-dashed border-white/10 rounded-2xl p-8 text-center">
+            <div className="rounded-2xl border border-dashed border-white/10 bg-[#0a0a0a] p-8 text-center">
               <Brain className="w-8 h-8 text-slate-700 mx-auto mb-2" />
               <p className="text-sm text-slate-500">No AI dataset entries yet.</p>
               <p className="text-xs text-slate-700 mt-1">Data appears after members accept Terms & AI consent.</p>
@@ -549,12 +609,12 @@ export default function SuperAdminPage() {
 // ── Small chart wrapper ───────────────────────────────────────────────────────
 function AiLineCard({ title, color, children }: { title: string; color: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[#0f0f0f] border border-white/8 rounded-2xl p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 transition-all duration-300 hover:border-violet-500/15">
+      <div className="mb-3 flex items-center gap-2 border-l-2 pl-3" style={{ borderLeftColor: color }}>
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-        <p className="text-xs font-semibold text-slate-400">{title}</p>
+        <p className="font-display text-xs tracking-wide text-slate-400">{title}</p>
       </div>
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={220}>
         {children as React.ReactElement}
       </ResponsiveContainer>
     </div>

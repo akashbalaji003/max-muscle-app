@@ -1,13 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, User, Lock, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Dumbbell, Phone, Lock, ArrowLeft } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
-export default function AdminLoginPage() {
+const GYM_SLUG = 'maxmuscle';
+
+export default function MaxMuscleLoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: '', password: '' });
+  const [form, setForm] = useState({ phone_number: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +19,7 @@ export default function AdminLoginPage() {
     setError('');
     setLoading(true);
 
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
@@ -25,22 +28,18 @@ export default function AdminLoginPage() {
     const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.error || 'Login failed');
-      return;
-    }
+    if (!res.ok) { setError(data.error || 'Login failed'); return; }
 
-    // Check if admin needs to accept the latest terms
     const consentRes = await fetch('/api/consent/check');
     if (consentRes.ok) {
       const consentData = await consentRes.json();
       if (consentData.needs_consent) {
-        router.push('/consent?next=/admin/dashboard');
+        router.push(`/consent?next=/${GYM_SLUG}/dashboard`);
         return;
       }
     }
 
-    router.push('/admin/dashboard');
+    router.push(`/${GYM_SLUG}/dashboard`);
   }
 
   return (
@@ -117,67 +116,37 @@ export default function AdminLoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <div className="mb-6">
-          <Link
-            href="/maxmuscle"
-            className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-300"
-          >
+          <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-300">
             <ArrowLeft className="w-4 h-4" /> Back to Home
           </Link>
         </div>
 
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-700 shadow-xl shadow-red-900/50" style={{ animation: 'icon-glow-red 3s ease-in-out infinite' }}>
-            <Shield className="w-8 h-8 text-white" />
+            <Dumbbell className="w-8 h-8 text-white" />
           </div>
-          <h1 className="font-display text-2xl tracking-wide text-white">Admin Portal</h1>
-          <p className="mt-1 text-sm text-slate-400 text-center">Maximum Muscle Fitness Studio</p>
+          <h1 className="font-display text-2xl tracking-wide text-white">Welcome back</h1>
+          <p className="mt-1 text-sm text-slate-400 text-center">Sign in to Max Muscle Fitness Studio</p>
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(0,0,0,0.5)] sm:p-6 space-y-4" style={{ animation: 'card-fade-in 0.6s cubic-bezier(0.22,1,0.36,1) both' }}>
           {error && (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3 text-sm text-red-400">
-              {error}
-            </div>
+            <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3 text-sm text-red-400">{error}</div>
           )}
-
-          <Input
-            id="username"
-            label="Username"
-            type="text"
-            placeholder="admin"
-            icon={<User className="w-4 h-4" />}
-            value={form.username}
-            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-            required
-          />
-
-          <Input
-            id="password"
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            icon={<Lock className="w-4 h-4" />}
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            required
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-shine flex w-full min-h-[52px] items-center justify-center gap-2 rounded-xl bg-red-700 text-white font-display tracking-wide transition-all shadow-lg shadow-red-900/30 hover:bg-red-600 hover:shadow-red-900/50 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
-          >
-            {loading && (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            )}
-            Access Admin Panel
-          </button>
+          <Input id="phone" label="Phone Number" type="tel" placeholder="+91 98765 43210"
+            icon={<Phone className="w-4 h-4" />} value={form.phone_number}
+            onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))} required />
+          <Input id="password" label="Password" type="password" placeholder="••••••••"
+            icon={<Lock className="w-4 h-4" />} value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required />
+          <Button type="submit" className="btn-shine w-full min-h-[52px]" size="lg" loading={loading}>
+            Sign In
+          </Button>
         </form>
 
-        <p className="mt-5 text-center text-sm text-slate-600">
-          <Link href="/maxmuscle/login" className="inline-flex min-h-[44px] items-center justify-center transition-colors hover:text-slate-400">
-            ← Member login
-          </Link>
+        <p className="mt-5 text-center text-sm text-slate-500">
+          New here?{' '}
+          <Link href={`/${GYM_SLUG}/signup`} className="inline-flex min-h-[44px] items-center text-red-400 font-medium transition-colors hover:text-red-300">Create account</Link>
         </p>
       </div>
     </div>

@@ -1,0 +1,66 @@
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { verifyToken } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
+import Sidebar from '@/components/layout/Sidebar';
+import NoMembershipScreen from '@/components/NoMembershipScreen';
+import PageTransition from '@/components/PageTransition';
+
+interface Props {
+  children: React.ReactNode;
+  params: Promise<{ gymSlug: string }>;
+}
+
+export default async function ProtectedGymLayout({ children, params }: Props) {
+  const { gymSlug } = await params;
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get('gym_token')?.value;
+  const payload = token ? verifyToken(token) : null;
+
+  // Not authenticated — redirect to gym login
+  if (!payload) {
+    redirect(`/${gymSlug}/login`);
+  }
+
+  // Super admin: allow through without membership check
+  if (payload.role === 'super_admin') {
+    return (
+      <div className="min-h-screen">
+        <Sidebar />
+        <main className="lg:pl-56 pt-14 lg:pt-0 pb-20 lg:pb-0">
+          <div className="max-w-5xl mx-auto p-4 lg:p-8">
+            <PageTransition>{children}</PageTransition>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Admin: redirect to admin dashboard
+  if (payload.role === 'admin') {
+    redirect(`/${gymSlug}/admin/dashboard`);
+  }
+
+  // Member: check membership exists
+  const { data: membership } = await supabaseAdmin
+    .from('memberships')
+    .select('id')
+    .eq('user_id', payload.userId)
+    .maybeSingle();
+
+  if (!membership) {
+    return <NoMembershipScreen />;
+  }
+
+  return (
+    <div className="min-h-screen">
+      <Sidebar />
+      <main className="lg:pl-56 pt-14 lg:pt-0 pb-20 lg:pb-0">
+        <div className="max-w-5xl mx-auto p-4 lg:p-8">
+          <PageTransition>{children}</PageTransition>
+        </div>
+      </main>
+    </div>
+  );
+}

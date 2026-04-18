@@ -8,29 +8,42 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const NAV_ITEMS = [
-  { href: '/dashboard',   label: 'Home',     icon: LayoutDashboard },
-  { href: '/workout',     label: 'Workout',  icon: Dumbbell },
-  { href: '/analytics',   label: 'Stats',    icon: BarChart2 },
-  { href: '/leaderboard', label: 'Board',    icon: Trophy },
-  { href: '/progress',    label: 'Social',   icon: Users },
-  { href: '/checkin',     label: 'Check-In', icon: QrCode },
-  { href: '/profile',     label: 'Profile',  icon: UserCircle },
-];
+// Protected route segments (must match [gymSlug]/(protected)/* folder names)
+const GYM_ROUTE_SEGMENTS = new Set([
+  'dashboard', 'workout', 'analytics', 'leaderboard',
+  'progress', 'checkin', 'profile', 'social',
+]);
 
-const PAGE_META: Record<string, { title: string; back?: string }> = {
-  '/dashboard':   { title: 'Dashboard' },
-  '/workout':     { title: 'Workout Logger', back: '/dashboard' },
-  '/analytics':   { title: 'Analytics',      back: '/dashboard' },
-  '/leaderboard': { title: 'Leaderboard',    back: '/dashboard' },
-  '/progress':    { title: 'Social Feed',    back: '/dashboard' },
-  '/checkin':     { title: 'Check-In',       back: '/dashboard' },
-  '/profile':     { title: 'Profile',        back: '/dashboard' },
-};
+/**
+ * Extract gymSlug from the current pathname.
+ * - /maxmuscle/dashboard  → 'maxmuscle'
+ * - /dashboard            → null  (legacy route, no prefix)
+ */
+function useGymSlug(): string | null {
+  const pathname = usePathname();
+  const segments = pathname.split('/').filter(Boolean);
+  // e.g. ['maxmuscle', 'dashboard'] — first segment is slug if second is a known gym route
+  if (segments.length >= 2 && GYM_ROUTE_SEGMENTS.has(segments[1])) {
+    return segments[0];
+  }
+  return null;
+}
+
+const NAV_BASE = [
+  { path: '/dashboard',   label: 'Home',     icon: LayoutDashboard },
+  { path: '/workout',     label: 'Workout',  icon: Dumbbell },
+  { path: '/analytics',   label: 'Stats',    icon: BarChart2 },
+  { path: '/leaderboard', label: 'Board',    icon: Trophy },
+  { path: '/progress',    label: 'Social',   icon: Users },
+  { path: '/checkin',     label: 'Check-In', icon: QrCode },
+  { path: '/profile',     label: 'Profile',  icon: UserCircle },
+];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const gymSlug = useGymSlug();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [me, setMe] = useState<{ name?: string | null; avatar_url?: string | null; phone_number?: string } | null>(null);
 
@@ -41,12 +54,35 @@ export default function Sidebar() {
       .catch(() => null);
   }, []);
 
+  // Prefix nav items with /${gymSlug} when in a gym-scoped route
+  const NAV_ITEMS = NAV_BASE.map(({ path, label, icon }) => ({
+    href: gymSlug ? `/${gymSlug}${path}` : path,
+    label,
+    icon,
+  }));
+
+  // Page meta for mobile header — keyed by base path (without gymSlug prefix)
+  const basePath = gymSlug
+    ? pathname.replace(`/${gymSlug}`, '')
+    : pathname;
+
+  const PAGE_META: Record<string, { title: string; back?: string }> = {
+    '/dashboard':   { title: 'Dashboard' },
+    '/workout':     { title: 'Workout Logger', back: gymSlug ? `/${gymSlug}/dashboard` : '/dashboard' },
+    '/analytics':   { title: 'Analytics',      back: gymSlug ? `/${gymSlug}/dashboard` : '/dashboard' },
+    '/leaderboard': { title: 'Leaderboard',    back: gymSlug ? `/${gymSlug}/dashboard` : '/dashboard' },
+    '/progress':    { title: 'Social Feed',    back: gymSlug ? `/${gymSlug}/dashboard` : '/dashboard' },
+    '/checkin':     { title: 'Check-In',       back: gymSlug ? `/${gymSlug}/dashboard` : '/dashboard' },
+    '/profile':     { title: 'Profile',        back: gymSlug ? `/${gymSlug}/dashboard` : '/dashboard' },
+  };
+
+  const meta = PAGE_META[basePath] || { title: 'Max Muscle' };
+
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
+    // Go to gym homepage if we have a slug, otherwise GymOS root
+    router.push(gymSlug ? `/${gymSlug}` : '/');
   }
-
-  const meta = PAGE_META[pathname] || { title: 'Max Muscle' };
 
   const NavContent = () => (
     <div className="flex flex-col h-full">
@@ -92,7 +128,7 @@ export default function Sidebar() {
         {/* User chip */}
         {me && (
           <Link
-            href="/profile"
+            href={gymSlug ? `/${gymSlug}/profile` : '/profile'}
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-all mb-1"
           >

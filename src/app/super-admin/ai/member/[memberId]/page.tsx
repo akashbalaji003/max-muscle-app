@@ -72,7 +72,7 @@ export default function MemberDetailPage() {
     if (!memberId) return;
     fetch(`/api/super-admin/ai-analytics/member/${memberId}`)
       .then(async (res) => {
-        if (res.status === 401 || res.status === 403) { router.push('/super-admin-login'); return; }
+        if (res.status === 401 || res.status === 403) { router.push('/login'); return; }
         if (!res.ok) { setError('Member not found in AI dataset'); setLoading(false); return; }
         setData(await res.json());
         setLoading(false);
