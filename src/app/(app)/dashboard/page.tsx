@@ -125,7 +125,7 @@ export default function DashboardPage() {
           {user?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={user.avatar_url}
+              src="/api/image/avatar"
               alt="Profile"
               className="h-10 sm:h-14 w-10 sm:w-14 flex-shrink-0 rounded-lg sm:rounded-xl object-cover ring-2 ring-violet-500/40 shadow-[0_0_24px_rgba(124,58,237,0.15)]"
             />

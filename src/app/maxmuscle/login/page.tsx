@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Phone, Lock, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const GYM_SLUG = 'maxmuscle';
 
@@ -152,6 +153,9 @@ export default function MaxMuscleLoginPage() {
           <Link href={`/${GYM_SLUG}/signup`} className="inline-flex min-h-[44px] items-center font-medium text-violet-400 transition-colors hover:text-violet-300">Create account</Link>
         </p>
       </div>
+
+      {/* PWA install prompt — slides up from bottom after 1.5s */}
+      <PWAInstallPrompt />
     </div>
   );
 }

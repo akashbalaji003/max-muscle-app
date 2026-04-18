@@ -184,6 +184,7 @@ export default function ProfilePage() {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [followStats, setFollowStats] = useState({ followers_count: 0, following_count: 0 });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarVersion, setAvatarVersion] = useState(1);
 
   useEffect(() => {
     Promise.all([
@@ -210,6 +211,7 @@ export default function ProfilePage() {
     if (res.ok) {
       const { avatar_url } = await res.json();
       setProfile((p) => p ? { ...p, avatar_url } : p);
+      setAvatarVersion((v) => v + 1); // bust proxy cache only after real upload
       showToast('Profile picture updated!');
     } else {
       const d = await res.json().catch(() => ({}));
@@ -302,7 +304,7 @@ export default function ProfilePage() {
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={profile.avatar_url}
+                  src={`/api/image/avatar?v=${avatarVersion}`}
                   alt="Profile"
                   className="h-16 w-16 rounded-2xl object-cover ring-2 ring-violet-500/20"
                 />

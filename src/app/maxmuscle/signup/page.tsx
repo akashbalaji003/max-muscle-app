@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Phone, Lock, User, ArrowLeft, Ruler, Weight, Target, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const GYM_SLUG = 'maxmuscle';
 
@@ -241,6 +242,9 @@ export default function MaxMuscleSignupPage() {
           </p>
         )}
       </div>
+
+      {/* PWA install prompt — slides up from bottom after 1.5s */}
+      <PWAInstallPrompt />
     </div>
   );
 }

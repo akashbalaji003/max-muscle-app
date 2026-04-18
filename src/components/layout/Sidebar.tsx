@@ -135,7 +135,7 @@ export default function Sidebar() {
           >
             {me.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={me.avatar_url} alt="avatar" className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-2 ring-violet-500/40" />
+              <img src="/api/image/avatar" alt="avatar" className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-2 ring-violet-500/40" />
             ) : (
               <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-violet-600 font-display">
                 <span className="text-xs font-bold text-white">
