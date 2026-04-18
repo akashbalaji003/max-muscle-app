@@ -191,7 +191,7 @@ export default function AdminDashboardPage() {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/maxmuscle');
+    router.push('/admin/login');
   }
 
   // ── Derived stats ───────────────────────────────────────────────────────

@@ -81,8 +81,7 @@ export default function Sidebar() {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    // Go to gym homepage if we have a slug, otherwise GymOS root
-    router.push(gymSlug ? `/${gymSlug}` : '/');
+    router.push(gymSlug ? `/${gymSlug}/login` : '/login');
   }
 
   const navContent = (

@@ -1,9 +1,17 @@
+import type { Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import Sidebar from '@/components/layout/Sidebar';
 import NoMembershipScreen from '@/components/NoMembershipScreen';
 import PageTransition from '@/components/PageTransition';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
