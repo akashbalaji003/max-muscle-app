@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Dumbbell, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
 import InstagramGallery from '@/components/InstagramGallery';
@@ -11,6 +12,7 @@ import MobileAboutCarousel from '@/components/MobileAboutCarousel';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import EliteTeamCTA from '@/components/EliteTeamCTA';
 import FloatingCTA from '@/components/FloatingCTA';
+import GymOSLoader from '@/components/GymOSLoader';
 
 // ─── Replace these with your real values ────────────────────────────────────
 const GYM_PHONE      = '07530007329';
@@ -35,7 +37,18 @@ const HOURS = [
 ];
 
 export default function MaxMusclePage() {
-  const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
+  const [scrolled,     setScrolled]     = useState(false);
+  const [loaderTarget, setLoaderTarget] = useState<string | null>(null);
+
+  /** Start the loader then navigate */
+  const handleLoginClick = useCallback((href: string) => {
+    setLoaderTarget(href);
+  }, []);
+
+  const handleLoaderComplete = useCallback(() => {
+    if (loaderTarget) router.push(loaderTarget);
+  }, [loaderTarget, router]);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
@@ -143,10 +156,10 @@ export default function MaxMusclePage() {
           </Link>
         </div>
         <div className="flex items-center gap-1">
-          <Link href="/maxmuscle/login"
+          <button onClick={() => handleLoginClick('/maxmuscle/login')}
             className="btn-shine bg-red-700 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-red-900/30 min-h-[44px] flex items-center gap-1.5 transition-all">
             Member Login
-          </Link>
+          </button>
         </div>
       </nav>
 
@@ -217,11 +230,11 @@ export default function MaxMusclePage() {
                       <span>Join Now</span>
                       <ChevronRight className="w-4 h-4" />
                     </Link>
-                    <Link href="/maxmuscle/login"
-                      className="flex items-center justify-between bg-black/50 backdrop-blur-sm active:bg-black/70 text-slate-100 font-medium px-5 py-3 rounded-xl text-sm border border-white/15 active:scale-[0.98] transition-all duration-150 min-h-[52px]">
+                    <button onClick={() => handleLoginClick('/maxmuscle/login')}
+                      className="flex w-full items-center justify-between bg-black/50 backdrop-blur-sm active:bg-black/70 text-slate-100 font-medium px-5 py-3 rounded-xl text-sm border border-white/15 active:scale-[0.98] transition-all duration-150 min-h-[52px]">
                       <span>Member Login</span>
                       <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -252,11 +265,11 @@ export default function MaxMusclePage() {
                   <span>Join Now</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <Link href="/maxmuscle/login"
-                  className="bg-white/5 hover:bg-white/8 text-slate-200 font-medium px-6 py-3.5 rounded-xl text-sm border border-white/8 hover:border-red-600/30 flex items-center justify-between transition-all min-h-[48px]">
+                <button onClick={() => handleLoginClick('/maxmuscle/login')}
+                  className="bg-white/5 hover:bg-white/8 text-slate-200 font-medium px-6 py-3.5 rounded-xl text-sm border border-white/8 hover:border-red-600/30 flex w-full items-center justify-between transition-all min-h-[48px]">
                   <span>Member Login</span>
                   <ChevronRight className="w-4 h-4 text-slate-500" />
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -561,8 +574,8 @@ export default function MaxMusclePage() {
             <span className="text-slate-700">© {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-5">
-            <Link href="/maxmuscle/login" className="inline-flex items-center min-h-[44px] hover:text-slate-400 transition-colors">Member Login</Link>
-            <Link href="/admin/login" className="inline-flex items-center min-h-[44px] hover:text-slate-400 transition-colors">Admin</Link>
+            <button onClick={() => handleLoginClick('/maxmuscle/login')} className="inline-flex items-center min-h-[44px] hover:text-slate-400 transition-colors">Member Login</button>
+            <button onClick={() => handleLoginClick('/admin/login')} className="inline-flex items-center min-h-[44px] hover:text-slate-400 transition-colors">Admin</button>
             <a href={GYM_INSTAGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center min-h-[44px] hover:text-pink-400 transition-colors">Instagram</a>
           </div>
         </div>
@@ -570,6 +583,13 @@ export default function MaxMusclePage() {
 
       {/* ── Floating Join Now CTA ────────────────────────────────────────── */}
       <FloatingCTA />
+
+      {/* ── GymOS Loading Screen ─────────────────────────────────────────── */}
+      <GymOSLoader
+        visible={loaderTarget !== null}
+        gymName="Max Muscle"
+        onComplete={handleLoaderComplete}
+      />
 
     </div>
   );

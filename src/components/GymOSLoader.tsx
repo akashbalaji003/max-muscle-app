@@ -1,115 +1,144 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
-interface GymOSLoaderProps {
-  /** Total animation duration in ms. Default 6000 */
-  duration?: number;
-  /** Called once the fill reaches 100% and a brief pause elapses */
-  onComplete?: () => void;
+interface Props {
+  visible: boolean;
+  gymName?: string;
+  onComplete: () => void;
 }
 
-export default function GymOSLoader({ duration = 6000, onComplete }: GymOSLoaderProps) {
-  const [fill, setFill] = useState(0);
-  const calledRef = useRef(false);
+const FIRST_VISIT_MS  = 1500;
+const RETURN_VISIT_MS = 800;
+const SESSION_KEY     = 'gymos-loader-visited';
+
+export default function GymOSLoader({ visible, gymName = 'Max Muscle', onComplete }: Props) {
+  const [mounted,  setMounted]  = useState(false);
+  const [phase,    setPhase]    = useState<'in' | 'running' | 'out'>('in');
+  const [progress, setProgress] = useState(0);
+  const rafRef   = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Commit: capture onComplete so the effect closure stays stable
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    const start = Date.now();
+    if (!visible) {
+      setMounted(false);
+      setPhase('in');
+      setProgress(0);
+      return;
+    }
 
-    const tick = () => {
-      const p = Math.min((Date.now() - start) / duration, 1);
-      // Ease-in-out cubic — slow start, fast middle, slow end
-      const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-      setFill(Math.round(eased * 100));
+    setMounted(true);
+    setPhase('in');
+    setProgress(0);
 
-      if (p < 1) {
-        requestAnimationFrame(tick);
-      } else if (!calledRef.current) {
-        calledRef.current = true;
-        // Brief pause at 100% before firing callback
-        setTimeout(() => onComplete?.(), 350);
-      }
+    const isReturn = sessionStorage.getItem(SESSION_KEY) === '1';
+    const duration = isReturn ? RETURN_VISIT_MS : FIRST_VISIT_MS;
+    sessionStorage.setItem(SESSION_KEY, '1');
+
+    // Tiny delay so browser can paint the fade-in frame first
+    timerRef.current = setTimeout(() => {
+      setPhase('running');
+      const startTime = performance.now();
+
+      const tick = (now: number) => {
+        const p = Math.min(((now - startTime) / duration) * 100, 100);
+        setProgress(p);
+
+        if (p < 100) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else {
+          setPhase('out');
+          timerRef.current = setTimeout(() => onCompleteRef.current(), 360);
+        }
+      };
+
+      rafRef.current = requestAnimationFrame(tick);
+    }, 60);
+
+    return () => {
+      if (rafRef.current  !== null) cancelAnimationFrame(rafRef.current);
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
     };
+  }, [visible]);
 
-    requestAnimationFrame(tick);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#000000] flex flex-col items-center justify-center z-50">
-      {/* Keyframes injected inline — no globals.css change needed */}
-      <style>{`
-        @keyframes gymosWave {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
+    <div
+      role="status"
+      aria-label="Loading GymOS…"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden"
+      style={{
+        background: '#0B0B0F',
+        opacity:    phase === 'out' ? 0 : 1,
+        transition: phase === 'out' ? 'opacity 0.36s cubic-bezier(0.4,0,1,1)' : 'opacity 0.2s ease-out',
+        pointerEvents: phase === 'out' ? 'none' : 'all',
+      }}
+    >
+      {/* Ambient violet glow */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)' }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute bottom-1/4 right-1/4 w-[220px] h-[220px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.10) 0%, transparent 70%)' }}
+      />
 
-      {/* Main text stack */}
-      <div className="relative select-none" style={{ lineHeight: 1 }}>
-        {/* Layer 1 — grey ghost text (unfilled) */}
-        <span
-          className="block text-[64px] sm:text-[88px] md:text-[108px] font-black tracking-[0.18em] text-slate-800"
-          aria-hidden="true"
+      {/* Centered content */}
+      <div className="relative z-10 flex flex-col items-center gap-7">
+
+        {/* Icon box */}
+        <div
+          className="flex h-[84px] w-[84px] items-center justify-center rounded-[22px] border border-violet-500/25 bg-violet-600/10"
+          style={{ boxShadow: '0 0 48px rgba(124,58,237,0.28), inset 0 0 32px rgba(124,58,237,0.06)' }}
         >
-          GYM&nbsp;OS
-        </span>
+          <Image
+            src="/icon.svg"
+            alt="GymOS"
+            width={46}
+            height={46}
+            className="drop-shadow-[0_0_18px_rgba(124,58,237,0.75)]"
+            priority
+          />
+        </div>
 
-        {/* Layer 2 — violet filled text, clipped from bottom up */}
-        <span
-          className="absolute inset-0 block text-[64px] sm:text-[88px] md:text-[108px] font-black tracking-[0.18em] text-violet-400"
-          style={{
-            clipPath: `inset(${100 - fill}% 0 0 0)`,
-            transition: 'none',
-          }}
-          aria-live="polite"
-          aria-label={`Loading ${fill}%`}
-        >
-          GYM&nbsp;OS
-        </span>
-
-        {/* Wave at the fill boundary */}
-        {fill > 1 && fill < 99 && (
-          <div
-            className="absolute left-0 right-0 overflow-hidden pointer-events-none"
-            style={{
-              bottom: `${fill}%`,
-              height: 8,
-              transform: 'translateY(4px)',
-            }}
+        {/* Brand text */}
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <p
+            className="font-display text-[32px] leading-none tracking-wide text-white"
+            style={{ textShadow: '0 0 32px rgba(124,58,237,0.35)' }}
           >
-            <div
-              style={{
-                display: 'flex',
-                width: '200%',
-                animation: 'gymosWave 1s linear infinite',
-              }}
-            >
-              {/* Two identical SVG wave paths — seamless tiling */}
-              {[0, 1].map((k) => (
-                <svg
-                  key={k}
-                  viewBox="0 0 400 10"
-                  height="8"
-                  style={{ width: '50%', display: 'block' }}
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M0 5 Q50 0 100 5 Q150 10 200 5 Q250 0 300 5 Q350 10 400 5 V10 H0Z"
-                    fill="rgba(139,92,246,0.55)"
-                  />
-                </svg>
-              ))}
-            </div>
-          </div>
-        )}
+            GymOS
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">
+            {gymName}
+          </p>
+        </div>
+
+        {/* Slim progress bar */}
+        <div
+          className="relative w-[160px] overflow-hidden rounded-full"
+          style={{ height: '2px', background: 'rgba(255,255,255,0.06)' }}
+        >
+          <div
+            style={{
+              position:   'absolute',
+              inset:      '0 auto 0 0',
+              width:      `${progress}%`,
+              background: 'linear-gradient(90deg, #7c3aed, #a78bfa)',
+              boxShadow:  '0 0 10px rgba(139,92,246,0.7)',
+            }}
+          />
+        </div>
+
       </div>
-
-      {/* Sub-label */}
-      <p className="text-slate-600 text-[10px] tracking-[0.3em] uppercase mt-5 font-medium">
-        Platform Dashboard
-      </p>
-
-      {/* Numeric fill indicator */}
-      <p className="text-slate-700 text-xs font-mono mt-2 tabular-nums">{fill}%</p>
     </div>
   );
 }

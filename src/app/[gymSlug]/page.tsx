@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Dumbbell, ChevronRight, MapPin, Phone, Clock } from 'lucide-react';
+import { Dumbbell, ChevronRight, MapPin, Phone } from 'lucide-react';
 import { supabaseAdmin } from '@/lib/supabase';
+import GymLoginLauncher from '@/components/GymLoginLauncher';
 
 interface Props {
   params: Promise<{ gymSlug: string }>;
@@ -52,13 +53,14 @@ export default async function GymPublicPage({ params }: Props) {
           </div>
           <span className="font-bold text-white text-base">{gym.name}</span>
         </div>
-        <Link
+        <GymLoginLauncher
           href={`/${gymSlug}/login`}
+          gymName={gym.name}
           className="text-sm font-semibold px-4 py-2 rounded-lg text-white transition-all"
           style={{ backgroundColor: primaryColor }}
         >
           Member Login
-        </Link>
+        </GymLoginLauncher>
       </nav>
 
       {/* Hero */}
@@ -80,12 +82,13 @@ export default async function GymPublicPage({ params }: Props) {
             >
               Join Now <ChevronRight className="w-4 h-4" />
             </Link>
-            <Link
+            <GymLoginLauncher
               href={`/${gymSlug}/login`}
+              gymName={gym.name}
               className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/8 text-slate-200 font-medium px-6 py-3.5 rounded-xl border border-white/8 transition-all text-sm"
             >
               Member Login
-            </Link>
+            </GymLoginLauncher>
           </div>
 
           {gym.phone && (

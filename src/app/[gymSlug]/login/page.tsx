@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Dumbbell, Phone, Lock, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 export default function GymLoginPage() {
   const params = useParams();
@@ -110,6 +111,8 @@ export default function GymLoginPage() {
           </Link>
         </p>
       </div>
+
+      <PWAInstallPrompt gymSlug={gymSlug} />
     </div>
   );
 }

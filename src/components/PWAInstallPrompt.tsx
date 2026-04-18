@@ -15,15 +15,15 @@ interface Props {
 export default function PWAInstallPrompt({ gymSlug }: Props) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const isInstalled = typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches;
+  const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   const config = getGymConfig(gymSlug);
   const gymName   = config?.short_name ?? gymSlug;
   const dismissKey = `pwa-dismissed-${gymSlug}`;
 
   useEffect(() => {
-    if (!gymSlug || !config) return;
+    if (!gymSlug) return;
 
     // Register SW with gym-specific scope so each gym is isolated
     if ('serviceWorker' in navigator) {
@@ -33,20 +33,14 @@ export default function PWAInstallPrompt({ gymSlug }: Props) {
     }
 
     // Already installed as PWA — don't show prompt
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
-    }
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
 
     // Dismissed within the last 7 days for THIS gym
     const dismissed = localStorage.getItem(dismissKey);
     if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
     // iOS — no beforeinstallprompt; show manual share instructions
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    setIsIOS(ios);
-
-    if (ios) {
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
       setTimeout(() => setShow(true), 1500);
       return;
     }
@@ -59,7 +53,7 @@ export default function PWAInstallPrompt({ gymSlug }: Props) {
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, [gymSlug, config, dismissKey]);
+  }, [gymSlug, dismissKey]);
 
   async function handleInstall() {
     if (!deferredPrompt) return;
