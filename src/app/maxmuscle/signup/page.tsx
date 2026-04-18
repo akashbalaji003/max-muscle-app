@@ -243,8 +243,8 @@ export default function MaxMuscleSignupPage() {
         )}
       </div>
 
-      {/* PWA install prompt — slides up from bottom after 1.5s */}
-      <PWAInstallPrompt />
+      {/* PWA install prompt — gym-specific, slides up from bottom after 1.5s */}
+      <PWAInstallPrompt gymSlug={GYM_SLUG} />
     </div>
   );
 }

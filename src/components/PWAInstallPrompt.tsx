@@ -1,45 +1,57 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Download, X, Share } from 'lucide-react';
+import { getGymConfig } from '@/lib/gym-registry';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export default function PWAInstallPrompt() {
+interface Props {
+  gymSlug: string;
+}
+
+export default function PWAInstallPrompt({ gymSlug }: Props) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
+  const config = getGymConfig(gymSlug);
+  const gymName   = config?.short_name ?? gymSlug;
+  const dismissKey = `pwa-dismissed-${gymSlug}`;
+
   useEffect(() => {
-    // Register service worker
+    if (!gymSlug || !config) return;
+
+    // Register SW with gym-specific scope so each gym is isolated
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker
+        .register('/sw.js', { scope: `/${gymSlug}/` })
+        .catch(() => {});
     }
 
-    // Don't show if already installed as PWA
+    // Already installed as PWA — don't show prompt
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
     }
 
-    // Don't show if user already dismissed recently (7 days)
-    const dismissed = localStorage.getItem('pwa-dismissed');
+    // Dismissed within the last 7 days for THIS gym
+    const dismissed = localStorage.getItem(dismissKey);
     if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-    // Detect iOS
+    // iOS — no beforeinstallprompt; show manual share instructions
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     setIsIOS(ios);
 
     if (ios) {
-      // iOS doesn't fire beforeinstallprompt — show manual instructions
       setTimeout(() => setShow(true), 1500);
       return;
     }
 
-    // Android / Chrome — capture the install prompt
+    // Android / Chrome — capture native install event
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -47,23 +59,22 @@ export default function PWAInstallPrompt() {
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+  }, [gymSlug, config, dismissKey]);
 
   async function handleInstall() {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') setShow(false);
-      setDeferredPrompt(null);
-    }
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') setShow(false);
+    setDeferredPrompt(null);
   }
 
   function handleDismiss() {
-    localStorage.setItem('pwa-dismissed', String(Date.now()));
+    localStorage.setItem(dismissKey, String(Date.now()));
     setShow(false);
   }
 
-  if (isInstalled || !show) return null;
+  if (isInstalled || !show || !config) return null;
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
@@ -72,15 +83,17 @@ export default function PWAInstallPrompt() {
           {/* App icon */}
           <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon-192x192.png" alt="Max Muscle" className="h-9 w-9 rounded-xl" />
+            <img src="/icon-192x192.png" alt={gymName} className="h-9 w-9 rounded-xl" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white leading-tight">Add Max Muscle to Home Screen</p>
+            <p className="text-sm font-semibold text-white leading-tight">
+              Add {gymName} to Home Screen
+            </p>
             <p className="text-xs text-slate-400 mt-0.5 leading-tight">
               {isIOS
-                ? 'Tap the Share button below, then "Add to Home Screen"'
-                : 'Install the app for quick access & a better experience'}
+                ? 'Tap the Share button, then "Add to Home Screen"'
+                : 'Install for quick access & a better experience'}
             </p>
 
             {isIOS ? (

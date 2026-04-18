@@ -14,6 +14,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  headers: async () => [
+    {
+      // Allow /sw.js (served from root) to be registered with any sub-path scope.
+      // Without this header, browsers block registration with scope "/{gymSlug}/"
+      // because the SW file itself is at "/".
+      source: '/sw.js',
+      headers: [
+        { key: 'Service-Worker-Allowed', value: '/' },
+        { key: 'Cache-Control', value: 'no-store' },
+      ],
+    },
+  ],
 };
 
 export default nextConfig;
