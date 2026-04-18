@@ -569,13 +569,6 @@ export default function GymOSHomePage() {
                     Start Live Demo
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-medium text-slate-200 transition-all hover:border-violet-500/25 hover:bg-white/8 hover:text-white"
-                  >
-                    <Shield className="h-4 w-4 text-violet-400" />
-                    Platform Login
-                  </Link>
                 </div>
 
                 <div className={['hero-item mt-10 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-[0.22em] text-slate-500', heroVisible ? 'visible' : ''].join(' ')} style={{ transitionDelay: '460ms' }}>
