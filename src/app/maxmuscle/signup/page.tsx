@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Dumbbell, Phone, Lock, User, ArrowLeft, Ruler, Weight, Target, ChevronRight } from 'lucide-react';
+import { Phone, Lock, User, ArrowLeft, Ruler, Weight, Target, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
@@ -80,9 +81,9 @@ export default function MaxMuscleSignupPage() {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
         }
-        @keyframes icon-glow-red {
-          0%, 100% { box-shadow: 0 0 16px rgba(220,38,38,0.22); }
-          50% { box-shadow: 0 0 38px rgba(220,38,38,0.52); }
+        @keyframes icon-glow {
+          0%, 100% { box-shadow: 0 0 16px rgba(124,58,237,0.22); }
+          50% { box-shadow: 0 0 38px rgba(99,102,241,0.5); }
         }
         @keyframes orb-drift {
           0%, 100% { transform: translate(0,0) scale(1); opacity: 0.4; }
@@ -126,61 +127,65 @@ export default function MaxMuscleSignupPage() {
         }
       `}</style>
       <div aria-hidden="true" className="pointer-events-none">
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[160px] h-[160px] sm:w-[360px] sm:h-[360px] bg-red-700/8 rounded-full blur-[60px] sm:blur-[110px]" />
-        <div className="fixed bottom-0 right-0 w-[120px] h-[120px] sm:w-[260px] sm:h-[260px] bg-red-900/5 rounded-full blur-[50px] sm:blur-[90px]" />
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[160px] h-[160px] sm:w-[360px] sm:h-[360px] bg-violet-600/8 rounded-full blur-[60px] sm:blur-[110px]" />
+        <div className="fixed bottom-0 right-0 w-[120px] h-[120px] sm:w-[260px] sm:h-[260px] bg-indigo-700/6 rounded-full blur-[50px] sm:blur-[90px]" />
       </div>
       <div className="w-full max-w-sm">
         <div className="mb-6">
           {step === 1 ? (
-            <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-300">
+            <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
               <ArrowLeft className="w-4 h-4" /> Back to Home
             </Link>
           ) : (
-            <button onClick={() => setStep(1)} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-300">
+            <button onClick={() => setStep(1)} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
           )}
         </div>
 
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-700 shadow-xl shadow-red-900/50" style={{ animation: 'icon-glow-red 3s ease-in-out infinite' }}>
-            <Dumbbell className="w-8 h-8 text-white" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
+            <Image src="/icon.svg" alt="GymOS" width={48} height={48} className="drop-shadow-[0_0_12px_rgba(124,58,237,0.6)]" />
           </div>
           {step === 1 ? (
             <>
               <h1 className="font-display text-2xl tracking-wide text-white">Create Account</h1>
-              <p className="mt-1 text-sm text-slate-400 text-center">Join Max Muscle Lifestyle Fitness Studio</p>
+              <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-500 text-center">Join Max Muscle Lifestyle Fitness Studio</p>
             </>
           ) : (
             <>
               <h1 className="font-display text-2xl tracking-wide text-white">Your Body Profile</h1>
-              <p className="mt-1 text-sm text-slate-400 text-center">Helps us calculate BMI & smart recommendations</p>
+              <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-500 text-center">Helps us calculate BMI & smart recommendations</p>
             </>
           )}
           <div className="mt-4 flex items-center gap-2">
             {[1, 2].map((s) => (
-              <div key={s} className={`h-1.5 rounded-full transition-all duration-500 ${s === step ? 'w-10 bg-red-600' : s < step ? 'w-5 bg-red-800/60' : 'w-5 bg-white/8'}`} />
+              <div key={s} className={`h-1.5 rounded-full transition-all duration-500 ${s === step ? 'w-10 bg-violet-500' : s < step ? 'w-5 bg-violet-700/60' : 'w-5 bg-white/8'}`} />
             ))}
           </div>
         </div>
 
         {step === 1 && (
           <div key="step1" style={{ animation: 'step-slide-in 0.45s cubic-bezier(0.22,1,0.36,1) both' }}>
-            <form onSubmit={handleStep1} className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(0,0,0,0.5)] sm:p-6 space-y-4">
+            <form onSubmit={handleStep1} className="rounded-3xl border border-violet-500/10 bg-[#0a0a0a] p-5 shadow-[0_0_60px_rgba(124,58,237,0.06)] sm:p-6 space-y-4">
               {error && <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3 text-sm text-red-400">{error}</div>}
               <Input id="name" label="Full Name" type="text" placeholder="John Doe"
+                className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
                 icon={<User className="w-4 h-4" />} value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
               <Input id="phone" label="Phone Number" type="tel" placeholder="+91 98765 43210"
+                className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
                 icon={<Phone className="w-4 h-4" />} value={form.phone_number}
                 onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))} required />
               <Input id="password" label="Password" type="password" placeholder="Min. 6 characters"
+                className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
                 icon={<Lock className="w-4 h-4" />} value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required />
               <Input id="confirm" label="Confirm Password" type="password" placeholder="Re-enter password"
+                className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
                 icon={<Lock className="w-4 h-4" />} value={form.confirm}
                 onChange={(e) => setForm((f) => ({ ...f, confirm: e.target.value }))} required />
-              <Button type="submit" className="btn-shine w-full min-h-[52px]" size="lg" loading={loading}>
+              <Button type="submit" className="btn-shine w-full min-h-[52px] !bg-violet-600 !text-white !shadow-lg !shadow-violet-900/30 hover:!bg-violet-500 hover:!shadow-violet-900/50" size="lg" loading={loading}>
                 Continue <ChevronRight className="w-4 h-4" />
               </Button>
             </form>
@@ -189,24 +194,26 @@ export default function MaxMuscleSignupPage() {
 
         {step === 2 && (
           <div key="step2" style={{ animation: 'step-slide-in 0.45s cubic-bezier(0.22,1,0.36,1) both' }}>
-            <form onSubmit={handleStep2} className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(0,0,0,0.5)] sm:p-6 space-y-5">
+            <form onSubmit={handleStep2} className="rounded-3xl border border-violet-500/10 bg-[#0a0a0a] p-5 shadow-[0_0_60px_rgba(124,58,237,0.06)] sm:p-6 space-y-5">
               {error && <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3 text-sm text-red-400">{error}</div>}
               <div className="grid grid-cols-2 gap-3">
                 <Input id="height" label="Height (cm)" type="number" placeholder="175"
+                  className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
                   icon={<Ruler className="w-4 h-4" />} value={body.height_cm}
                   onChange={(e) => setBody((b) => ({ ...b, height_cm: e.target.value }))} />
                 <Input id="weight" label="Weight (kg)" type="number" placeholder="70"
+                  className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
                   icon={<Weight className="w-4 h-4" />} value={body.weight_kg}
                   onChange={(e) => setBody((b) => ({ ...b, weight_kg: e.target.value }))} />
               </div>
               <div>
-                <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-[#B3B3B3]">
+                <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-slate-500">
                   <Target className="w-4 h-4" /> Your Goal
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {GOALS.map((g) => (
                     <button key={g.value} type="button" onClick={() => setBody((b) => ({ ...b, goal: g.value }))}
-                      className={`flex min-h-[56px] items-center gap-3 rounded-xl border p-3 text-left transition-all duration-200 ${body.goal === g.value ? 'border-red-600/60 bg-red-700/10 text-white shadow-[0_0_16px_rgba(220,38,38,0.15)]' : 'border-white/10 bg-[#111111] text-slate-400 hover:border-white/20'}`}>
+                      className={`flex min-h-[56px] items-center gap-3 rounded-xl border p-3 text-left transition-all duration-200 ${body.goal === g.value ? 'border-violet-500/60 bg-violet-500/10 text-white shadow-[0_0_16px_rgba(124,58,237,0.15)]' : 'border-white/10 bg-[#111111] text-slate-400 hover:border-violet-500/20'}`}>
                       <span className="text-xl">{g.icon}</span>
                       <div>
                         <p className="text-sm font-semibold">{g.label}</p>
@@ -216,11 +223,11 @@ export default function MaxMuscleSignupPage() {
                   ))}
                 </div>
               </div>
-              <Button type="submit" className="btn-shine w-full min-h-[52px]" size="lg" loading={loading}>
+              <Button type="submit" className="btn-shine w-full min-h-[52px] !bg-violet-600 !text-white !shadow-lg !shadow-violet-900/30 hover:!bg-violet-500 hover:!shadow-violet-900/50" size="lg" loading={loading}>
                 Complete Setup
               </Button>
               <button type="button" onClick={() => router.push(`/${GYM_SLUG}/dashboard`)}
-                className="w-full py-2 text-sm text-slate-600 transition-colors hover:text-slate-400 min-h-[44px]">
+                className="w-full py-2 text-sm text-slate-600 transition-colors hover:text-violet-300 min-h-[44px]">
                 Skip for now
               </button>
             </form>
@@ -230,7 +237,7 @@ export default function MaxMuscleSignupPage() {
         {step === 1 && (
           <p className="mt-5 text-center text-sm text-slate-500">
             Already a member?{' '}
-            <Link href={`/${GYM_SLUG}/login`} className="inline-flex min-h-[44px] items-center font-medium text-red-400 transition-colors hover:text-red-300">Sign in</Link>
+            <Link href={`/${GYM_SLUG}/login`} className="inline-flex min-h-[44px] items-center font-medium text-violet-400 transition-colors hover:text-violet-300">Sign in</Link>
           </p>
         )}
       </div>

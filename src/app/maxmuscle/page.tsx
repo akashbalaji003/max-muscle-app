@@ -136,18 +136,10 @@ export default function MaxMusclePage() {
 
       {/* ── Nav ──────────────────────────────────────────────────────────── */}
       <nav className={`fixed top-0 inset-x-0 z-30 flex items-center justify-between px-5 sm:px-8 py-3 border-b bg-[#000000]/95 backdrop-blur-xl transition-colors ${scrolled ? 'border-red-600/20' : 'border-white/5'}`}>
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 bg-red-700 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-900/50" style={{ animation: 'icon-glow-red 3.5s ease-in-out infinite' }}>
-            <Dumbbell className="w-5 h-5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <span className="font-display text-lg text-white leading-none tracking-wide block">MAX MUSCLE</span>
-            <span className="text-[10px] text-slate-500 leading-tight tracking-widest uppercase block">Lifestyle Fitness Studio</span>
-          </div>
-          {/* by GymOS badge */}
-          <Link href="/" className="hidden sm:flex items-center gap-1 ml-1 border-l border-white/10 pl-3 opacity-60 hover:opacity-100 transition-opacity">
-            <Image src="/icon.svg" alt="GymOS" width={14} height={14} className="drop-shadow-[0_0_4px_rgba(167,139,250,0.8)]" />
-            <span className="text-[10px] text-violet-400 tracking-widest uppercase font-display leading-none">by GymOS</span>
+        <div className="flex items-center min-w-0">
+          <Link href="/" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm uppercase tracking-widest text-violet-400 opacity-70 transition-opacity hover:opacity-100">
+            <Image src="/icon.svg" alt="GymOS" width={16} height={16} className="drop-shadow-[0_0_4px_rgba(167,139,250,0.8)]" />
+            <span className="font-display leading-none">by GymOS</span>
           </Link>
         </div>
         <div className="flex items-center gap-1">

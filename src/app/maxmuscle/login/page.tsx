@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Dumbbell, Phone, Lock, ArrowLeft } from 'lucide-react';
+import { Phone, Lock, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
@@ -65,9 +66,9 @@ export default function MaxMuscleLoginPage() {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
         }
-        @keyframes icon-glow-red {
-          0%, 100% { box-shadow: 0 0 16px rgba(220,38,38,0.22); }
-          50% { box-shadow: 0 0 38px rgba(220,38,38,0.52); }
+        @keyframes icon-glow {
+          0%, 100% { box-shadow: 0 0 16px rgba(124,58,237,0.22); }
+          50% { box-shadow: 0 0 38px rgba(99,102,241,0.5); }
         }
         @keyframes orb-drift {
           0%, 100% { transform: translate(0,0) scale(1); opacity: 0.4; }
@@ -111,42 +112,44 @@ export default function MaxMuscleLoginPage() {
         }
       `}</style>
       <div aria-hidden="true" className="pointer-events-none">
-        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[160px] h-[160px] sm:w-[360px] sm:h-[360px] bg-red-700/8 rounded-full blur-[60px] sm:blur-[110px]" />
-        <div className="fixed bottom-0 right-0 w-[120px] h-[120px] sm:w-[260px] sm:h-[260px] bg-red-900/5 rounded-full blur-[50px] sm:blur-[90px]" />
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[160px] h-[160px] sm:w-[360px] sm:h-[360px] bg-violet-600/8 rounded-full blur-[60px] sm:blur-[110px]" />
+        <div className="fixed bottom-0 right-0 w-[120px] h-[120px] sm:w-[260px] sm:h-[260px] bg-indigo-700/6 rounded-full blur-[50px] sm:blur-[90px]" />
       </div>
       <div className="w-full max-w-sm">
         <div className="mb-6">
-          <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-300">
+          <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
             <ArrowLeft className="w-4 h-4" /> Back to Home
           </Link>
         </div>
 
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-700 shadow-xl shadow-red-900/50" style={{ animation: 'icon-glow-red 3s ease-in-out infinite' }}>
-            <Dumbbell className="w-8 h-8 text-white" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
+            <Image src="/icon.svg" alt="GymOS" width={48} height={48} className="drop-shadow-[0_0_12px_rgba(124,58,237,0.6)]" />
           </div>
           <h1 className="font-display text-2xl tracking-wide text-white">Welcome back</h1>
-          <p className="mt-1 text-sm text-slate-400 text-center">Sign in to Max Muscle Fitness Studio</p>
+          <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-500 text-center">Sign in to Max Muscle Fitness Studio</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(0,0,0,0.5)] sm:p-6 space-y-4" style={{ animation: 'card-fade-in 0.6s cubic-bezier(0.22,1,0.36,1) both' }}>
+        <form onSubmit={handleSubmit} className="rounded-3xl border border-violet-500/10 bg-[#0a0a0a] p-5 shadow-[0_0_60px_rgba(124,58,237,0.06)] sm:p-6 space-y-4" style={{ animation: 'card-fade-in 0.6s cubic-bezier(0.22,1,0.36,1) both' }}>
           {error && (
             <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3 text-sm text-red-400">{error}</div>
           )}
           <Input id="phone" label="Phone Number" type="tel" placeholder="+91 98765 43210"
+            className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
             icon={<Phone className="w-4 h-4" />} value={form.phone_number}
             onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))} required />
           <Input id="password" label="Password" type="password" placeholder="••••••••"
+            className="bg-[#000000] border border-white/8 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/10 transition-all"
             icon={<Lock className="w-4 h-4" />} value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} required />
-          <Button type="submit" className="btn-shine w-full min-h-[52px]" size="lg" loading={loading}>
+          <Button type="submit" className="btn-shine w-full min-h-[52px] !bg-violet-600 !text-white !shadow-lg !shadow-violet-900/30 hover:!bg-violet-500 hover:!shadow-violet-900/50" size="lg" loading={loading}>
             Sign In
           </Button>
         </form>
 
         <p className="mt-5 text-center text-sm text-slate-500">
           New here?{' '}
-          <Link href={`/${GYM_SLUG}/signup`} className="inline-flex min-h-[44px] items-center text-red-400 font-medium transition-colors hover:text-red-300">Create account</Link>
+          <Link href={`/${GYM_SLUG}/signup`} className="inline-flex min-h-[44px] items-center font-medium text-violet-400 transition-colors hover:text-violet-300">Create account</Link>
         </p>
       </div>
     </div>

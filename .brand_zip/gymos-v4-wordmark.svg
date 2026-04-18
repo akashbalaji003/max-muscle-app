@@ -1,0 +1,9 @@
+<svg width="480" height="120" viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="480" height="120" fill="#07070F"/>
+  <text x="20" y="96"
+    font-family="'Outfit','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"
+    font-size="92" font-weight="700" fill="#EDEEF6" letter-spacing="-4">Gym</text>
+  <text x="270" y="96"
+    font-family="'Outfit','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif"
+    font-size="92" font-weight="700" fill="#7C3AED" letter-spacing="-4">OS</text>
+</svg>

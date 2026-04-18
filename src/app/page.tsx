@@ -232,6 +232,35 @@ export default function GymOSHomePage() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const featureRefs = useRef<(HTMLElement | null)[]>([]);
 
+  const handleBrandClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (typeof window === 'undefined') return;
+
+    const startY = window.scrollY;
+    const duration = 3000;
+    const startTime = window.performance.now();
+
+    const easeInOutCubic = (t: number) => (
+      t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2
+    );
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeInOutCubic(progress);
+
+      window.scrollTo(0, startY * (1 - eased));
+
+      if (progress < 1) {
+        window.requestAnimationFrame(animate);
+      }
+    };
+
+    window.requestAnimationFrame(animate);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 60);
@@ -506,13 +535,14 @@ export default function GymOSHomePage() {
       </div>
 
       <nav
+        id="top"
         className={[
           'fixed top-0 inset-x-0 z-50 border-b bg-black/80 backdrop-blur-xl transition-all duration-300',
           scrolled ? 'border-violet-500/20 shadow-[0_1px_0_rgba(139,92,246,0.30),0_16px_50px_rgba(124,58,237,0.08)]' : 'border-white/5',
         ].join(' ')}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10">
-          <Link href="/maxmuscle" className="group flex items-center gap-3">
+          <Link href="#top" onClick={handleBrandClick} className="group flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 shadow-[0_0_30px_rgba(124,58,237,0.18)] transition-transform duration-300 group-hover:scale-105" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
               <Image src="/icon.svg" alt="GymOS" width={26} height={26} className="drop-shadow-[0_0_6px_rgba(167,139,250,0.9)]" />
             </div>
