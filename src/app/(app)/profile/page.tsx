@@ -24,17 +24,17 @@ interface ProfileData {
 
 // ── BMI helpers ───────────────────────────────────────────────────────────────
 const BMI_SEGMENTS = [
-  { label: 'Underweight', range: '<18.5', color: '#60a5fa', max: 18.5 },
-  { label: 'Normal', range: '18.5–24.9', color: '#34d399', max: 25 },
-  { label: 'Overweight', range: '25–29.9', color: '#fbbf24', max: 30 },
-  { label: 'Obese', range: '≥30', color: '#f87171', max: 40 },
+  { label: 'Underweight', range: '<18.5', color: '#a78bfa', max: 18.5 },
+  { label: 'Normal', range: '18.5–24.9', color: '#8b5cf6', max: 25 },
+  { label: 'Overweight', range: '25–29.9', color: '#7c3aed', max: 30 },
+  { label: 'Obese', range: '≥30', color: '#6d28d9', max: 40 },
 ];
 
 function getBMIColor(bmi: number): string {
-  if (bmi < 18.5) return '#60a5fa';
-  if (bmi < 25) return '#34d399';
-  if (bmi < 30) return '#fbbf24';
-  return '#f87171';
+  if (bmi < 18.5) return '#a78bfa';
+  if (bmi < 25) return '#8b5cf6';
+  if (bmi < 30) return '#7c3aed';
+  return '#6d28d9';
 }
 
 /** Map BMI (10–45) to 0–100% for the gauge needle */
@@ -133,7 +133,7 @@ function EditableField({
   return (
     <div className="flex items-center gap-3 py-3.5 border-b border-white/5 last:border-0">
       <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-4 h-4 text-slate-400" />
+        <Icon className="w-4 h-4 text-violet-400" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">{label}</div>
@@ -148,10 +148,10 @@ function EditableField({
               step={step}
               onChange={e => setDraft(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
-              className="flex-1 bg-white/5 border border-red-600/30 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-red-500 min-w-0"
+              className="flex-1 min-w-0 rounded-lg border border-violet-500/20 bg-white/5 px-3 py-1.5 text-sm text-white focus:outline-none focus:border-violet-500/50"
             />
             {unit && <span className="text-xs text-slate-500 flex-shrink-0">{unit}</span>}
-            <button onClick={save} disabled={saving} className="p-1.5 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/30 flex-shrink-0">
+            <button onClick={save} disabled={saving} className="flex-shrink-0 rounded-lg bg-violet-500/10 p-1.5 text-violet-400 hover:bg-violet-500/20">
               <Check className="w-3.5 h-3.5" />
             </button>
             <button onClick={cancel} className="p-1.5 rounded-lg bg-white/5 text-slate-400 hover:bg-white/10 flex-shrink-0">
@@ -254,8 +254,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 rounded-full border-2 border-red-600 border-t-transparent animate-spin" />
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
       </div>
     );
   }
@@ -281,21 +281,21 @@ export default function ProfilePage() {
     : null;
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8">
+    <div className="relative min-h-screen overflow-hidden pb-24 lg:pb-8">
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl text-sm font-medium shadow-xl flex items-center gap-2 transition-all ${
-          toast.ok ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-red-500/20 border border-red-500/40 text-red-300'
+        <div className={`fixed top-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium shadow-xl transition-all ${
+          toast.ok ? 'border border-violet-500/30 bg-violet-500/10 text-violet-300' : 'border border-violet-500/20 bg-violet-500/10 text-violet-300'
         }`}>
           {toast.ok ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
           {toast.msg}
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-5">
+      <div className="mx-auto max-w-2xl space-y-5 px-4 pt-6">
 
         {/* Header Card */}
-        <div className="glass-card rounded-2xl p-5">
+        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5">
           <div className="flex items-start gap-4">
             {/* Avatar with upload button */}
             <div className="relative flex-shrink-0">
@@ -304,10 +304,10 @@ export default function ProfilePage() {
                 <img
                   src={profile.avatar_url}
                   alt="Profile"
-                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-red-500/30"
+                  className="h-16 w-16 rounded-2xl object-cover ring-2 ring-violet-500/20"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-700 to-red-900 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-red-900/40">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 text-xl font-bold text-white shadow-lg shadow-violet-900/40">
                   {initials}
                 </div>
               )}
@@ -315,7 +315,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => avatarFileRef.current?.click()}
                 disabled={uploadingAvatar}
-                className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-red-600 border-2 border-[#0f0f0f] flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#0f0f0f] bg-violet-600 shadow-lg transition-transform active:scale-90"
                 title="Change photo"
               >
                 {uploadingAvatar
@@ -341,7 +341,7 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="flex-shrink-0">
-              <div className="px-2.5 py-1 rounded-lg bg-red-600/15 border border-red-600/25 text-red-400 text-xs font-semibold">
+              <div className="rounded-lg border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-xs font-semibold text-violet-400">
                 Active
               </div>
             </div>
@@ -358,9 +358,9 @@ export default function ProfilePage() {
               <p className="text-[11px] text-slate-500 mt-0.5">Following</p>
             </div>
             <div className="ml-auto">
-              <button
+            <button
                 onClick={() => router.push('/progress')}
-                className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 text-xs font-medium text-violet-400 transition-colors hover:text-violet-300"
               >
                 View Social Feed <ChevronRight className="w-3 h-3" />
               </button>
@@ -370,29 +370,29 @@ export default function ProfilePage() {
 
         {/* BMI Card */}
         {profile.bmi && profile.bmiCategory ? (
-          <div className="glass-card rounded-2xl p-5">
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-red-400" />
+                <Activity className="w-4 h-4 text-violet-400" />
                 <h2 className="text-sm font-semibold text-white">Body Mass Index</h2>
               </div>
               <button
                 onClick={() => router.push('/analytics')}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 transition-colors"
+                className="flex items-center gap-1 text-xs text-slate-400 transition-colors hover:text-violet-400"
               >
                 View insights <ChevronRight className="w-3 h-3" />
               </button>
             </div>
             <BMIGauge bmi={profile.bmi} category={profile.bmiCategory} />
             {bmiTip && (
-              <div className="mt-4 p-3 rounded-xl bg-white/3 border border-white/5">
+            <div className="mt-4 rounded-xl border border-white/5 bg-white/3 p-3">
                 <p className="text-xs text-slate-400 leading-relaxed">{bmiTip}</p>
               </div>
             )}
           </div>
         ) : (
-          <div className="glass-card rounded-2xl p-5 flex items-start gap-3">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5">
+            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-violet-400" />
             <div>
               <p className="text-sm font-medium text-white">BMI not available</p>
               <p className="text-xs text-slate-400 mt-0.5">Add your height and weight below to calculate your Body Mass Index and get personalised recommendations.</p>
@@ -401,9 +401,9 @@ export default function ProfilePage() {
         )}
 
         {/* Personal Info */}
-        <div className="glass-card rounded-2xl p-5">
+        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5">
           <div className="flex items-center gap-2 mb-1">
-            <User className="w-4 h-4 text-red-400" />
+            <User className="w-4 h-4 text-violet-400" />
             <h2 className="text-sm font-semibold text-white">Personal Info</h2>
           </div>
           <p className="text-xs text-slate-500 mb-4">Tap the pencil icon to edit any field</p>
@@ -438,9 +438,9 @@ export default function ProfilePage() {
         </div>
 
         {/* Fitness Goal */}
-        <div className="glass-card rounded-2xl p-5">
+        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="w-4 h-4 text-red-400" />
+            <Target className="w-4 h-4 text-violet-400" />
             <h2 className="text-sm font-semibold text-white">Fitness Goal</h2>
           </div>
           <div className="grid grid-cols-3 gap-2.5">
@@ -453,12 +453,12 @@ export default function ProfilePage() {
                   disabled={saving}
                   className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all duration-150 ${
                     active
-                      ? 'border-red-600/50 bg-red-600/15 text-white'
-                      : 'border-white/8 bg-white/3 text-slate-400 hover:border-white/15 hover:text-white'
+                      ? 'border-violet-500/20 bg-violet-500/10 text-white'
+                      : 'border-white/8 bg-white/3 text-slate-400 hover:border-violet-500/20 hover:text-white'
                   }`}
                 >
                   {active && (
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
+                    <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-violet-500" />
                   )}
                   <span className="text-xl">{g.icon}</span>
                   <span className="text-xs font-semibold leading-tight">{g.label}</span>
@@ -473,9 +473,9 @@ export default function ProfilePage() {
         {(profile.height_cm || profile.weight_kg) && (
           <div className="grid grid-cols-2 gap-3">
             {profile.height_cm && (
-              <div className="glass-card rounded-2xl p-4">
+              <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Ruler className="w-3.5 h-3.5 text-blue-400" />
+                  <Ruler className="w-3.5 h-3.5 text-violet-400" />
                   <span className="text-xs text-slate-400">Height</span>
                 </div>
                 <span className="text-2xl font-bold text-white">{profile.height_cm}</span>
@@ -483,9 +483,9 @@ export default function ProfilePage() {
               </div>
             )}
             {profile.weight_kg && (
-              <div className="glass-card rounded-2xl p-4">
+              <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <Scale className="w-3.5 h-3.5 text-emerald-400" />
+                  <Scale className="w-3.5 h-3.5 text-violet-400" />
                   <span className="text-xs text-slate-400">Weight</span>
                 </div>
                 <span className="text-2xl font-bold text-white">{profile.weight_kg}</span>
@@ -496,9 +496,9 @@ export default function ProfilePage() {
         )}
 
         {/* Privacy toggle */}
-        <div className="glass-card rounded-2xl p-5">
+        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5">
           <div className="flex items-center gap-2 mb-1">
-            <Lock className="w-4 h-4 text-red-400" />
+            <Lock className="w-4 h-4 text-violet-400" />
             <h2 className="text-sm font-semibold text-white">Privacy</h2>
           </div>
           <p className="text-xs text-slate-500 mb-4">Control who can see your posts and activity</p>
@@ -516,7 +516,7 @@ export default function ProfilePage() {
                 setProfile((p) => p ? { ...p, is_private: next } : p);
               }}
               className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
-                profile.is_private ? 'bg-red-600' : 'bg-white/10'
+                profile.is_private ? 'bg-violet-600' : 'bg-white/10'
               }`}
             >
               <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
@@ -529,10 +529,10 @@ export default function ProfilePage() {
         {/* Link to full analytics */}
         <button
           onClick={() => router.push('/analytics')}
-          className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:bg-white/5 transition-all text-left"
+          className="flex w-full items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 text-left transition-all hover:border-violet-500/20 hover:bg-white/5"
         >
-          <div className="w-9 h-9 rounded-xl bg-red-600/15 border border-red-600/25 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="w-4 h-4 text-red-400" />
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10">
+            <TrendingUp className="w-4 h-4 text-violet-400" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white">Full Analytics & Insights</p>
@@ -544,14 +544,14 @@ export default function ProfilePage() {
         {/* Checkin link */}
         <button
           onClick={() => router.push('/checkin')}
-          className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 hover:bg-white/5 transition-all text-left"
+          className="flex w-full items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 text-left transition-all hover:border-violet-500/20 hover:bg-white/5"
         >
-          <div className="w-9 h-9 rounded-xl bg-emerald-600/15 border border-emerald-600/25 flex items-center justify-center flex-shrink-0">
-            <Award className="w-4 h-4 text-emerald-400" />
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10">
+            <Award className="w-4 h-4 text-violet-400" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white">Daily Check-In</p>
-            <p className="text-xs text-slate-400">Mark today's gym attendance and track streaks</p>
+            <p className="text-xs text-slate-400">Mark today&apos;s gym attendance and track streaks</p>
           </div>
           <ChevronRight className="w-4 h-4 text-slate-500 flex-shrink-0" />
         </button>

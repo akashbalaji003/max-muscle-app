@@ -79,17 +79,17 @@ export default function CheckInPage() {
   const todayDisplay = formatDateLarge(new Date());
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#000000] p-4 sm:p-6">
       {/* Background blobs */}
-      <div className="absolute top-0 left-1/3 w-64 h-64 bg-red-700/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/3 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="pointer-events-none absolute left-1/3 top-0 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-1/3 h-64 w-64 rounded-full bg-indigo-700/5 blur-3xl" />
 
       <div className="w-full max-w-sm relative">
         {/* Back link */}
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors min-h-[44px]"
+            className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-400 transition-colors hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" /> Dashboard
           </Link>
@@ -97,18 +97,18 @@ export default function CheckInPage() {
 
         {/* Gym logo — Max Muscle branding */}
         <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40">
-            <Dumbbell className="w-5 h-5 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 shadow-[0_0_24px_rgba(124,58,237,0.18)]">
+            <Dumbbell className="h-5 w-5 text-violet-400" />
           </div>
           <div className="text-left">
-            <span className="text-xl font-bold gradient-text block leading-none">MAX MUSCLE</span>
+            <span className="font-display block text-xl font-bold leading-none tracking-wide text-white">MAX MUSCLE</span>
             <span className="text-[10px] text-slate-500 uppercase tracking-widest">Check-In</span>
           </div>
         </div>
 
         {/* ── Idle state ── */}
         {status === 'idle' && (
-          <div className="glass-card p-8 text-center">
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-8 text-center shadow-[0_0_40px_rgba(124,58,237,0.06)]">
             {userName && (
               <p className="text-slate-400 text-sm mb-6">
                 Welcome, <span className="text-white font-semibold">{userName}</span>
@@ -118,13 +118,13 @@ export default function CheckInPage() {
               </p>
             )}
             <div className="relative flex items-center justify-center mb-8">
-              <div className="pulse-ring w-24 h-24 rounded-full bg-red-700/10 flex items-center justify-center">
-                <QrCode className="w-12 h-12 text-red-400" />
+              <div className="pulse-ring flex h-24 w-24 items-center justify-center rounded-full bg-violet-500/10">
+                <QrCode className="h-12 w-12 text-violet-400" />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Max Muscle Check-In</h1>
             <p className="text-slate-400 text-sm mb-8">Tap below to record your attendance for today.</p>
-            <Button onClick={handleCheckIn} size="lg" className="w-full text-base min-h-[52px]">
+            <Button onClick={handleCheckIn} size="lg" className="btn-shine w-full min-h-[52px] bg-violet-600 text-base text-white shadow-[0_8px_30px_rgba(124,58,237,0.25)] hover:bg-violet-500">
               Check In Now
             </Button>
             <p className="text-xs text-slate-600 mt-4">{todayDisplay}</p>
@@ -133,17 +133,17 @@ export default function CheckInPage() {
 
         {/* ── Loading state ── */}
         {status === 'loading' && (
-          <div className="glass-card p-12 flex flex-col items-center gap-4">
-            <Loader className="w-10 h-10 text-red-400 animate-spin" />
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-12 flex flex-col items-center gap-4 shadow-[0_0_40px_rgba(124,58,237,0.06)]">
+            <Loader className="h-10 w-10 animate-spin text-violet-400" />
             <p className="text-slate-300 text-sm">Processing check-in...</p>
           </div>
         )}
 
         {/* ── Success state ── */}
         {status === 'success' && (
-          <div className="glass-card p-8 text-center border border-emerald-500/30">
-            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-400" />
+          <div className="rounded-2xl border border-violet-500/20 bg-[#0a0a0a] p-8 text-center shadow-[0_0_40px_rgba(124,58,237,0.08)]">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/10">
+              <CheckCircle className="h-10 w-10 text-violet-400" />
             </div>
 
             {/* Gym name */}
@@ -157,18 +157,18 @@ export default function CheckInPage() {
             </p>
 
             {/* Time */}
-            <p className="text-xl text-emerald-400 font-semibold mb-6">{checkinTime}</p>
+            <p className="mb-6 text-xl font-semibold text-violet-400">{checkinTime}</p>
 
-            <p className="text-emerald-300 text-sm font-medium mb-8">
+            <p className="mb-8 text-sm font-medium text-violet-300">
               ✅ Checked In — Have a great workout!
             </p>
 
             <div className="space-y-3">
               <Link href="/workout">
-                <Button className="w-full min-h-[48px]" size="lg">Start Workout</Button>
+                <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Start Workout</Button>
               </Link>
               <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>
+                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Dashboard</Button>
               </Link>
             </div>
           </div>
@@ -176,9 +176,9 @@ export default function CheckInPage() {
 
         {/* ── Already checked in ── */}
         {status === 'already' && (
-          <div className="glass-card p-8 text-center border border-red-600/30">
-            <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-red-400" />
+          <div className="rounded-2xl border border-violet-500/20 bg-[#0a0a0a] p-8 text-center shadow-[0_0_40px_rgba(124,58,237,0.06)]">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/10">
+              <CheckCircle className="h-10 w-10 text-violet-400" />
             </div>
 
             {/* Gym name */}
@@ -193,17 +193,17 @@ export default function CheckInPage() {
 
             {/* Time */}
             {checkinTime && (
-              <p className="text-xl text-red-400 font-semibold mb-6">{checkinTime}</p>
+            <p className="mb-6 text-xl font-semibold text-violet-400">{checkinTime}</p>
             )}
 
             <p className="text-slate-400 text-sm mb-8">Already checked in today. See you tomorrow!</p>
 
             <div className="space-y-3">
               <Link href="/workout">
-                <Button className="w-full min-h-[48px]" size="lg">Log a Workout</Button>
+                <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Log a Workout</Button>
               </Link>
               <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>
+                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Dashboard</Button>
               </Link>
             </div>
           </div>
@@ -211,15 +211,15 @@ export default function CheckInPage() {
 
         {/* ── Expired ── */}
         {status === 'expired' && (
-          <div className="glass-card p-8 text-center border border-red-500/30">
-            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <XCircle className="w-10 h-10 text-red-400" />
+          <div className="rounded-2xl border border-violet-500/20 bg-[#0a0a0a] p-8 text-center shadow-[0_0_40px_rgba(124,58,237,0.06)]">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/10">
+              <XCircle className="h-10 w-10 text-violet-400" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Membership Expired</h1>
             <p className="text-slate-400 text-sm mb-8">{message || 'Please renew your membership to check in.'}</p>
             <div className="space-y-3">
               <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px]">Go to Dashboard</Button>
+                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Go to Dashboard</Button>
               </Link>
             </div>
             <p className="text-xs text-slate-700 mt-6">{todayDisplay}</p>
@@ -228,18 +228,18 @@ export default function CheckInPage() {
 
         {/* ── Error ── */}
         {status === 'error' && (
-          <div className="glass-card p-8 text-center border border-red-500/30">
-            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <XCircle className="w-10 h-10 text-red-400" />
+          <div className="rounded-2xl border border-violet-500/20 bg-[#0a0a0a] p-8 text-center shadow-[0_0_40px_rgba(124,58,237,0.06)]">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/10">
+              <XCircle className="h-10 w-10 text-violet-400" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Check-in Failed</h1>
             <p className="text-slate-400 text-sm mb-8">{message || 'Something went wrong. Please try again.'}</p>
             <div className="space-y-3">
-              <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px]">
+              <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">
                 Try Again
               </Button>
               <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px]">Go to Dashboard</Button>
+                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Go to Dashboard</Button>
               </Link>
             </div>
             <p className="text-xs text-slate-700 mt-6">{todayDisplay}</p>
@@ -248,15 +248,15 @@ export default function CheckInPage() {
 
         {/* ── Unauthorized ── */}
         {status === 'unauthorized' && (
-          <div className="glass-card p-8 text-center border border-amber-500/30">
-            <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <QrCode className="w-10 h-10 text-amber-400" />
+          <div className="rounded-2xl border border-violet-500/20 bg-[#0a0a0a] p-8 text-center shadow-[0_0_40px_rgba(124,58,237,0.06)]">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/10">
+              <QrCode className="h-10 w-10 text-violet-400" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Sign In Required</h1>
             <p className="text-slate-400 text-sm mb-8">Please sign in to your Max Muscle account to check in.</p>
             <div className="space-y-3">
               <Link href="/login">
-                <Button className="w-full min-h-[48px]" size="lg">Sign In</Button>
+                <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Sign In</Button>
               </Link>
               <Link href="/dashboard">
                 <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>

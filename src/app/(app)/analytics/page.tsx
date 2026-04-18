@@ -23,7 +23,7 @@ import {
 const VolumeTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-[#0f0f0f] border border-white/10 rounded-xl px-3 py-2 text-sm">
+      <div className="rounded-xl border border-violet-500/20 bg-[#0a0a0a] px-3 py-2 text-sm shadow-xl shadow-violet-900/20">
         <p className="text-slate-400">{label}</p>
         <p className="text-white font-semibold">{payload[0].value.toLocaleString()} kg</p>
       </div>
@@ -35,9 +35,9 @@ const VolumeTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 const CalTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-[#0f0f0f] border border-white/10 rounded-xl px-3 py-2 text-sm">
+      <div className="rounded-xl border border-violet-500/20 bg-[#0a0a0a] px-3 py-2 text-sm shadow-xl shadow-violet-900/20">
         <p className="text-slate-400">{label}</p>
-        <p className="text-amber-400 font-semibold">{payload[0].value} kcal</p>
+        <p className="font-semibold text-violet-400">{payload[0].value} kcal</p>
       </div>
     );
   }
@@ -47,9 +47,9 @@ const CalTooltip = ({ active, payload, label }: { active?: boolean; payload?: { 
 const WeightTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-[#0f0f0f] border border-white/10 rounded-xl px-3 py-2 text-sm">
+      <div className="rounded-xl border border-violet-500/20 bg-[#0a0a0a] px-3 py-2 text-sm shadow-xl shadow-violet-900/20">
         <p className="text-slate-400">{label}</p>
-        <p className="text-emerald-400 font-semibold">{payload[0].value} kg</p>
+        <p className="font-semibold text-violet-400">{payload[0].value} kg</p>
       </div>
     );
   }
@@ -60,7 +60,7 @@ const MonthTooltip = ({ active, payload, label }: { active?: boolean; payload?: 
   if (active && payload?.length) {
     const rangeLabel = payload[0]?.payload?.label;
     return (
-      <div className="bg-[#0f0f0f] border border-white/10 rounded-xl px-3 py-2 text-sm">
+      <div className="rounded-xl border border-violet-500/20 bg-[#0a0a0a] px-3 py-2 text-sm shadow-xl shadow-violet-900/20">
         <p className="text-slate-400">{label} {rangeLabel ? `(${rangeLabel})` : ''}</p>
         <p className="text-white font-semibold">{payload[0].value} workout{payload[0].value !== 1 ? 's' : ''}</p>
       </div>
@@ -584,21 +584,21 @@ export default function AnalyticsPage() {
   const unearnedBadges = data?.badges?.filter(b => !b.earned) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6 overflow-hidden">
       {/* Header */}
       <div>
-        <h1 className="font-display text-3xl sm:text-5xl text-white leading-none">ANALYTICS</h1>
+        <h1 className="font-display text-3xl leading-none tracking-wide text-white sm:text-5xl">ANALYTICS</h1>
         <p className="text-sm text-slate-400 mt-0.5">Your complete training overview</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white/5 p-1 rounded-xl overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1 overflow-x-auto rounded-xl border border-white/6 bg-white/5 p-1 scrollbar-hide">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-shrink-0 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-lg transition-all ${
-              tab === t.key ? 'bg-red-700 text-white shadow-lg shadow-red-900/30' : 'text-slate-500 hover:text-slate-300'
+            className={`flex-shrink-0 flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+              tab === t.key ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/30' : 'text-slate-500 hover:text-slate-300'
             }`}
           >
             {t.icon}{t.label}
@@ -610,11 +610,11 @@ export default function AnalyticsPage() {
       {tab === 'overview' && (
         <div className="space-y-5">
           {/* All-time stat cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Total Workouts" value={data?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="red" />
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard label="Total Workouts" value={data?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="violet" />
             <StatCard label="Total Volume" value={formatVolume(data?.totalVolume ?? 0)} icon={<Weight className="w-5 h-5" />} color="violet" />
-            <StatCard label="Current Streak" value={`${data?.currentStreak ?? 0}d`} icon={<Flame className="w-5 h-5" />} color="amber" />
-            <StatCard label="Longest Streak" value={`${data?.longestStreak ?? 0}d`} icon={<TrendingUp className="w-5 h-5" />} color="emerald" />
+            <StatCard label="Current Streak" value={`${data?.currentStreak ?? 0}d`} icon={<Flame className="w-5 h-5" />} color="violet" />
+            <StatCard label="Longest Streak" value={`${data?.longestStreak ?? 0}d`} icon={<TrendingUp className="w-5 h-5" />} color="violet" />
           </div>
 
           {/* All-time calorie totals */}

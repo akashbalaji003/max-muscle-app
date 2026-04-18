@@ -41,10 +41,10 @@ function Avatar({
     />
   ) : (
     <div
-      className={`rounded-full bg-red-700/30 flex items-center justify-center flex-shrink-0 ${className}`}
+      className={`flex-shrink-0 rounded-full bg-violet-500/20 flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
-      <span className="text-red-300 font-bold" style={{ fontSize: size * 0.38 }}>{initials}</span>
+      <span className="font-bold text-violet-300" style={{ fontSize: size * 0.38 }}>{initials}</span>
     </div>
   );
 }
@@ -53,7 +53,7 @@ function Avatar({
 
 function PhotoSkeleton() {
   return (
-    <div className="glass-card overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a]">
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
         <div className="skeleton w-9 h-9 rounded-full flex-shrink-0" />
         <div className="flex-1 space-y-1.5">
@@ -143,11 +143,11 @@ function CommentSheet({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (canCloseRef.current) onClose(); }} />
 
       {/* Sheet */}
-      <div className="relative bg-[#0f0f0f] rounded-t-2xl max-h-[75vh] flex flex-col border-t border-white/8 shadow-2xl">
+      <div className="relative flex max-h-[75vh] flex-col rounded-t-2xl border-t border-white/8 bg-[#0f0f0f] shadow-2xl">
         {/* Handle */}
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/5 flex-shrink-0">
           <h3 className="font-semibold text-white text-sm">Comments</h3>
-          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-white">
+          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-violet-300">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -166,7 +166,7 @@ function CommentSheet({
                   <div className="bg-white/5 rounded-2xl px-3 py-2">
                     <span className="text-xs font-semibold text-white">
                       {c.users.name || c.users.phone_number}
-                      {c.user_id === currentUserId && <span className="text-red-400/70"> (you)</span>}
+                      {c.user_id === currentUserId && <span className="text-violet-400/70"> (you)</span>}
                     </span>
                     <p className="text-sm text-slate-300 mt-0.5 leading-relaxed">{c.body}</p>
                   </div>
@@ -185,12 +185,12 @@ function CommentSheet({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder="Add a comment…"
-            className="flex-1 bg-white/5 border border-white/8 rounded-full px-4 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-600/50 min-w-0"
+            className="flex-1 min-w-0 rounded-full border border-white/8 bg-white/5 px-4 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/50"
           />
           <button
             onClick={send}
             disabled={!text.trim() || sending}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-red-600 disabled:bg-white/10 disabled:text-slate-600 text-white flex-shrink-0 active:scale-95 transition-all"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-violet-600 text-white transition-all active:scale-95 disabled:bg-white/10 disabled:text-slate-600"
           >
             {sending
               ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -220,8 +220,8 @@ function SuggestedUsers({
 
   if (users.length > 0 && unfollowed.length === 0) {
     return (
-      <div className="flex items-center gap-2 py-2 mb-1">
-        <Users className="w-3.5 h-3.5 text-slate-600" />
+        <div className="mb-1 flex items-center gap-2 py-2">
+          <Users className="w-3.5 h-3.5 text-slate-600" />
         <p className="text-xs text-slate-600">No more suggestions — you know everyone! 🎉</p>
       </div>
     );
@@ -237,15 +237,15 @@ function SuggestedUsers({
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
         {unfollowed.map((u) => (
-          <div key={u.id} className="flex-shrink-0 glass-card p-3 text-center w-[88px]">
+          <div key={u.id} className="flex-shrink-0 rounded-2xl border border-white/6 bg-[#0a0a0a] p-3 text-center w-[88px]">
             <Avatar user={u} size={40} className="mx-auto mb-2" />
             <p className="text-[11px] font-semibold text-white truncate">{u.name || u.phone_number.slice(-4)}</p>
             <button
               onClick={() => onFollow(u.id)}
               className={`mt-1.5 w-full text-[10px] font-medium py-1 rounded-full transition-colors active:scale-95 border ${
                 pendingRequestIds.has(u.id)
-                  ? 'bg-amber-600/10 text-amber-400 border-amber-600/30'
-                  : 'bg-red-600/20 text-red-400 border-red-600/30 hover:bg-red-600/30'
+                  ? 'bg-violet-500/10 text-violet-400 border-violet-500/20'
+                  : 'bg-violet-600/20 text-violet-300 border-violet-500/20 hover:bg-violet-600/30'
               }`}
             >
               {pendingRequestIds.has(u.id) ? 'Requested' : 'Follow'}
@@ -307,19 +307,19 @@ function UploadForm({
   }
 
   return (
-    <div className="glass-card p-4 space-y-3">
+    <div className="space-y-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4">
       <div className="flex items-center justify-between mb-1">
         <h3 className="font-semibold text-white text-sm flex items-center gap-2">
-          <Camera className="w-4 h-4 text-red-400" /> Post a Progress Photo
+          <Camera className="w-4 h-4 text-violet-400" /> Post a Progress Photo
         </h3>
         <button onClick={onCancel} className="p-1.5 text-slate-500 hover:text-white">
           <X className="w-4 h-4" />
         </button>
       </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-violet-400">{error}</p>}
       <div
         onClick={() => fileRef.current?.click()}
-        className="border-2 border-dashed border-slate-700 hover:border-red-600/50 rounded-xl p-6 text-center cursor-pointer active:bg-white/2 transition-colors"
+        className="cursor-pointer rounded-xl border-2 border-dashed border-slate-700 p-6 text-center transition-colors active:bg-white/2 hover:border-violet-500/30"
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -339,18 +339,18 @@ function UploadForm({
         placeholder="Add a caption…"
         rows={2}
         dir="ltr"
-        className="w-full bg-[#000000] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-600 resize-none"
+        className="w-full resize-none rounded-xl border border-slate-700 bg-[#000000] px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/50"
       />
       <label className="flex items-center gap-3 cursor-pointer">
         <input
           type="checkbox"
           checked={isWeekly}
           onChange={(e) => setIsWeekly(e.target.checked)}
-          className="w-4 h-4 accent-red-600"
+          className="h-4 w-4 accent-violet-600"
         />
         <span className="text-sm text-slate-300">Mark as weekly check-in</span>
       </label>
-      <Button onClick={handleUpload} loading={uploading} className="w-full min-h-[48px]">
+      <Button onClick={handleUpload} loading={uploading} className="w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500 shadow-[0_8px_30px_rgba(124,58,237,0.25)]">
         <Upload className="w-4 h-4" /> Post Photo
       </Button>
     </div>
@@ -744,7 +744,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
     const cc          = commentCounts[photo.id] ?? photo.comment_count;
 
     return (
-      <div className="glass-card overflow-hidden fade-in">
+      <div className="overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a] fade-in">
         {/* ── Header ── */}
         {showUser && (
           <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
@@ -766,8 +766,8 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
                   isFollowing
                     ? 'border-slate-600 text-slate-400 bg-white/5'
                     : isRequested
-                    ? 'border-amber-600/50 text-amber-400 bg-amber-600/10'
-                    : 'border-red-600/50 text-red-400 hover:bg-red-600/10'
+                    ? 'border-violet-500/20 text-violet-400 bg-violet-500/10'
+                    : 'border-violet-500/20 text-violet-400 hover:bg-violet-500/10'
                 }`}
               >
                 {isFollowing
@@ -783,7 +783,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
               <button
                 onClick={() => handleDelete(photo.id)}
                 disabled={deletingId === photo.id}
-                className="p-2 text-slate-600 hover:text-red-400 min-h-[36px] min-w-[36px] flex items-center justify-center flex-shrink-0"
+                className="flex min-h-[36px] min-w-[36px] flex-shrink-0 items-center justify-center p-2 text-slate-600 hover:text-violet-400"
               >
                 {deletingId === photo.id
                   ? <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
@@ -810,10 +810,10 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
           <button
             onClick={() => handleLike(photo.id)}
             className={`flex items-center gap-1.5 transition-colors active:scale-90 ${
-              ls.liked ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+              ls.liked ? 'text-violet-500' : 'text-slate-400 hover:text-violet-400'
             }`}
           >
-            <Heart className={`w-5 h-5 transition-none ${ls.liked ? 'fill-red-500' : ''}`} />
+            <Heart className={`w-5 h-5 transition-none ${ls.liked ? 'fill-violet-500' : ''}`} />
             <span className="text-sm font-medium tabular-nums">{ls.count}</span>
           </button>
 
@@ -841,14 +841,14 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
               onChange={(e) => setEditCaption(e.target.value)}
               rows={2}
               autoFocus
-              className="w-full bg-[#000000] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-red-600 resize-none"
+                className="w-full resize-none rounded-lg border border-slate-700 bg-[#000000] px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-violet-500/50"
               placeholder="Add a caption…"
             />
             <div className="flex gap-2">
               <button
                 onClick={() => saveCaption(photo.id)}
                 disabled={savingCaption}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-medium rounded-lg disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 hover:bg-violet-500"
               >
                 {savingCaption
                   ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -871,7 +871,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
                 {isMe && (
                   <button
                     onClick={() => { setEditingId(photo.id); setEditCaption(captionText); }}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-red-400 flex-shrink-0"
+                    className="flex-shrink-0 p-1 text-slate-600 opacity-0 group-hover:opacity-100 hover:text-violet-400"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
@@ -880,7 +880,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
             ) : isMe ? (
               <button
                 onClick={() => { setEditingId(photo.id); setEditCaption(''); }}
-                className="text-xs text-slate-600 hover:text-red-400 flex items-center gap-1 py-1"
+                className="flex items-center gap-1 py-1 text-xs text-slate-600 hover:text-violet-400"
               >
                 <Pencil className="w-3 h-3" /> Add caption
               </button>
@@ -933,7 +933,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
           />
         )}
         {!item.read && (
-          <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+          <div className="h-2 w-2 flex-shrink-0 rounded-full bg-violet-500" />
         )}
       </div>
     );
@@ -962,7 +962,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
             key={t}
             onClick={() => t === 'activity' ? openActivityTab() : t === 'profile' ? openProfileTab() : setTab(t)}
             className={`relative flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium py-2 px-2 rounded-lg transition-all ${
-              tab === t ? 'bg-red-700 text-white' : 'text-slate-400 hover:text-white'
+              tab === t ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'
             }`}
           >
             {t === 'activity' && (
@@ -970,7 +970,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
                 <Bell className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{label}</span>
                 {unread > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 px-0.5 flex items-center justify-center flex-shrink-0">
+                  <span className="flex min-h-4 min-w-[16px] flex-shrink-0 items-center justify-center rounded-full bg-violet-500 px-0.5 text-[10px] font-bold text-white">
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}
@@ -989,24 +989,24 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
 
       {/* Setup banner — shown when social tables are missing */}
       {setupNeeded && (
-        <div className="rounded-xl p-4 bg-amber-500/10 border border-amber-500/30 fade-in">
+        <div className="fade-in rounded-xl border border-violet-500/20 bg-violet-500/10 p-4">
           <div className="flex items-start gap-3">
             <span className="text-xl leading-none">⚠️</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-amber-300">Social features need one-time setup</p>
-              <p className="text-xs text-amber-400/70 mt-0.5">
+              <p className="text-sm font-semibold text-violet-300">Social features need one-time setup</p>
+              <p className="mt-0.5 text-xs text-violet-400/70">
                 Likes, comments &amp; follows require a database migration. Run it once in your Supabase SQL Editor.
               </p>
               <div className="flex gap-2 mt-3 flex-wrap">
                 <button
                   onClick={() => setShowSetupModal(true)}
-                  className="text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
+                  className="rounded-lg border border-violet-500/20 bg-violet-500/20 px-3 py-1.5 text-xs font-medium text-violet-300 transition-colors hover:bg-violet-500/30"
                 >
                   View Migration SQL →
                 </button>
                 <button
                   onClick={() => setSetupNeeded(false)}
-                  className="text-xs text-amber-400/50 hover:text-amber-400 px-2 py-1.5"
+                  className="px-2 py-1.5 text-xs text-violet-400/60 hover:text-violet-400"
                 >
                   Dismiss
                 </button>
@@ -1040,8 +1040,8 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
                 onClick={copySql}
                 className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
                   sqlCopied
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-red-700 hover:bg-red-600 text-white active:scale-[0.98]'
+                    ? 'bg-violet-600 text-white'
+                    : 'bg-violet-600 hover:bg-violet-500 text-white active:scale-[0.98]'
                 }`}
               >
                 {sqlCopied ? '✓ Copied!' : 'Copy SQL'}
@@ -1061,7 +1061,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_recipient ON activity_feed(recipient_id,
 
       {/* Toast */}
       {toast && (
-        <div className="rounded-xl p-3 text-sm border fade-in bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+        <div className="fade-in rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 text-sm text-violet-400">
           {toast}
         </div>
       )}

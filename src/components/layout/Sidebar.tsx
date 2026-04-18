@@ -60,6 +60,7 @@ export default function Sidebar() {
     label,
     icon,
   }));
+  const MOBILE_NAV_ITEMS = NAV_ITEMS.filter(({ label }) => ['Home', 'Workout', 'Board', 'Social', 'Profile'].includes(label));
 
   // Page meta for mobile header — keyed by base path (without gymSlug prefix)
   const basePath = gymSlug
@@ -84,23 +85,23 @@ export default function Sidebar() {
     router.push(gymSlug ? `/${gymSlug}` : '/');
   }
 
-  const NavContent = () => (
-    <div className="flex flex-col h-full">
+  const navContent = (
+    <div className="flex h-full flex-col bg-[#0a0a0a] text-white">
       {/* Logo */}
-      <div className="p-5 border-b border-white/5">
+      <div className="border-b border-white/6 p-5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-red-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-red-900/40">
-            <Dumbbell className="w-4 h-4 text-white" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 text-violet-400 shadow-[0_0_24px_rgba(124,58,237,0.15)]">
+            <Dumbbell className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <span className="font-display text-xl gradient-text block leading-none tracking-wide">MAX MUSCLE</span>
-            <span className="text-[9px] text-slate-600 leading-tight block tracking-widest uppercase mt-0.5">Lifestyle Fitness</span>
+            <span className="font-display block text-xl leading-none tracking-wide text-white">MAX MUSCLE</span>
+            <span className="mt-0.5 block text-[9px] uppercase tracking-widest text-slate-500 leading-tight">Lifestyle Fitness Studio</span>
           </div>
         </div>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
@@ -109,47 +110,47 @@ export default function Sidebar() {
               href={href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 active
-                  ? 'bg-red-700/20 text-red-400 border border-red-600/30 nav-item-active shadow-sm'
-                  : 'text-[#B3B3B3] hover:text-white hover:bg-white/5'
+                  ? 'border border-violet-500/20 bg-violet-500/10 text-violet-400 shadow-[0_0_20px_rgba(124,58,237,0.08)]'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
               )}
             >
-              <Icon className={cn('w-4 h-4 flex-shrink-0 transition-transform duration-150', active ? 'scale-110' : '')} />
+              <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform duration-200', active ? 'scale-110' : 'group-hover:scale-110')} />
               {label}
-              {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500" />}
+              {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400" />}
             </Link>
           );
         })}
       </nav>
 
       {/* Bottom section */}
-      <div className="p-3 border-t border-white/5 space-y-0.5">
+      <div className="space-y-2 border-t border-white/6 p-3">
         {/* User chip */}
         {me && (
           <Link
             href={gymSlug ? `/${gymSlug}/profile` : '/profile'}
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-all mb-1"
+            className="mb-1 flex items-center gap-2.5 rounded-xl border border-white/6 bg-white/3 px-3 py-2 transition-all duration-200 hover:border-violet-500/15 hover:bg-white/5"
           >
             {me.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={me.avatar_url} alt="avatar" className="w-7 h-7 rounded-full object-cover flex-shrink-0 ring-1 ring-red-500/40" />
+              <img src={me.avatar_url} alt="avatar" className="h-7 w-7 flex-shrink-0 rounded-full object-cover ring-1 ring-violet-500/40" />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-red-700/30 flex items-center justify-center flex-shrink-0">
-                <span className="text-red-300 text-xs font-bold">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                <span className="text-xs font-bold text-violet-300">
                   {(me.name || me.phone_number || '?').slice(0, 1).toUpperCase()}
                 </span>
               </div>
             )}
-            <span className="text-sm text-slate-300 font-medium truncate flex-1">
+            <span className="flex-1 truncate text-sm font-medium text-slate-300">
               {me.name || me.phone_number?.slice(-6) || 'My Profile'}
             </span>
           </Link>
         )}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
+          className="flex min-h-[44px] w-full items-center gap-3 rounded-xl border border-red-500/20 px-3 py-2.5 text-sm font-medium text-slate-500 transition-all duration-200 hover:border-red-400/25 hover:bg-red-500/10 hover:text-red-400"
         >
           <LogOut className="w-4 h-4" /> Logout
         </button>
@@ -160,16 +161,16 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="sidebar-shell hidden lg:flex lg:flex-col lg:w-56 lg:fixed lg:inset-y-0 bg-[#0f0f0f] border-r border-white/5 z-30">
-        <NavContent />
+      <aside className="sidebar-shell hidden lg:flex lg:fixed lg:inset-y-0 lg:w-56 lg:flex-col bg-[#0a0a0a]/95 border-r border-white/6 z-30 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.35)]">
+        {navContent}
       </aside>
 
       {/* Mobile top header */}
-      <div className="mobile-header lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[#0f0f0f]/95 backdrop-blur-xl border-b border-white/5 flex items-center px-4 gap-2">
+      <div className="mobile-header lg:hidden fixed top-0 left-0 right-0 z-40 flex h-14 items-center gap-2 border-b border-white/6 bg-[#0a0a0a]/95 px-4 backdrop-blur-xl">
         {meta.back ? (
           <button
             onClick={() => router.push(meta.back!)}
-            className="p-2 text-slate-400 hover:text-white -ml-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="-ml-1 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition-all duration-200 hover:bg-white/5 hover:text-white"
             aria-label="Go back"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -177,26 +178,26 @@ export default function Sidebar() {
         ) : (
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 text-slate-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition-all duration-200 hover:bg-white/5 hover:text-white"
             aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
 
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           {!meta.back && (
-            <div className="w-7 h-7 bg-red-700 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Dumbbell className="w-3.5 h-3.5 text-white" />
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
+              <Dumbbell className="h-3.5 w-3.5" />
             </div>
           )}
-          <span className="font-display text-xl text-white leading-none tracking-wide truncate">{meta.title.toUpperCase()}</span>
+          <span className="font-display truncate text-xl leading-none tracking-wide text-white">{meta.title.toUpperCase()}</span>
         </div>
 
         {meta.back && (
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 text-slate-500 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-500 transition-all duration-200 hover:bg-white/5 hover:text-white"
           >
             <Menu className="w-4 h-4" />
           </button>
@@ -204,23 +205,23 @@ export default function Sidebar() {
       </div>
 
       {/* Mobile bottom navigation bar */}
-      <nav className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0f0f0f]/98 backdrop-blur-xl border-t border-white/8 grid grid-cols-7">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <nav className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-5 border-t border-white/6 bg-[#0a0a0a]/98 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+        {MOBILE_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                'flex flex-col items-center justify-center py-2 px-0.5 gap-0.5 min-h-[56px] transition-all',
-                active ? 'text-red-400' : 'text-slate-500 active:scale-90'
+                'flex min-h-[56px] min-w-[56px] flex-col items-center justify-center gap-0.5 px-0.5 py-2 transition-all duration-200',
+                active ? 'text-violet-400' : 'text-slate-500 active:scale-90'
               )}
             >
               <div className={cn(
-                'rounded-xl px-2 py-1 transition-all',
-                active ? 'bg-red-600/15 scale-105' : ''
+                'rounded-xl px-2 py-1 transition-all duration-200',
+                active ? 'bg-violet-500/10 scale-105 shadow-[0_0_20px_rgba(124,58,237,0.10)]' : ''
               )}>
-                <Icon className="w-[18px] h-[18px]" />
+                <Icon className="h-[18px] w-[18px]" />
               </div>
               <span className="text-[9px] font-medium leading-tight">{label}</span>
             </Link>
@@ -235,8 +236,8 @@ export default function Sidebar() {
             className="fixed inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-64 bg-[#0f0f0f] h-full flex flex-col shadow-2xl slide-up">
-            <NavContent />
+          <div className="relative flex h-full w-64 flex-col bg-[#0a0a0a] shadow-2xl slide-up">
+            {navContent}
           </div>
         </div>
       )}

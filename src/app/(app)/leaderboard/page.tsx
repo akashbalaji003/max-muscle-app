@@ -15,25 +15,25 @@ interface LeaderboardEntry {
 }
 
 const MEDAL_EMOJI  = ['🥇', '🥈', '🥉'];
-const MEDAL_COLORS = ['text-amber-400', 'text-slate-300', 'text-amber-700'];
+const MEDAL_COLORS = ['text-violet-400', 'text-slate-300', 'text-violet-500'];
 const PODIUM_BG    = [
-  'bg-slate-700/30 border-slate-500/30',
-  'bg-amber-600/20 border-amber-500/30',
-  'bg-amber-900/20 border-amber-800/30',
+  'bg-slate-700/20 border-slate-500/20',
+  'bg-violet-600/20 border-violet-500/30',
+  'bg-purple-900/20 border-purple-800/30',
 ];
 
 // ─── Comprehensive exercise database ─────────────────────────────────────────
 // Keyed by muscle group → list of exercise names (matched to DB names where possible)
 
 const MUSCLE_GROUPS = [
-  { key: 'Chest',     emoji: '🏋️', color: 'text-rose-400',    bg: 'bg-rose-500/10 border-rose-500/20' },
-  { key: 'Back',      emoji: '🔙', color: 'text-blue-400',     bg: 'bg-blue-500/10 border-blue-500/20' },
-  { key: 'Shoulders', emoji: '💪', color: 'text-violet-400',   bg: 'bg-violet-500/10 border-violet-500/20' },
-  { key: 'Biceps',    emoji: '💥', color: 'text-amber-400',    bg: 'bg-amber-500/10 border-amber-500/20' },
-  { key: 'Triceps',   emoji: '⚡', color: 'text-orange-400',   bg: 'bg-orange-500/10 border-orange-500/20' },
-  { key: 'Legs',      emoji: '🦵', color: 'text-emerald-400',  bg: 'bg-emerald-500/10 border-emerald-500/20' },
-  { key: 'Core',      emoji: '🎯', color: 'text-cyan-400',     bg: 'bg-cyan-500/10 border-cyan-500/20' },
-  { key: 'Cardio',    emoji: '🏃', color: 'text-pink-400',     bg: 'bg-pink-500/10 border-pink-500/20' },
+  { key: 'Chest',     emoji: '🏋️', color: 'text-violet-400',  bg: 'bg-violet-500/10 border-violet-500/20' },
+  { key: 'Back',      emoji: '🔙', color: 'text-violet-300',  bg: 'bg-violet-500/10 border-violet-500/20' },
+  { key: 'Shoulders', emoji: '💪', color: 'text-violet-400',  bg: 'bg-violet-500/10 border-violet-500/20' },
+  { key: 'Biceps',    emoji: '💥', color: 'text-violet-300',  bg: 'bg-violet-500/10 border-violet-500/20' },
+  { key: 'Triceps',   emoji: '⚡', color: 'text-violet-500',  bg: 'bg-purple-500/10 border-purple-500/20' },
+  { key: 'Legs',      emoji: '🦵', color: 'text-violet-400',  bg: 'bg-violet-500/10 border-violet-500/20' },
+  { key: 'Core',      emoji: '🎯', color: 'text-violet-300',  bg: 'bg-violet-500/10 border-violet-500/20' },
+  { key: 'Cardio',    emoji: '🏃', color: 'text-violet-400',  bg: 'bg-violet-500/10 border-violet-500/20' },
 ] as const;
 
 type MuscleKey = typeof MUSCLE_GROUPS[number]['key'];
@@ -194,7 +194,7 @@ export default function LeaderboardPage() {
   // ─── Step 3: Show leaderboard ─────────────────────────────────────────────
   if (selectedExercise) {
     return (
-      <div className="space-y-5 fade-in">
+      <div className="relative space-y-5 overflow-hidden fade-in">
         {/* Back breadcrumb */}
         <div className="flex items-center gap-2">
           <button
@@ -209,13 +209,13 @@ export default function LeaderboardPage() {
         </div>
 
         <div>
-          <h1 className="font-display text-3xl sm:text-5xl text-white leading-none">LEADERBOARD</h1>
+          <h1 className="font-display text-3xl leading-none tracking-wide text-white sm:text-5xl">LEADERBOARD</h1>
           <p className="text-sm text-slate-400 mt-0.5">{selectedExercise.name} · Top weights</p>
         </div>
 
         {/* Loading */}
         {loading && (
-          <div className="glass-card space-y-3 p-4">
+          <div className="space-y-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="skeleton w-8 h-8 rounded-full flex-shrink-0" />
@@ -230,26 +230,26 @@ export default function LeaderboardPage() {
         )}
 
         {!loading && selectedExercise.id === '' && (
-          <Card className="text-center py-12">
-            <Trophy className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+            <Card className="rounded-2xl border border-white/6 bg-[#0a0a0a] py-12 text-center">
+            <Trophy className="mx-auto mb-3 h-10 w-10 text-slate-700" />
             <p className="text-slate-400">This exercise isn&apos;t in the database yet.</p>
             <p className="text-slate-600 text-sm mt-1">Log it in a workout to unlock the leaderboard!</p>
           </Card>
         )}
 
         {!loading && selectedExercise.id !== '' && board.length === 0 && (
-          <Card className="text-center py-12">
-            <Trophy className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+            <Card className="rounded-2xl border border-white/6 bg-[#0a0a0a] py-12 text-center">
+            <Trophy className="mx-auto mb-3 h-10 w-10 text-slate-700" />
             <p className="text-slate-400">No PRs yet for this exercise.</p>
             <p className="text-slate-600 text-sm mt-1">Be the first to log it!</p>
           </Card>
         )}
 
         {!loading && board.length > 0 && (
-          <Card className="overflow-hidden p-0 fade-in">
+          <Card className="overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a] p-0 fade-in">
             {/* Podium */}
             {board.length >= 3 && (
-              <div className="flex items-end justify-center gap-4 p-5 bg-gradient-to-b from-red-900/10 to-transparent border-b border-white/5">
+              <div className="flex items-end justify-center gap-4 border-b border-white/5 bg-gradient-to-b from-violet-900/10 to-transparent p-5">
                 {[board[1], board[0], board[2]].map((entry, podiumIdx) => {
                   const rankIdx  = entry.rank - 1;
                   const isFirst  = podiumIdx === 1;
@@ -276,7 +276,7 @@ export default function LeaderboardPage() {
                 <div
                   key={entry.id}
                   className={`flex items-center justify-between px-4 py-3 ${
-                    entry.is_current_user ? 'bg-red-600/5 border-l-2 border-red-600' : 'hover:bg-white/2'
+                    entry.is_current_user ? 'bg-violet-500/5 border-l-2 border-violet-500' : 'hover:bg-white/3'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -286,16 +286,16 @@ export default function LeaderboardPage() {
                         : `#${entry.rank}`}
                     </div>
                     <div>
-                      <p className={`text-sm font-medium ${entry.is_current_user ? 'text-red-300' : 'text-white'}`}>
+                      <p className={`text-sm font-medium ${entry.is_current_user ? 'text-violet-300' : 'text-white'}`}>
                         {displayName(entry)}
-                        {entry.is_current_user && <span className="ml-1.5 text-xs text-red-500">(you)</span>}
+                        {entry.is_current_user && <span className="ml-1.5 text-xs text-violet-400">(you)</span>}
                       </p>
                       <p className="text-xs text-slate-500">{new Date(entry.achieved_at).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                    <span className="font-bold text-amber-400">{entry.max_weight} kg</span>
+                    <Trophy className="w-3.5 h-3.5 text-violet-400" />
+                    <span className="font-bold text-violet-400">{entry.max_weight} kg</span>
                   </div>
                 </div>
               ))}
@@ -312,7 +312,7 @@ export default function LeaderboardPage() {
     const muscleInfo = MUSCLE_GROUPS.find((m) => m.key === selectedMuscle);
 
     return (
-      <div className="space-y-5 fade-in">
+        <div className="relative space-y-5 overflow-hidden fade-in">
         {/* Back */}
         <button
           onClick={() => setSelectedMuscle(null)}
@@ -334,13 +334,13 @@ export default function LeaderboardPage() {
             // Only show "Tracked" if someone in the gym has actually logged this exercise
             const isTracked = dbEx ? exercisesWithPRs.has(dbEx.id) : false;
             return (
-              <button
+          <button
                 key={name}
                 onClick={() => handleSelectExercise(name)}
-                className="flex items-center justify-between px-4 py-3.5 glass-card hover:border-red-600/40 text-left transition-all active:scale-[0.98] group"
+                className="flex items-center justify-between rounded-2xl border border-white/6 bg-[#0a0a0a] px-4 py-3.5 text-left transition-all hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)] active:scale-[0.98] group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className={`text-lg flex-shrink-0 ${muscleInfo?.color || 'text-red-400'}`}>{muscleInfo?.emoji}</span>
+                  <span className={`text-lg flex-shrink-0 ${muscleInfo?.color || 'text-violet-400'}`}>{muscleInfo?.emoji}</span>
                   <span className="text-sm font-medium text-white truncate">{name}</span>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -359,8 +359,8 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-5 fade-in">
       <div>
-        <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500 mb-1">Rankings</p>
-        <h1 className="font-display text-3xl sm:text-5xl text-white leading-none">LEADERBOARD</h1>
+        <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">Rankings</p>
+        <h1 className="font-display text-3xl leading-none tracking-wide text-white sm:text-5xl">LEADERBOARD</h1>
         <p className="text-sm text-slate-400 mt-1.5">Select a muscle group to view top lifters</p>
       </div>
 
@@ -375,11 +375,11 @@ export default function LeaderboardPage() {
             <button
               key={mg.key}
               onClick={() => setSelectedMuscle(mg.key)}
-              className={`glass-card p-4 text-left hover:border-opacity-60 transition-all active:scale-[0.97] border ${mg.bg} group`}
+              className={`group rounded-2xl border p-4 text-left transition-all active:scale-[0.97] ${mg.bg} hover:border-violet-500/30 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]`}
             >
               <span className="text-3xl block mb-2">{mg.emoji}</span>
               <p className={`font-display text-base font-bold ${mg.color} leading-none`}>{mg.key}</p>
-              <p className="text-[11px] text-slate-600 mt-1">
+              <p className="mt-1 text-[11px] text-slate-600">
                 {getExercisesForMuscle(mg.key).length} exercises
                 {trackedCount > 0 && ` · ${trackedCount} tracked`}
               </p>
@@ -389,9 +389,9 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Quick tips */}
-      <div className="glass-card p-4">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Trophy className="w-3.5 h-3.5 text-amber-400" /> How rankings work
+      <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4">
+        <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <Trophy className="w-3.5 h-3.5 text-violet-400" /> How rankings work
         </p>
         <div className="space-y-2 text-xs text-slate-500">
           <p>🏋️ Rankings are based on your <span className="text-slate-300">personal records</span> — the highest weight lifted for any exercise.</p>

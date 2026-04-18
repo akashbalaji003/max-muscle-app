@@ -113,7 +113,7 @@ function deserializePlan(raw: unknown): PlanDay[] {
 }
 
 // ─── Colour palette for charts ────────────────────────────────────────────────
-const COLOURS = ['#E11D1D', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
+const COLOURS = ['#8B5CF6', '#A855F7', '#6366F1', '#C084FC', '#7C3AED', '#A78BFA'];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -310,16 +310,16 @@ export default function MemberAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-[#000000]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <p className="text-red-400">{error || 'Member not found'}</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#000000]">
+        <p className="text-violet-400">{error || 'Member not found'}</p>
       </div>
     );
   }
@@ -361,7 +361,7 @@ export default function MemberAnalyticsPage() {
   }).length;
   const trendDiff = recentWorkoutsCount - prevWorkoutsCount;
   const trendLabel = trendDiff > 0 ? `+${trendDiff} vs prev 4wk` : trendDiff < 0 ? `${trendDiff} vs prev 4wk` : 'Same as prev 4wk';
-  const trendColor = trendDiff > 0 ? 'text-emerald-400' : trendDiff < 0 ? 'text-rose-400' : 'text-slate-400';
+  const trendColor = trendDiff > 0 ? 'text-violet-400' : trendDiff < 0 ? 'text-violet-300' : 'text-slate-400';
 
   const weightData = weightLogs.map((w) => ({ date: fmt(w.logged_at), weight: w.weight_kg }));
 
@@ -380,11 +380,31 @@ export default function MemberAnalyticsPage() {
 
   const PERIOD_LABELS: Record<Period, string> = { all: 'All Time', '3mo': '3 Months', '1mo': '1 Month' };
 
-  const tooltipStyle = { background: '#111', border: '1px solid #333', borderRadius: 8, fontSize: 12 };
+  const tooltipStyle = {
+    background: '#111111',
+    border: '1px solid rgba(139,92,246,0.25)',
+    borderRadius: 12,
+    fontSize: 12,
+    color: '#e2e8f0',
+    padding: '8px 12px',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.45)',
+  };
 
   return (
     <>
       <style>{`
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+          50% { box-shadow: 0 0 40px rgba(124,58,237,0.35); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
         @media print {
           .no-print { display: none !important; }
           body { background: white !important; color: black !important; }
@@ -393,8 +413,14 @@ export default function MemberAnalyticsPage() {
         }
       `}</style>
 
-      <div className="admin-shell min-h-screen bg-[#000000] p-4 md:p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="admin-shell relative min-h-screen overflow-x-hidden bg-[#000000] px-4 py-4 pb-24 text-white md:px-6 lg:px-8 lg:pb-8">
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute left-1/2 top-0 h-[280px] w-[280px] -translate-x-1/2 rounded-full bg-violet-600/6 blur-[120px] sm:h-[420px] sm:w-[420px] sm:blur-[160px]" />
+          <div className="absolute bottom-0 right-0 h-[220px] w-[220px] rounded-full bg-indigo-700/5 blur-[120px] sm:h-[360px] sm:w-[360px] sm:blur-[150px]" />
+          <div className="absolute left-[-80px] top-1/2 h-[200px] w-[200px] rounded-full bg-purple-800/4 blur-[120px] sm:h-[320px] sm:w-[320px] sm:blur-[150px]" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-5xl space-y-6">
 
           {/* ── Header ─────────────────────────────────────────────────── */}
           <div className="flex flex-wrap items-center justify-between gap-3 no-print">
@@ -407,11 +433,11 @@ export default function MemberAnalyticsPage() {
               <span className="text-slate-300 text-sm font-medium truncate">{user.name || user.phone_number}</span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button onClick={load} className="p-2 text-slate-400 hover:text-white transition-colors">
+              <button onClick={load} className="p-2 text-slate-400 transition-colors hover:text-white">
                 <RefreshCw className="w-4 h-4" />
               </button>
               <button onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-2 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-all">
+                className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-violet-500">
                 <Download className="w-3.5 h-3.5" /> Report
               </button>
             </div>
@@ -424,7 +450,7 @@ export default function MemberAnalyticsPage() {
               <button key={p} onClick={() => setPeriod(p)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                   period === p
-                    ? 'bg-red-600 text-white'
+                    ? 'bg-violet-600 text-white'
                     : 'bg-white/5 text-slate-400 hover:bg-white/10'
                 }`}>
                 {PERIOD_LABELS[p]}
@@ -434,33 +460,33 @@ export default function MemberAnalyticsPage() {
 
           {/* ── SECTION A — Overview ─────────────────────────────────────── */}
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <User className="w-4 h-4 text-red-400" />
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Overview</h2>
+              <div className="flex items-center gap-2 mb-3">
+                <User className="w-4 h-4 text-violet-400" />
+                <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Overview</h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
               {[
                 {
                   label: 'Member', icon: User, color: 'text-slate-300',
                   value: user.name || '—', sub: user.phone_number,
                 },
                 {
-                  label: 'Tenure', icon: Calendar, color: 'text-blue-400',
+                  label: 'Tenure', icon: Calendar, color: 'text-violet-400',
                   value: membershipDuration,
                   sub: new Date(joinDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
                 },
                 {
-                  label: 'Status', icon: Activity, color: membershipActive ? 'text-emerald-400' : 'text-rose-400',
+                  label: 'Status', icon: Activity, color: membershipActive ? 'text-violet-400' : 'text-violet-300',
                   value: membershipActive ? 'Active' : 'Expired',
                   sub: daysLeft !== null ? `${daysLeft}d left` : 'No plan',
                 },
                 {
-                  label: 'Workouts', icon: Dumbbell, color: 'text-amber-400',
+                  label: 'Workouts', icon: Dumbbell, color: 'text-violet-400',
                   value: filteredWorkouts.length,
                   sub: `${totalMinutes} min`,
                 },
                 {
-                  label: 'Streak', icon: Flame, color: 'text-orange-400',
+                  label: 'Streak', icon: Flame, color: 'text-violet-400',
                   value: `${streak}d`,
                   sub: `${filteredAttendance.length} check-ins`,
                 },
@@ -469,12 +495,12 @@ export default function MemberAnalyticsPage() {
                   value: recentWorkoutsCount,
                   sub: trendLabel,
                 },
-              ].map(({ label, icon: Icon, color, value, sub }) => (
-                <Card key={label} className="print-card p-3 md:p-4">
-                  <div className={`mb-1 ${color}`}><Icon className="w-4 h-4" /></div>
-                  <p className="text-[10px] text-slate-500 mb-0.5">{label}</p>
-                  <p className="text-lg md:text-xl font-bold text-white leading-tight">{value}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5 break-words">{sub}</p>
+              ].map(({ label, icon: Icon, value, sub }, index) => (
+                <Card key={label} className="print-card group rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-500/20 hover:shadow-[0_0_30px_rgba(124,58,237,0.10)]" style={{ animation: 'fade-up 300ms ease-out both', animationDelay: `${index * 80}ms` }}>
+                  <div className="mb-2 inline-flex rounded-lg bg-violet-500/10 p-2 text-violet-400 transition-transform duration-200 group-hover:scale-110"><Icon className="h-4 w-4" /></div>
+                  <p className="mb-0.5 text-[10px] text-slate-500">{label}</p>
+                  <p className="font-display text-3xl font-black leading-none text-white">{value}</p>
+                  <p className="mt-1 break-words text-[10px] text-slate-500">{sub}</p>
                 </Card>
               ))}
             </div>
@@ -483,27 +509,27 @@ export default function MemberAnalyticsPage() {
           {/* ── SECTION B — Workout Plan Builder ────────────────────────── */}
           <section className="no-print">
             <div className="flex items-center gap-2 mb-3">
-              <ClipboardList className="w-4 h-4 text-red-400" />
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Workout Plan Override</h2>
-              <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                user.plan_source === 'admin' ? 'bg-violet-500/20 text-violet-400' : 'bg-slate-700 text-slate-400'
+              <ClipboardList className="w-4 h-4 text-violet-400" />
+              <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Workout Plan Override</h2>
+              <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                user.plan_source === 'admin' ? 'border border-violet-500/20 bg-violet-500/10 text-violet-400' : 'border border-white/10 bg-white/5 text-slate-400'
               }`}>
                 {user.plan_source === 'admin' ? 'Admin override active' : 'System auto'}
               </span>
             </div>
 
-            <Card className="p-4 space-y-4">
+            <Card className="space-y-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(124,58,237,0.08)] sm:p-6">
               {/* Mode toggle */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setPlanMode('preset')}
-                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${planMode === 'preset' ? 'bg-red-700 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+                  className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${planMode === 'preset' ? 'bg-violet-600 text-white shadow-[0_0_24px_rgba(124,58,237,0.18)]' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'}`}
                 >
                   Preset Plan
                 </button>
                 <button
                   onClick={() => setPlanMode('custom')}
-                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${planMode === 'custom' ? 'bg-red-700 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+                  className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 ${planMode === 'custom' ? 'bg-violet-600 text-white shadow-[0_0_24px_rgba(124,58,237,0.18)]' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'}`}
                 >
                   Custom Builder
                 </button>
@@ -513,17 +539,17 @@ export default function MemberAnalyticsPage() {
               {planMode === 'preset' && (
                 <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                   <div className="flex-1">
-                    <label className="text-xs text-slate-400 block mb-1.5">Assign a preset plan</label>
+                    <label className="mb-1.5 block text-xs text-slate-400">Assign a preset plan</label>
                     <select
                       value={selectedPlan}
                       onChange={(e) => setSelectedPlan(e.target.value)}
-                      className="w-full sm:max-w-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500"
+                      className="w-full rounded-xl border border-white/10 bg-[#111111] px-3 py-3 text-sm text-white transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10 sm:max-w-xs"
                     >
                       {PLAN_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value} className="bg-[#111]">{o.label}</option>
                       ))}
                     </select>
-                    <p className="text-[10px] text-slate-600 mt-1">The member will see this plan as a quick-start option in their workout page.</p>
+                    <p className="mt-1 text-[10px] text-slate-600">The member will see this plan as a quick-start option in their workout page.</p>
                   </div>
                 </div>
               )}
@@ -534,9 +560,9 @@ export default function MemberAnalyticsPage() {
                   <p className="text-xs text-slate-500">Build a day-by-day workout plan. Each day can have different exercises with specific sets, reps, and weights.</p>
 
                   {customDays.map((day, dayIdx) => (
-                    <div key={day._id} className="border border-white/10 rounded-xl overflow-hidden">
+                    <div key={day._id} className="overflow-hidden rounded-2xl border border-white/10 bg-[#050505]">
                       {/* Day header */}
-                      <div className="flex items-center gap-2 px-3 py-2.5 bg-white/5">
+                      <div className="flex items-center gap-2 bg-white/5 px-3 py-2.5">
                         <button
                           onClick={() => setCustomDays((prev) => prev.map((d) => d._id === day._id ? { ...d, collapsed: !d.collapsed } : d))}
                           className="text-slate-400 hover:text-white transition-colors"
@@ -546,15 +572,15 @@ export default function MemberAnalyticsPage() {
                         <input
                           value={day.label}
                           onChange={(e) => setCustomDays((prev) => prev.map((d) => d._id === day._id ? { ...d, label: e.target.value } : d))}
-                          className="flex-1 bg-transparent border-none text-sm font-semibold text-white focus:outline-none placeholder:text-slate-600"
+                          className="flex-1 border-none bg-transparent text-sm font-semibold text-white placeholder:text-slate-600 focus:outline-none"
                           placeholder={`Day ${dayIdx + 1}`}
                         />
                         <span className="text-[10px] text-slate-600 shrink-0">{day.exercises.length} exercise{day.exercises.length !== 1 ? 's' : ''}</span>
                         {customDays.length > 1 && (
-                          <button
-                            onClick={() => setCustomDays((prev) => prev.filter((d) => d._id !== day._id))}
-                            className="p-1 text-slate-600 hover:text-rose-400 transition-colors"
-                          >
+                            <button
+                              onClick={() => setCustomDays((prev) => prev.filter((d) => d._id !== day._id))}
+                              className="p-1 text-slate-600 hover:text-rose-400 transition-colors"
+                            >
                             <X className="w-3.5 h-3.5" />
                           </button>
                         )}
@@ -562,9 +588,9 @@ export default function MemberAnalyticsPage() {
 
                       {/* Day body */}
                       {!day.collapsed && (
-                        <div className="p-3 space-y-3">
+                        <div className="space-y-3 p-3">
                           {day.exercises.map((ex, exIdx) => (
-                            <div key={ex._id} className="bg-white/3 border border-white/8 rounded-lg p-3 space-y-2">
+                            <div key={ex._id} className="space-y-2 rounded-xl border border-white/8 bg-white/3 p-3">
                               {/* Exercise row */}
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-slate-600 w-5 shrink-0">{exIdx + 1}.</span>
@@ -583,7 +609,7 @@ export default function MemberAnalyticsPage() {
                                       }),
                                     }));
                                   }}
-                                  className="flex-1 bg-[#0f0f0f] border border-slate-700 rounded-lg px-2.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-red-600 min-h-[40px]"
+                                  className="min-h-[40px] flex-1 rounded-lg border border-white/10 bg-[#111111] px-2.5 py-2 text-sm text-slate-100 transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
                                 >
                                   <option value="">Select exercise…</option>
                                   {Object.entries(groupedPlanEx).map(([cat, exs]) => (
@@ -599,7 +625,7 @@ export default function MemberAnalyticsPage() {
                                     onClick={() => setCustomDays((prev) => prev.map((d) => d._id !== day._id ? d : {
                                       ...d, exercises: d.exercises.filter((x) => x._id !== ex._id),
                                     }))}
-                                    className="p-1.5 text-slate-600 hover:text-rose-400 transition-colors shrink-0"
+                                    className="p-1.5 text-slate-600 transition-colors hover:text-rose-400 shrink-0"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -612,7 +638,7 @@ export default function MemberAnalyticsPage() {
 
                               {/* Sets */}
                               <div className="pl-7 space-y-1.5">
-                                <div className="grid grid-cols-[1fr_1fr_auto] gap-2 mb-1">
+                                <div className="mb-1 grid grid-cols-[1fr_1fr_auto] gap-2">
                                   <span className="text-[10px] text-slate-600 font-semibold">Weight (kg)</span>
                                   <span className="text-[10px] text-slate-600 font-semibold">Reps</span>
                                   <span />
@@ -629,7 +655,7 @@ export default function MemberAnalyticsPage() {
                                           ...x, sets: x.sets.map((s, i) => i === setIdx ? { ...s, weight: e.target.value } : s),
                                         }),
                                       }))}
-                                      className="bg-[#0f0f0f] border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-red-600 w-full"
+                                      className="w-full rounded-md border border-white/10 bg-[#111111] px-2.5 py-1.5 text-xs text-white transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
                                     />
                                     <input
                                       type="number"
@@ -641,7 +667,7 @@ export default function MemberAnalyticsPage() {
                                           ...x, sets: x.sets.map((s, i) => i === setIdx ? { ...s, reps: e.target.value } : s),
                                         }),
                                       }))}
-                                      className="bg-[#0f0f0f] border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-red-600 w-full"
+                                      className="w-full rounded-md border border-white/10 bg-[#111111] px-2.5 py-1.5 text-xs text-white transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
                                     />
                                     <button
                                       disabled={ex.sets.length <= 1}
@@ -650,7 +676,7 @@ export default function MemberAnalyticsPage() {
                                           ...x, sets: x.sets.filter((_, i) => i !== setIdx),
                                         }),
                                       }))}
-                                      className="p-1 text-slate-600 hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                      className="p-1 text-slate-600 transition-colors hover:text-rose-400 disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -662,7 +688,7 @@ export default function MemberAnalyticsPage() {
                                       ...x, sets: [...x.sets, { weight: x.sets[x.sets.length - 1]?.weight || '', reps: x.sets[x.sets.length - 1]?.reps || '10' }],
                                     }),
                                   }))}
-                                  className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-emerald-400 transition-colors mt-1"
+                                  className="mt-1 flex items-center gap-1 text-[10px] text-slate-500 transition-colors hover:text-violet-400"
                                 >
                                   <Plus className="w-3 h-3" /> Add set
                                 </button>
@@ -673,7 +699,7 @@ export default function MemberAnalyticsPage() {
                           {/* Add exercise to this day */}
                           <button
                             onClick={() => setCustomDays((prev) => prev.map((d) => d._id === day._id ? { ...d, exercises: [...d.exercises, makePlanExercise()] } : d))}
-                            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-white border border-dashed border-white/10 hover:border-white/20 rounded-lg px-3 py-2 w-full transition-all"
+                            className="flex w-full items-center gap-1.5 rounded-lg border border-dashed border-white/10 px-3 py-2 text-xs text-slate-500 transition-all duration-200 hover:border-violet-500/20 hover:text-white"
                           >
                             <Plus className="w-3.5 h-3.5" /> Add exercise to {day.label}
                           </button>
@@ -685,7 +711,7 @@ export default function MemberAnalyticsPage() {
                   {/* Add day */}
                   <button
                     onClick={() => setCustomDays((prev) => [...prev, makePlanDay(prev.length)])}
-                    className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-white border border-dashed border-white/10 hover:border-white/20 rounded-lg px-4 py-3 w-full transition-all justify-center"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/10 px-4 py-3 text-xs text-slate-500 transition-all duration-200 hover:border-violet-500/20 hover:text-white"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add workout day
                   </button>
@@ -693,10 +719,10 @@ export default function MemberAnalyticsPage() {
               )}
 
               {/* Save bar */}
-              <div className="flex items-center justify-between pt-2 border-t border-white/5">
+              <div className="flex items-center justify-between border-t border-white/5 pt-2">
                 <div className="flex items-center gap-2">
                   {planMsg && (
-                    <span className={`text-xs ${planMsg.includes('saved') ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className={`text-xs ${planMsg.includes('saved') ? 'text-violet-400' : 'text-rose-400'}`}>
                       {planMsg}
                     </span>
                   )}
@@ -715,7 +741,7 @@ export default function MemberAnalyticsPage() {
                         setPlanMsg('Reset to system.');
                         setTimeout(() => setPlanMsg(''), 3000);
                       }}
-                      className="text-[10px] text-slate-600 hover:text-rose-400 transition-colors"
+                      className="text-[10px] text-slate-600 transition-colors hover:text-violet-400"
                     >
                       Reset to system
                     </button>
@@ -724,7 +750,7 @@ export default function MemberAnalyticsPage() {
                 <button
                   onClick={savePlan}
                   disabled={planSaving}
-                  className="px-5 py-2 bg-red-700 hover:bg-red-600 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-all"
+                  className="rounded-lg bg-violet-600 px-5 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-violet-500 disabled:opacity-50"
                 >
                   {planSaving ? 'Saving…' : 'Save Plan'}
                 </button>
@@ -736,8 +762,8 @@ export default function MemberAnalyticsPage() {
           {(weightData.length > 0 || bmi) && (
             <section>
               <div className="flex items-center gap-2 mb-3">
-                <Scale className="w-4 h-4 text-red-400" />
-                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Body Progress</h2>
+                <Scale className="w-4 h-4 text-violet-400" />
+                <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Body Progress</h2>
                 {bmi && (
                   <span className="text-xs text-slate-500">
                     BMI: <span className="text-white font-semibold">{bmi}</span>
@@ -746,29 +772,29 @@ export default function MemberAnalyticsPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {weightData.length > 1 && (
-                  <Card className="print-card p-4">
-                    <p className="text-xs text-slate-400 mb-3 font-medium">Weight (kg)</p>
+                  <Card className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
+                    <p className="mb-3 text-xs font-medium text-slate-400">Weight (kg)</p>
                     <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={weightData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
                         <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#64748b' }} interval="preserveStartEnd" />
                         <YAxis tick={{ fontSize: 9, fill: '#64748b' }} domain={['auto', 'auto']} width={36} />
                         <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: '#333' }} />
-                        <Line type="monotone" dataKey="weight" stroke="#E11D1D" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="weight" stroke="#8B5CF6" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </Card>
                 )}
                 {bmiData.length > 1 && (
-                  <Card className="print-card p-4">
-                    <p className="text-xs text-slate-400 mb-3 font-medium">BMI Trend</p>
+                  <Card className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
+                    <p className="mb-3 text-xs font-medium text-slate-400">BMI Trend</p>
                     <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={bmiData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
                         <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#64748b' }} interval="preserveStartEnd" />
                         <YAxis tick={{ fontSize: 9, fill: '#64748b' }} domain={['auto', 'auto']} width={36} />
                         <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: '#333' }} />
-                        <Line type="monotone" dataKey="bmi" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="bmi" stroke="#A855F7" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </Card>
@@ -786,18 +812,18 @@ export default function MemberAnalyticsPage() {
                 {weeklyData.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <BarChart2 className="w-4 h-4 text-red-400" />
-                      <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Consistency</h2>
+                      <BarChart2 className="w-4 h-4 text-violet-400" />
+                      <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Consistency</h2>
                       <span className="text-[10px] text-slate-600">last 12 wk</span>
                     </div>
-                    <Card className="print-card p-4">
+                    <Card className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
                       <ResponsiveContainer width="100%" height={200}>
                         <BarChart data={weeklyData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
                           <XAxis dataKey="week" tick={{ fontSize: 9, fill: '#64748b' }} interval="preserveStartEnd" />
                           <YAxis allowDecimals={false} tick={{ fontSize: 9, fill: '#64748b' }} />
-                          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(225,29,29,0.08)' }} />
-                          <Bar dataKey="count" fill="#E11D1D" radius={[4, 4, 0, 0]} name="Workouts" />
+                          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(124,58,237,0.08)' }} />
+                          <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Workouts" />
                         </BarChart>
                       </ResponsiveContainer>
                     </Card>
@@ -808,14 +834,14 @@ export default function MemberAnalyticsPage() {
                 {strengthData.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <TrendingUp className="w-4 h-4 text-red-400" />
-                      <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Strength</h2>
+                      <TrendingUp className="w-4 h-4 text-violet-400" />
+                      <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Strength</h2>
                       <span className="text-[10px] text-slate-600 truncate">{strengthData[0].name}</span>
                     </div>
-                    <Card className="print-card p-4">
+                    <Card className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
                       <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={strengthData[0].data}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
                           <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#64748b' }} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} domain={['auto', 'auto']} unit=" kg" />
                           <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: '#333' }} />
@@ -831,16 +857,16 @@ export default function MemberAnalyticsPage() {
               {strengthData.length > 1 && (
                 <div className="mt-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-4 h-4 text-red-400" />
-                    <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">More Strength Trends</h2>
+                    <TrendingUp className="w-4 h-4 text-violet-400" />
+                    <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">More Strength Trends</h2>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {strengthData.slice(1).map(({ name, data: pts }, i) => (
-                      <Card key={name} className="print-card p-4">
-                        <p className="text-xs text-slate-400 mb-3 font-medium">{name}</p>
+                      <Card key={name} className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
+                        <p className="mb-3 text-xs font-medium text-slate-400">{name}</p>
                         <ResponsiveContainer width="100%" height={140}>
                           <LineChart data={pts}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
                             <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#64748b' }} />
                             <YAxis tick={{ fontSize: 9, fill: '#64748b' }} domain={['auto', 'auto']} unit=" kg" />
                             <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: '#333' }} />
@@ -859,11 +885,11 @@ export default function MemberAnalyticsPage() {
           {muscleData.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-3">
-                <Activity className="w-4 h-4 text-red-400" />
-                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Muscle Distribution</h2>
+                <Activity className="w-4 h-4 text-violet-400" />
+                <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Muscle Distribution</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="print-card p-4 flex flex-col items-center">
+                <Card className="print-card flex flex-col items-center rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
                       <Pie data={muscleData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}
@@ -876,10 +902,10 @@ export default function MemberAnalyticsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </Card>
-                <Card className="print-card p-4">
+                <Card className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={muscleData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" horizontal={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 10, fill: '#64748b' }} />
                       <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 10, fill: '#94a3b8' }} />
                       <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(225,29,29,0.08)' }} />
@@ -896,12 +922,12 @@ export default function MemberAnalyticsPage() {
           {/* ── SECTION F — Workout Summary ──────────────────────────────── */}
           <section>
             <div className="flex items-center gap-2 mb-3">
-              <Dumbbell className="w-4 h-4 text-red-400" />
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Summary</h2>
+              <Dumbbell className="w-4 h-4 text-violet-400" />
+              <h2 className="font-display text-xs font-semibold uppercase tracking-widest text-slate-400">Summary</h2>
               {period !== 'all' && <span className="text-[10px] text-slate-600">({PERIOD_LABELS[period]})</span>}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="print-card p-4 space-y-3">
+              <Card className="print-card space-y-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
                 {[
                   { label: 'Total Workouts', value: filteredWorkouts.length },
                   { label: 'Total Duration', value: `${totalMinutes} min` },
@@ -918,8 +944,8 @@ export default function MemberAnalyticsPage() {
                 ))}
               </Card>
 
-              <Card className="print-card p-4">
-                <p className="text-xs text-slate-400 font-medium mb-3">Most Frequent Exercises</p>
+              <Card className="print-card rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_30px_rgba(124,58,237,0.08)] transition-all duration-300 hover:border-violet-500/20">
+                <p className="mb-3 text-xs font-medium text-slate-400">Most Frequent Exercises</p>
                 {top5.length === 0 ? (
                   <p className="text-slate-600 text-sm">No workout entries yet</p>
                 ) : (
@@ -933,7 +959,7 @@ export default function MemberAnalyticsPage() {
                             <span className="text-slate-500 ml-2 shrink-0">{count}×</span>
                           </div>
                           <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full bg-red-600" style={{ width: `${pct}%` }} />
+                            <div className="h-full rounded-full bg-violet-600" style={{ width: `${pct}%` }} />
                           </div>
                         </div>
                       );
@@ -946,7 +972,7 @@ export default function MemberAnalyticsPage() {
 
           {/* ── Empty state ───────────────────────────────────────────────── */}
           {workouts.length === 0 && attendance.length === 0 && weightLogs.length === 0 && (
-            <Card className="p-10 text-center">
+            <Card className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-10 text-center shadow-[0_0_30px_rgba(124,58,237,0.08)]">
               <p className="text-slate-500">No workout or attendance data available for this member.</p>
             </Card>
           )}

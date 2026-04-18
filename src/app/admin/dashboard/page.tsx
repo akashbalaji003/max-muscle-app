@@ -74,8 +74,6 @@ export default function AdminDashboardPage() {
   const [renewError, setRenewError] = useState('');
   const [renewLoading, setRenewLoading] = useState(false);
 
-  useEffect(() => { loadAll(); }, []);
-
   async function loadAttendance(date: string) {
     const aRes = await fetch(`/api/admin/attendance?date=${date}`);
     if (aRes.ok) {
@@ -102,6 +100,8 @@ export default function AdminDashboardPage() {
     }
     setRefreshing(false);
   }
+
+  useEffect(() => { loadAll(); }, []);
 
   // ── Add Membership ──────────────────────────────────────────────────────
   async function handleAdd(e: React.FormEvent) {
@@ -212,10 +212,10 @@ export default function AdminDashboardPage() {
   );
 
   const STATS = [
-    { label: 'Total Members', value: users.length, icon: Users, color: 'red' as const },
-    { label: 'Active', value: activeMembers, icon: CheckCircle, color: 'emerald' as const },
-    { label: 'Expired', value: expiredMembers, icon: XCircle, color: 'rose' as const },
-    { label: "Today's Check-ins", value: todayAttendance.length, icon: Clock, color: 'amber' as const },
+    { label: 'Total Members', value: users.length, icon: Users, color: 'violet' as const },
+    { label: 'Active', value: activeMembers, icon: CheckCircle, color: 'violet' as const },
+    { label: 'Expired', value: expiredMembers, icon: XCircle, color: 'violet' as const },
+    { label: "Today's Check-ins", value: todayAttendance.length, icon: Clock, color: 'violet' as const },
   ];
 
   const TABS = [
@@ -226,62 +226,94 @@ export default function AdminDashboardPage() {
   ] as const;
 
   return (
-    <div className="admin-shell min-h-screen bg-[#000000] p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="admin-shell relative min-h-screen overflow-x-hidden bg-[#000000] px-4 py-4 pb-24 text-white md:px-6 lg:px-8 lg:pb-8">
+      <style>{`
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes count-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+          50% { box-shadow: 0 0 40px rgba(124,58,237,0.35); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
+
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-0 h-[280px] w-[280px] -translate-x-1/2 rounded-full bg-violet-600/6 blur-[120px] sm:h-[420px] sm:w-[420px] sm:blur-[160px]" />
+        <div className="absolute bottom-0 right-0 h-[220px] w-[220px] rounded-full bg-indigo-700/5 blur-[120px] sm:h-[360px] sm:w-[360px] sm:blur-[150px]" />
+        <div className="absolute left-[-80px] top-1/2 h-[200px] w-[200px] rounded-full bg-purple-800/4 blur-[120px] sm:h-[320px] sm:w-[320px] sm:blur-[150px]" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 gap-3">
+        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_40px_rgba(124,58,237,0.08)] sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Shield className="w-5 h-5 text-white" />
+            <div
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10"
+              style={{ animation: 'glow-pulse 3s ease-in-out infinite' }}
+            >
+              <Shield className="h-5 w-5 text-violet-400" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-white leading-tight">Admin Dashboard</h1>
-              <p className="text-xs text-slate-400">Max Muscle Lifestyle Fitness Studio</p>
+              <h1 className="font-display text-xl tracking-wide text-white leading-tight">Admin Dashboard</h1>
+              <p className="text-xs uppercase tracking-widest text-slate-500">Max Muscle Lifestyle Fitness Studio</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Link href="/dashboard" className="flex items-center gap-1.5 px-2.5 py-2 bg-slate-700/40 text-slate-300 border border-slate-600/40 rounded-xl text-xs font-medium hover:bg-slate-700/60 transition-all">
-              <Home className="w-3.5 h-3.5" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/dashboard" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-white/8 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 transition-all duration-200 hover:border-violet-500/20 hover:bg-violet-500/8">
+              <Home className="h-3.5 w-3.5 text-violet-400" />
               <span className="hidden sm:inline">Member Site</span>
             </Link>
-            <Link href="/admin/qr" className="flex items-center gap-1.5 px-2.5 py-2 bg-red-700/20 text-red-300 border border-red-600/30 rounded-xl text-xs font-medium hover:bg-red-700/30 transition-all">
-              <QrCode className="w-3.5 h-3.5" />
+            <Link href="/admin/qr" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-violet-500/20 bg-violet-500/10 px-3 py-2 text-xs font-medium text-violet-300 transition-all duration-200 hover:bg-violet-500/15">
+              <QrCode className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">QR Code</span>
             </Link>
-            <button onClick={loadAll} disabled={refreshing} className="p-2 text-slate-400 hover:text-white transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center">
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <button onClick={loadAll} disabled={refreshing} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/8 bg-white/5 p-2 text-slate-400 transition-all duration-200 hover:border-violet-500/20 hover:text-white">
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={handleLogout} className="flex items-center gap-1.5 px-2.5 py-2 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
-              <LogOut className="w-3.5 h-3.5" />
+            <button onClick={handleLogout} className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-red-400/20 bg-transparent px-3 py-2 text-xs text-red-400 transition-all duration-200 hover:bg-red-500/8 hover:text-red-300">
+              <LogOut className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 stagger">
-          {STATS.map(({ label, value, icon: Icon, color }) => (
-            <Card key={label} className="flex items-center gap-3 p-4 fade-in">
-              <div className={`p-2.5 rounded-xl flex-shrink-0 bg-${color}-500/10 text-${color}-400 transition-transform group-hover:scale-110`}>
-                <Icon className="w-4 h-4" />
+        <div className="stagger mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {STATS.map(({ label, value, icon: Icon, color }, index) => (
+            <Card
+              key={label}
+              className="group flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-500/20 hover:shadow-[0_0_30px_rgba(124,58,237,0.10)]"
+              style={{ animation: 'fade-up 300ms ease-out both', animationDelay: `${index * 80}ms` }}
+            >
+              <div className={`rounded-xl p-2.5 flex-shrink-0 bg-${color}-500/10 text-violet-400 transition-transform duration-200 group-hover:scale-110`}>
+                <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-slate-500 truncate">{label}</p>
-                <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+                <p className="truncate text-xs text-slate-500">{label}</p>
+                <p className="font-display text-3xl font-black text-white tabular-nums" style={{ animation: 'count-in 400ms ease both', animationDelay: `${index * 80 + 80}ms` }}>{value}</p>
               </div>
             </Card>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-[#0f0f0f] rounded-xl p-1 mb-5 overflow-x-auto">
+        <div className="mb-5 flex gap-1 overflow-x-auto rounded-2xl border border-white/6 bg-[#0a0a0a] p-1">
           {TABS.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                tab === key ? 'bg-red-700 text-white' : 'text-slate-400 hover:text-white'
+              className={`flex min-h-[44px] flex-shrink-0 items-center whitespace-nowrap rounded-xl px-4 py-2 text-xs font-medium transition-all duration-200 sm:text-sm ${
+                tab === key ? 'bg-violet-600 text-white shadow-[0_0_24px_rgba(124,58,237,0.18)]' : 'text-slate-400 hover:bg-white/5 hover:text-white'
               }`}
             >
               {label}
@@ -298,18 +330,18 @@ export default function AdminDashboardPage() {
                 placeholder="Search by name or phone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full max-w-sm bg-[#0f0f0f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-600"
+                className="w-full max-w-sm rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-white placeholder:text-slate-600 transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
               />
             </div>
 
-            <Card className="overflow-hidden p-0">
+            <Card className="overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a] p-0">
               {/* Desktop table */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-white/5">
+                  <thead className="border-b border-white/5 bg-[#050505]">
                     <tr>
                       {['ID', 'Name', 'Phone', 'Status', 'Days Left', 'Joined', 'Renewed', 'Actions'].map((h) => (
-                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-widest text-slate-500">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -323,25 +355,25 @@ export default function AdminDashboardPage() {
                       const busy = deletingId === u.id || banningId === u.id || cancellingId === u.id;
 
                       return (
-                        <tr key={u.id} className={`hover:bg-red-600/4 transition-all duration-150 ${u.banned ? 'opacity-60' : ''}`}>
+                        <tr key={u.id} className={`transition-colors duration-150 hover:bg-violet-500/5 ${u.banned ? 'opacity-60' : ''}`}>
                           <td className="px-4 py-3 text-slate-600 font-mono text-xs">{memberId(u.id)}</td>
-                          <td className="px-4 py-3 font-medium text-white">
+                          <td className="px-4 py-3 text-sm font-medium text-white">
                             <div className="flex items-center gap-2 flex-wrap">
                               {u.name || '—'}
                               {u.banned && (
-                                <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded-full font-medium">Banned</span>
+                                <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-400">Banned</span>
                               )}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-slate-400 font-mono text-xs">{u.phone_number}</td>
                           <td className="px-4 py-3">
                             {mem
-                              ? <Badge variant={active ? 'success' : 'danger'}>{active ? 'Active' : 'Expired'}</Badge>
-                              : <Badge variant="default">No Plan</Badge>}
+                              ? <Badge variant={active ? 'success' : 'danger'} className={active ? 'border-violet-500/20 bg-violet-500/10 text-violet-400' : 'border-red-500/20 bg-red-500/10 text-red-400'}>{active ? 'Active' : 'Expired'}</Badge>
+                              : <Badge variant="default" className="border-white/10 bg-white/5 text-slate-400">No Plan</Badge>}
                           </td>
                           <td className="px-4 py-3">
                             {days !== null
-                              ? <span className={`font-semibold ${days === 0 ? 'text-red-400' : days <= 7 ? 'text-amber-400' : 'text-emerald-400'}`}>{days}d</span>
+                              ? <span className="font-semibold text-violet-400">{days}d</span>
                               : <span className="text-slate-600">—</span>}
                           </td>
                           <td className="px-4 py-3 text-slate-400 text-xs">{joinedDate ? formatDate(joinedDate) : '—'}</td>
@@ -351,31 +383,31 @@ export default function AdminDashboardPage() {
                               {mem && (
                                 <button onClick={() => handleCancelMembership(u.id, u.name || u.phone_number)} disabled={busy}
                                   title="Cancel membership"
-                                  className="text-xs text-slate-500 hover:text-orange-400 transition-colors disabled:opacity-50 flex items-center gap-1">
+                                  className="flex items-center gap-1 text-xs text-slate-500 transition-colors disabled:opacity-50 hover:text-violet-400">
                                   {cancellingId === u.id
-                                    ? <div className="w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                                    ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
                                     : <XCircle className="w-3.5 h-3.5" />}
                                   Cancel
                                 </button>
                               )}
                               <button onClick={() => handleToggleBan(u.id, u.name || u.phone_number, u.banned)} disabled={busy}
                                 title={u.banned ? 'Unban' : 'Ban'}
-                                className={`text-xs transition-colors disabled:opacity-50 flex items-center gap-1 ${u.banned ? 'text-emerald-500 hover:text-emerald-400' : 'text-slate-500 hover:text-amber-400'}`}>
+                                className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${u.banned ? 'text-violet-400 hover:text-violet-300' : 'text-slate-500 hover:text-violet-400'}`}>
                                 {banningId === u.id
-                                  ? <div className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                                  ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" />
                                   : u.banned ? <UserCheck className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
                                 {u.banned ? 'Unban' : 'Ban'}
                               </button>
                               <button onClick={() => handleDelete(u.id, u.name || u.phone_number)} disabled={busy}
                                 title="Delete member"
-                                className="text-xs text-slate-500 hover:text-red-400 transition-colors disabled:opacity-50 flex items-center gap-1">
+                                className="flex items-center gap-1 text-xs text-slate-500 transition-colors disabled:opacity-50 hover:text-red-400">
                                 {deletingId === u.id
                                   ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                                   : <Trash2 className="w-3.5 h-3.5" />}
                                 Delete
                               </button>
                               <Link href={`/admin/members/${u.id}`}
-                                className="text-xs text-slate-500 hover:text-blue-400 transition-colors flex items-center gap-1">
+                                className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-violet-400">
                                 <BarChart2 className="w-3.5 h-3.5" />
                                 Analytics
                               </Link>
@@ -402,27 +434,27 @@ export default function AdminDashboardPage() {
                   const busy = deletingId === u.id || banningId === u.id || cancellingId === u.id;
 
                   return (
-                    <div key={u.id} className={`p-4 hover:bg-red-600/4 transition-all duration-150 ${u.banned ? 'opacity-60' : ''}`}>
+                    <div key={u.id} className={`border-t border-white/5 p-4 transition-colors duration-150 hover:bg-violet-500/5 ${u.banned ? 'opacity-60' : ''}`}>
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[10px] text-slate-600 font-mono bg-white/5 px-1.5 py-0.5 rounded">#{memberId(u.id)}</span>
+                            <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-slate-600">#{memberId(u.id)}</span>
                             <p className="font-medium text-white text-sm">{u.name || '—'}</p>
-                            {u.banned && <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded-full">Banned</span>}
+                            {u.banned && <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-1.5 py-0.5 text-[10px] text-violet-400">Banned</span>}
                           </div>
                           <p className="text-xs text-slate-500 font-mono mt-0.5">{u.phone_number}</p>
                         </div>
                         <div className="flex-shrink-0">
                           {mem
-                            ? <Badge variant={active ? 'success' : 'danger'}>{active ? 'Active' : 'Expired'}</Badge>
-                            : <Badge variant="default">No Plan</Badge>}
+                            ? <Badge variant={active ? 'success' : 'danger'} className={active ? 'border-violet-500/20 bg-violet-500/10 text-violet-400' : 'border-red-500/20 bg-red-500/10 text-red-400'}>{active ? 'Active' : 'Expired'}</Badge>
+                            : <Badge variant="default" className="border-white/10 bg-white/5 text-slate-400">No Plan</Badge>}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 text-xs mb-3">
                         <div className="flex flex-col items-center justify-center text-center">
                           <p className="text-slate-600 mb-0.5">Days Left</p>
-                          <p className={`font-semibold ${days === null ? 'text-slate-600' : days === 0 ? 'text-red-400' : days <= 7 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          <p className="font-semibold text-violet-400">
                             {days !== null ? `${days}d` : '—'}
                           </p>
                         </div>
@@ -439,23 +471,23 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center gap-3">
                         {mem && (
                           <button onClick={() => handleCancelMembership(u.id, u.name || u.phone_number)} disabled={busy}
-                            className="text-xs text-slate-600 hover:text-orange-400 transition-colors disabled:opacity-50 flex items-center gap-1">
-                            {cancellingId === u.id ? <div className="w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" /> : <XCircle className="w-3 h-3" />}
+                            className="flex items-center gap-1 text-xs text-slate-500 transition-colors disabled:opacity-50 hover:text-violet-400">
+                            {cancellingId === u.id ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" /> : <XCircle className="w-3 h-3" />}
                             Cancel
                           </button>
                         )}
                         <button onClick={() => handleToggleBan(u.id, u.name || u.phone_number, u.banned)} disabled={busy}
-                          className={`text-xs transition-colors disabled:opacity-50 flex items-center gap-1 ${u.banned ? 'text-emerald-500 hover:text-emerald-400' : 'text-slate-600 hover:text-amber-400'}`}>
-                          {banningId === u.id ? <div className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /> : u.banned ? <UserCheck className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                          className={`flex items-center gap-1 text-xs transition-colors disabled:opacity-50 ${u.banned ? 'text-violet-400 hover:text-violet-300' : 'text-slate-500 hover:text-violet-400'}`}>
+                          {banningId === u.id ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-violet-400 border-t-transparent" /> : u.banned ? <UserCheck className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
                           {u.banned ? 'Unban' : 'Ban'}
                         </button>
                         <button onClick={() => handleDelete(u.id, u.name || u.phone_number)} disabled={busy}
-                          className="text-xs text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50 flex items-center gap-1">
+                          className="flex items-center gap-1 text-xs text-slate-500 transition-colors disabled:opacity-50 hover:text-red-400">
                           {deletingId === u.id ? <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : <Trash2 className="w-3 h-3" />}
                           Delete
                         </button>
                         <Link href={`/admin/members/${u.id}`}
-                          className="text-xs text-slate-600 hover:text-blue-400 transition-colors flex items-center gap-1">
+                          className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-violet-400">
                           <BarChart2 className="w-3 h-3" />
                           Analytics
                         </Link>
@@ -473,10 +505,10 @@ export default function AdminDashboardPage() {
 
         {/* ── Attendance ── */}
         {tab === 'attendance' && (
-          <Card className="overflow-hidden p-0">
-            <div className="px-4 py-3 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-semibold text-white flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-amber-400" />
+          <Card className="overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a] p-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Calendar className="h-4 w-4 text-violet-400" />
                 {new Date(attendanceDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </h2>
               <div className="flex items-center gap-2">
@@ -489,9 +521,9 @@ export default function AdminDashboardPage() {
                     setAttendanceDate(d);
                     loadAttendance(d);
                   }}
-                  className="bg-[#0f0f0f] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-red-600"
+                  className="rounded-xl border border-white/10 bg-[#111111] px-3 py-2 text-xs text-slate-300 transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
                 />
-                <Badge variant="info">{todayAttendance.length} check-ins</Badge>
+                <Badge variant="info" className="border-violet-500/20 bg-violet-500/10 text-violet-400">{todayAttendance.length} check-ins</Badge>
               </div>
             </div>
             <div className="divide-y divide-white/5">
@@ -519,20 +551,20 @@ export default function AdminDashboardPage() {
         {/* ── Add Membership ── */}
         {tab === 'add' && (
           <div className="max-w-md">
-            <Card>
+            <Card className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(124,58,237,0.08)] sm:p-6">
               <div className="flex items-center gap-2 mb-1">
-                <Plus className="w-4 h-4 text-emerald-400" />
-                <h2 className="font-semibold text-white">Add New Membership</h2>
+                <Plus className="h-4 w-4 text-violet-400" />
+                <h2 className="font-display tracking-wide text-white">Add New Membership</h2>
               </div>
-              <p className="text-xs text-slate-500 mb-5">
+              <p className="mb-5 text-xs text-slate-500">
                 Use this for members who have <span className="text-slate-300 font-medium">no existing membership</span>. Creates a fresh plan starting today.
               </p>
 
               {addMsg && (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-sm text-emerald-400 mb-4">{addMsg}</div>
+                <div className="mb-4 rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 text-sm text-violet-400">{addMsg}</div>
               )}
               {addError && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-400 mb-4">{addError}</div>
+                <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">{addError}</div>
               )}
 
               <form onSubmit={handleAdd} className="space-y-4">
@@ -545,11 +577,11 @@ export default function AdminDashboardPage() {
                   required
                 />
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Duration</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Duration</label>
                   <select
                     value={addForm.duration_months}
                     onChange={(e) => setAddForm((f) => ({ ...f, duration_months: e.target.value }))}
-                    className="w-full bg-[#000000] border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-slate-100 transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
                   >
                     {DURATIONS.map((m) => (
                       <option key={m} value={m}>{m} month{m > 1 ? 's' : ''}</option>
@@ -559,7 +591,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={addLoading}
-                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-600 text-white transition-all duration-200 hover:bg-violet-500 disabled:opacity-50"
                 >
                   {addLoading && <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
                   <Plus className="w-4 h-4" /> Add Membership
@@ -572,20 +604,20 @@ export default function AdminDashboardPage() {
         {/* ── Renew Membership ── */}
         {tab === 'renew' && (
           <div className="max-w-md">
-            <Card>
+            <Card className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-5 shadow-[0_0_40px_rgba(124,58,237,0.08)] sm:p-6">
               <div className="flex items-center gap-2 mb-1">
-                <RotateCcw className="w-4 h-4 text-amber-400" />
-                <h2 className="font-semibold text-white">Renew Membership</h2>
+                <RotateCcw className="h-4 w-4 text-violet-400" />
+                <h2 className="font-display tracking-wide text-white">Renew Membership</h2>
               </div>
-              <p className="text-xs text-slate-500 mb-5">
+              <p className="mb-5 text-xs text-slate-500">
                 Use this for members who <span className="text-slate-300 font-medium">already have a membership</span> (active or expired). Extends from the current end date if still active, or from today if expired.
               </p>
 
               {renewMsg && (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-sm text-emerald-400 mb-4">{renewMsg}</div>
+                <div className="mb-4 rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 text-sm text-violet-400">{renewMsg}</div>
               )}
               {renewError && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-400 mb-4">{renewError}</div>
+                <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">{renewError}</div>
               )}
 
               <form onSubmit={handleRenew} className="space-y-4">
@@ -598,11 +630,11 @@ export default function AdminDashboardPage() {
                   required
                 />
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Extra Duration</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-300">Extra Duration</label>
                   <select
                     value={renewForm.duration_months}
                     onChange={(e) => setRenewForm((f) => ({ ...f, duration_months: e.target.value }))}
-                    className="w-full bg-[#000000] border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-red-600"
+                    className="w-full rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-slate-100 transition-all duration-200 focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/10"
                   >
                     {DURATIONS.map((m) => (
                       <option key={m} value={m}>{m} month{m > 1 ? 's' : ''}</option>
@@ -612,7 +644,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={renewLoading}
-                  className="w-full h-12 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-600 text-white transition-all duration-200 hover:bg-violet-500 disabled:opacity-50"
                 >
                   {renewLoading && <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />}
                   <RotateCcw className="w-4 h-4" /> Renew Membership
@@ -621,7 +653,6 @@ export default function AdminDashboardPage() {
             </Card>
           </div>
         )}
-
       </div>
     </div>
   );

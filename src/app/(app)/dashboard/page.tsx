@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dumbbell, Calendar, Flame, Trophy, QrCode, AlertTriangle, ChevronDown, Timer, Activity, Target } from 'lucide-react';
 import { StatCard } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { formatDate, daysRemaining, isMembershipActive, CATEGORY_COLORS } from '@/lib/utils';
 import Link from 'next/link';
 import type { Workout, UserBadge } from '@/types';
@@ -15,9 +14,6 @@ function fmtDuration(secs: number) {
   return `${m}m`;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  push: 'bg-rose-500', pull: 'bg-blue-500', legs: 'bg-emerald-500', custom: 'bg-red-600',
-};
 const TYPE_LABELS: Record<string, string> = { push: 'Push', pull: 'Pull', legs: 'Legs', custom: 'Custom' };
 
 interface DashUser { id: string; phone_number: string; name: string | null; avatar_url?: string | null }
@@ -104,20 +100,20 @@ export default function DashboardPage() {
   const earnedBadges = analytics?.badges?.filter(b => b.earned) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6 overflow-hidden">
       {/* Header */}
       <div>
-        <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500">{greeting()}</p>
-        <div className="flex items-center gap-3 mt-1">
+        <p className="text-[11px] tracking-[0.28em] uppercase text-slate-500">{greeting()}</p>
+        <div className="mt-1 flex items-center gap-3">
           {user?.avatar_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.avatar_url}
               alt="Profile"
-              className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-red-500/40"
+              className="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-2 ring-violet-500/25"
             />
           )}
-          <h1 className="font-display text-3xl sm:text-5xl text-white leading-none truncate">
+          <h1 className="font-display text-3xl leading-none truncate text-white sm:text-5xl">
             {(user?.name || user?.phone_number || 'Athlete').toUpperCase()}
           </h1>
         </div>
@@ -125,14 +121,14 @@ export default function DashboardPage() {
 
       {/* Badge strip — show only if badges earned */}
       {earnedBadges.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {earnedBadges.map((b) => (
             <div key={b.type} title={b.description}
-              className="flex-shrink-0 flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full text-xs text-amber-300 whitespace-nowrap">
+              className="flex-shrink-0 flex items-center gap-1.5 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1.5 text-xs whitespace-nowrap text-violet-300">
               <span>{b.icon}</span>{b.label}
             </div>
           ))}
-          <Link href="/analytics" className="flex-shrink-0 text-xs text-slate-600 hover:text-slate-400 pl-1 whitespace-nowrap">
+          <Link href="/analytics" className="flex-shrink-0 whitespace-nowrap pl-1 text-xs text-slate-500 hover:text-violet-300">
             View all →
           </Link>
         </div>
@@ -140,9 +136,9 @@ export default function DashboardPage() {
 
       {/* Membership status */}
       {membership ? (
-        <div className={`glass-card p-4 flex items-center justify-between ${!memberActive ? 'border-red-500/40' : daysLeft <= 7 ? 'border-amber-500/40' : ''}`}>
+        <div className="flex items-center justify-between rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 shadow-[0_0_40px_rgba(124,58,237,0.06)]">
           <div className="flex items-center gap-3">
-            {memberActive ? <Calendar className="w-5 h-5 text-red-400" /> : <AlertTriangle className="w-5 h-5 text-red-400" />}
+            {memberActive ? <Calendar className="h-5 w-5 text-violet-400" /> : <AlertTriangle className="h-5 w-5 text-violet-400" />}
             <div>
               <p className="font-medium text-white text-sm">{memberActive ? 'Membership Active' : 'Membership Expired'}</p>
               <p className="text-xs text-slate-400">
@@ -152,14 +148,14 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <Badge variant={memberActive ? (daysLeft <= 7 ? 'warning' : 'success') : 'danger'}>
+          <span className="inline-flex items-center rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-0.5 text-xs font-medium text-violet-400">
             {memberActive ? `${daysLeft}d left` : 'Expired'}
-          </Badge>
+          </span>
         </div>
       ) : (
-        <div className="glass-card p-4 border-amber-500/30">
-          <p className="text-amber-400 text-sm font-medium flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" /> No membership found. Contact your gym admin.
+        <div className="rounded-2xl border border-violet-500/15 bg-[#0a0a0a] p-4">
+          <p className="flex items-center gap-2 text-sm font-medium text-violet-300">
+            <AlertTriangle className="h-4 w-4" /> No membership found. Contact your gym admin.
           </p>
         </div>
       )}
@@ -168,53 +164,53 @@ export default function DashboardPage() {
       {memberActive && (
         <Link
           href="/checkin"
-          className={`flex items-center gap-4 glass-card p-4 transition-all hover:border-red-600/50 ${checkedInToday ? 'opacity-70 pointer-events-none' : 'cursor-pointer'}`}
+          className={`flex items-center gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)] ${checkedInToday ? 'pointer-events-none opacity-70' : 'cursor-pointer'}`}
         >
-          <div className={`p-3 rounded-xl ${checkedInToday ? 'bg-emerald-500/10' : 'bg-red-600/10'}`}>
-            <QrCode className={`w-5 h-5 ${checkedInToday ? 'text-emerald-400' : 'text-red-400'}`} />
+          <div className="rounded-xl bg-violet-500/10 p-3">
+            <QrCode className="h-5 w-5 text-violet-400" />
           </div>
           <div>
             <p className="font-medium text-white text-sm">{checkedInToday ? 'Checked in today ✓' : 'Check in for today'}</p>
             <p className="text-xs text-slate-400">{checkedInToday ? 'See you tomorrow!' : 'Tap to scan QR or check in now'}</p>
           </div>
-          {!checkedInToday && <span className="ml-auto text-red-400 text-sm">→</span>}
+          {!checkedInToday && <span className="ml-auto text-violet-400 text-sm">→</span>}
         </Link>
       )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4">
-        <StatCard label="Total Workouts" value={analytics?.totalWorkouts ?? 0} icon={<Dumbbell className="w-5 h-5" />} color="red" />
-        <StatCard label="Current Streak" value={`${analytics?.currentStreak ?? 0}d`} icon={<Flame className="w-5 h-5" />} color="amber" />
+        <StatCard label="Total Workouts" value={analytics?.totalWorkouts ?? 0} icon={<Dumbbell className="h-5 w-5" />} color="violet" />
+        <StatCard label="Current Streak" value={`${analytics?.currentStreak ?? 0}d`} icon={<Flame className="h-5 w-5" />} color="violet" />
       </div>
 
       {/* Calories today + BMI strip */}
       <div className="grid grid-cols-2 gap-3">
         {/* Calories today */}
-        <div className="glass-card p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-orange-500/10 rounded-xl flex-shrink-0">
-            <Flame className="w-4 h-4 text-orange-400" />
+        <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 flex items-center gap-3">
+          <div className="p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
+            <Flame className="w-4 h-4 text-violet-400" />
           </div>
           <div className="min-w-0">
-            <p className="font-display text-2xl text-orange-400 leading-none">{(analytics?.calories?.today ?? 0).toLocaleString()}</p>
+            <p className="font-display text-2xl leading-none text-violet-400">{(analytics?.calories?.today ?? 0).toLocaleString()}</p>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">kcal today</p>
           </div>
         </div>
 
         {/* BMI or goal nudge */}
         {analytics?.bmi ? (
-          <div className="glass-card p-4 flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 rounded-xl flex-shrink-0">
-              <Activity className="w-4 h-4 text-emerald-400" />
+          <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 flex items-center gap-3">
+            <div className="p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
+              <Activity className="w-4 h-4 text-violet-400" />
             </div>
             <div className="min-w-0">
-              <p className="font-display text-2xl text-emerald-400 leading-none">{analytics.bmi}</p>
+              <p className="font-display text-2xl leading-none text-violet-400">{analytics.bmi}</p>
               <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">BMI · {analytics.bmiCategory}</p>
             </div>
           </div>
         ) : (
-          <Link href="/analytics" className="glass-card p-4 flex items-center gap-3 hover:border-red-600/40 transition-all">
-            <div className="p-2.5 bg-red-500/10 rounded-xl flex-shrink-0">
-              <Target className="w-4 h-4 text-red-400" />
+          <Link href="/analytics" className="flex items-center gap-3 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]">
+            <div className="p-2.5 bg-violet-500/10 rounded-xl flex-shrink-0">
+              <Target className="w-4 h-4 text-violet-400" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-white leading-tight">Set goal</p>
@@ -225,29 +221,29 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick start workout */}
-      <Link href="/workout" className="glass-card p-4 flex items-center gap-4 hover:border-red-600/50 transition-all">
-        <div className="p-3 bg-red-600/10 rounded-xl">
-          <Dumbbell className="w-5 h-5 text-red-400" />
+      <Link href="/workout" className="flex items-center gap-4 rounded-2xl border border-white/6 bg-[#0a0a0a] p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-[0_0_40px_rgba(124,58,237,0.10)]">
+        <div className="p-3 bg-violet-500/10 rounded-xl">
+          <Dumbbell className="w-5 h-5 text-violet-400" />
         </div>
         <div>
           <p className="font-medium text-white text-sm">Start a Workout</p>
           <p className="text-xs text-slate-400">Push · Pull · Legs · Custom</p>
         </div>
-        <span className="ml-auto text-red-400 text-sm">→</span>
+        <span className="ml-auto text-violet-400 text-sm">→</span>
       </Link>
 
       {/* 14-day workout history */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-white">Recent Workouts</h2>
-          <Link href="/workout" className="text-xs text-red-400 hover:text-red-300">View all →</Link>
+          <Link href="/workout" className="text-xs text-violet-400 hover:text-violet-300">View all →</Link>
         </div>
         <div className="space-y-2">
           {workouts.length === 0 && (
-            <div className="glass-card p-8 text-center">
-              <Dumbbell className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+            <div className="rounded-2xl border border-white/6 bg-[#0a0a0a] p-8 text-center">
+              <Dumbbell className="mx-auto mb-2 h-8 w-8 text-slate-700" />
               <p className="text-slate-400 text-sm">No workouts yet.</p>
-              <Link href="/workout" className="text-red-400 text-sm hover:text-red-300 mt-1 inline-block">Log your first workout →</Link>
+              <Link href="/workout" className="mt-1 inline-block text-sm text-violet-400 hover:text-violet-300">Log your first workout →</Link>
             </div>
           )}
           {workouts.map((w) => {
@@ -256,13 +252,13 @@ export default function DashboardPage() {
             const wType = w.workout_type || 'custom';
 
             return (
-              <details key={w.id} className="glass-card overflow-hidden group">
-                <summary className="flex items-center gap-3 p-4 cursor-pointer list-none hover:bg-white/2 transition-colors">
-                  <div className={`w-2 h-8 rounded-full flex-shrink-0 ${TYPE_COLORS[wType]}`} />
+              <details key={w.id} className="group overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a]">
+                <summary className="flex cursor-pointer list-none items-center gap-3 p-4 transition-colors hover:bg-white/3">
+                  <div className="h-8 w-2 flex-shrink-0 rounded-full bg-violet-500" />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-white text-sm">{formatDate(w.date, 'EEE, MMM dd')}</p>
-                      <span className="text-xs text-slate-500">{TYPE_LABELS[wType]}</span>
+                      <span className="text-xs text-violet-400">{TYPE_LABELS[wType]}</span>
                     </div>
                     <p className="text-xs text-slate-500">
                       {typedEntries.length} exercises
@@ -273,18 +269,18 @@ export default function DashboardPage() {
                       )}
                     </p>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" />
+                  <ChevronDown className="h-4 w-4 text-slate-500 transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="border-t border-white/5 divide-y divide-white/5">
+                <div className="divide-y divide-white/5 border-t border-white/5">
                   {typedEntries.map((e) => (
                     <div key={e.id} className="flex items-center justify-between px-4 py-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full" style={{ background: CATEGORY_COLORS[e.exercises?.category || ''] || '#dc2626' }} />
+                        <span className="h-2 w-2 rounded-full" style={{ background: CATEGORY_COLORS[e.exercises?.category || ''] || '#8B5CF6' }} />
                         <span className="text-slate-300">{e.exercises?.name}</span>
                       </div>
                       <div className="flex items-center gap-3 text-slate-500 text-xs">
                         <span>{e.sets}×{e.reps}</span>
-                        <span className="text-amber-400 font-medium">{e.weight}kg</span>
+                        <span className="font-medium text-violet-400">{e.weight}kg</span>
                       </div>
                     </div>
                   ))}
@@ -300,20 +296,20 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-white">Personal Records</h2>
-            <Link href="/leaderboard" className="text-xs text-red-400 hover:text-red-300">Leaderboard →</Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {prs.map((pr) => (
-              <div key={pr.id} className="glass-card p-4 relative overflow-hidden">
-                <div className="absolute -bottom-2 -right-2 font-display text-7xl text-amber-500/6 leading-none select-none pointer-events-none">
-                  PR
-                </div>
-                <Trophy className="w-3.5 h-3.5 text-amber-500 mb-2" />
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider truncate">{pr.exercises?.name}</p>
-                <p className="font-display text-4xl text-amber-400 leading-none mt-1">{pr.max_weight}<span className="text-xl text-amber-600 ml-1">KG</span></p>
+          <Link href="/leaderboard" className="text-xs text-violet-400 hover:text-violet-300">Leaderboard →</Link>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {prs.map((pr) => (
+            <div key={pr.id} className="relative overflow-hidden rounded-2xl border border-white/6 bg-[#0a0a0a] p-4">
+              <div className="absolute -bottom-2 -right-2 select-none pointer-events-none font-display text-7xl leading-none text-violet-500/6">
+                PR
               </div>
-            ))}
-          </div>
+              <Trophy className="mb-2 h-3.5 w-3.5 text-violet-400" />
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider truncate">{pr.exercises?.name}</p>
+              <p className="font-display mt-1 text-4xl leading-none text-violet-400">{pr.max_weight}<span className="ml-1 text-xl text-violet-600">KG</span></p>
+            </div>
+          ))}
+        </div>
         </div>
       )}
     </div>
