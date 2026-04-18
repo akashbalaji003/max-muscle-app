@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   Dumbbell, BarChart2, Users, Calendar, Camera, Trophy,
@@ -513,7 +514,7 @@ export default function GymOSHomePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8 lg:px-10">
           <Link href="/maxmuscle" className="group flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 shadow-[0_0_30px_rgba(124,58,237,0.18)] transition-transform duration-300 group-hover:scale-105" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
-              <Dumbbell className="h-5 w-5 text-violet-400" />
+              <Image src="/icon.svg" alt="GymOS" width={26} height={26} className="drop-shadow-[0_0_6px_rgba(167,139,250,0.9)]" />
             </div>
             <span className="font-display text-xl tracking-wide text-white">
               GYMOS

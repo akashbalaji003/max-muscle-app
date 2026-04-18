@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Dumbbell, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
@@ -143,6 +144,11 @@ export default function MaxMusclePage() {
             <span className="font-display text-lg text-white leading-none tracking-wide block">MAX MUSCLE</span>
             <span className="text-[10px] text-slate-500 leading-tight tracking-widest uppercase block">Lifestyle Fitness Studio</span>
           </div>
+          {/* by GymOS badge */}
+          <Link href="/" className="hidden sm:flex items-center gap-1 ml-1 border-l border-white/10 pl-3 opacity-60 hover:opacity-100 transition-opacity">
+            <Image src="/icon.svg" alt="GymOS" width={14} height={14} className="drop-shadow-[0_0_4px_rgba(167,139,250,0.8)]" />
+            <span className="text-[10px] text-violet-400 tracking-widest uppercase font-display leading-none">by GymOS</span>
+          </Link>
         </div>
         <div className="flex items-center gap-1">
           <Link href="/maxmuscle/login"
