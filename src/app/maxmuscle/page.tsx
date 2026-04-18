@@ -1,18 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Dumbbell, MapPin, Phone, Clock, Star, Navigation, ExternalLink, ChevronRight } from 'lucide-react';
 import ReviewCarousel from '@/components/ReviewCarousel';
 import InstagramGallery from '@/components/InstagramGallery';
-import CoachContactModal from '@/components/CoachContactModal';
 import MobileAboutCarousel from '@/components/MobileAboutCarousel';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import EliteTeamCTA from '@/components/EliteTeamCTA';
 import FloatingCTA from '@/components/FloatingCTA';
-import GymOSLoader from '@/components/GymOSLoader';
 
 // ─── Replace these with your real values ────────────────────────────────────
 const GYM_PHONE      = '07530007329';
@@ -39,16 +37,9 @@ const HOURS = [
 export default function MaxMusclePage() {
   const router = useRouter();
   const [scrolled,     setScrolled]     = useState(false);
-  const [loaderTarget, setLoaderTarget] = useState<string | null>(null);
-
-  /** Start the loader then navigate */
-  const handleLoginClick = useCallback((href: string) => {
-    setLoaderTarget(href);
-  }, []);
-
-  const handleLoaderComplete = useCallback(() => {
-    if (loaderTarget) router.push(loaderTarget);
-  }, [loaderTarget, router]);
+  const handleLoginClick = (href: string) => {
+    router.push(href);
+  };
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
@@ -583,13 +574,6 @@ export default function MaxMusclePage() {
 
       {/* ── Floating Join Now CTA ────────────────────────────────────────── */}
       <FloatingCTA />
-
-      {/* ── GymOS Loading Screen ─────────────────────────────────────────── */}
-      <GymOSLoader
-        visible={loaderTarget !== null}
-        gymName="Max Muscle"
-        onComplete={handleLoaderComplete}
-      />
 
     </div>
   );

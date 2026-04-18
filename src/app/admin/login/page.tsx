@@ -130,8 +130,9 @@ export default function AdminLoginPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
             <Image src="/icon.svg" alt="GymOS" width={48} height={48} className="drop-shadow-[0_0_12px_rgba(124,58,237,0.6)]" />
           </div>
-          <h1 className="font-display text-2xl tracking-wide text-white">Admin Portal</h1>
-          <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-500 text-center">Maximum Muscle Fitness Studio</p>
+          <p className="font-display text-[10px] uppercase tracking-[0.35em] text-violet-400">GymOS</p>
+          <h1 className="mt-2 font-display text-2xl tracking-wide text-white">Welcome Back</h1>
+          <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-500 text-center">Platform administrators only</p>
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-3xl border border-violet-500/10 bg-[#0a0a0a] p-5 shadow-[0_0_60px_rgba(124,58,237,0.06)] sm:p-6 space-y-4" style={{ animation: 'card-fade-in 0.6s cubic-bezier(0.22,1,0.36,1) both' }}>

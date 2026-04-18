@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,22 @@ export default function MaxMuscleLoginPage() {
   const [form, setForm] = useState({ phone_number: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!cancelled && res.ok) {
+        router.replace(`/${GYM_SLUG}/dashboard`);
+      }
+    }
+
+    checkSession().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -127,7 +143,8 @@ export default function MaxMuscleLoginPage() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center" style={{ animation: 'icon-glow 3s ease-in-out infinite' }}>
             <Image src="/icon.svg" alt="GymOS" width={48} height={48} className="drop-shadow-[0_0_12px_rgba(124,58,237,0.6)]" />
           </div>
-          <h1 className="font-display text-2xl tracking-wide text-white">Welcome back</h1>
+          <p className="font-display text-[10px] uppercase tracking-[0.35em] text-violet-400">GymOS</p>
+          <h1 className="mt-2 font-display text-2xl tracking-wide text-white">Welcome back</h1>
           <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-500 text-center">Sign in to Max Muscle Fitness Studio</p>
         </div>
 

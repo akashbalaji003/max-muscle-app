@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Dumbbell, Phone, Lock, ArrowLeft } from 'lucide-react';
@@ -15,6 +15,22 @@ export default function GymLoginPage() {
   const [form, setForm] = useState({ phone_number: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!cancelled && res.ok) {
+        router.replace(`/${gymSlug}/dashboard`);
+      }
+    }
+
+    checkSession().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [gymSlug, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +82,8 @@ export default function GymLoginPage() {
           <div className="w-14 h-14 bg-red-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-red-900/40">
             <Dumbbell className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Welcome back</h1>
+          <p className="font-display text-[10px] uppercase tracking-[0.35em] text-violet-400">GymOS</p>
+          <h1 className="mt-2 text-2xl font-extrabold text-white">Welcome back</h1>
           <p className="text-sm text-slate-400 mt-1 text-center">Sign in to your gym account</p>
         </div>
 

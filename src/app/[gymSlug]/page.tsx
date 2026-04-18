@@ -55,7 +55,6 @@ export default async function GymPublicPage({ params }: Props) {
         </div>
         <GymLoginLauncher
           href={`/${gymSlug}/login`}
-          gymName={gym.name}
           className="text-sm font-semibold px-4 py-2 rounded-lg text-white transition-all"
           style={{ backgroundColor: primaryColor }}
         >
@@ -84,7 +83,6 @@ export default async function GymPublicPage({ params }: Props) {
             </Link>
             <GymLoginLauncher
               href={`/${gymSlug}/login`}
-              gymName={gym.name}
               className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/8 text-slate-200 font-medium px-6 py-3.5 rounded-xl border border-white/8 transition-all text-sm"
             >
               Member Login
