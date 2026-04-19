@@ -1,10 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Dumbbell, Phone, Lock, User, ArrowLeft, Ruler, Weight, Target, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import ZoomLock from '@/components/ZoomLock';
+import usePwaMode from '@/components/usePwaMode';
 
 const GOALS = [
   { value: 'fat_loss',    label: 'Fat Loss',    desc: 'Burn fat & get lean',    icon: '🔥' },
@@ -16,12 +18,40 @@ export default function GymSignupPage() {
   const params = useParams();
   const gymSlug = params.gymSlug as string;
   const router = useRouter();
+  const isPWA = usePwaMode();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState({ name: '', phone_number: '', password: '', confirm: '' });
   const [body, setBody] = useState({ height_cm: '', weight_kg: '', goal: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+      if (cancelled || !res.ok) return;
+
+      const data = await res.json().catch(() => null);
+      if (data?.role === 'admin') {
+        router.replace('/admin/dashboard');
+        return;
+      }
+      if (data?.role === 'super_admin') {
+        router.replace('/super-admin');
+        return;
+      }
+      if (data?.role === 'user') {
+        router.replace(`/${gymSlug}/dashboard`);
+      }
+    }
+
+    checkSession().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [gymSlug, router]);
 
   async function handleStep1(e: React.FormEvent) {
     e.preventDefault();
@@ -75,16 +105,19 @@ export default function GymSignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <ZoomLock>
+      <div className="main-auth-container min-h-[100dvh] overflow-hidden bg-[#000000] p-4">
+        <div className="w-full max-w-sm">
         {/* Back */}
         <div className="mb-6">
           {step === 1 ? (
-            <Link href={`/${gymSlug}`} className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors min-h-[44px]">
-              <ArrowLeft className="w-4 h-4" /> Back to Home
-            </Link>
+            !isPWA && (
+              <Link href={`/${gymSlug}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
+                <ArrowLeft className="w-4 h-4" /> Back to Home
+              </Link>
+            )
           ) : (
-            <button onClick={() => setStep(1)} className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors min-h-[44px]">
+            <button onClick={() => setStep(1)} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
           )}
@@ -183,6 +216,7 @@ export default function GymSignupPage() {
           </p>
         )}
       </div>
-    </div>
+      </div>
+    </ZoomLock>
   );
 }

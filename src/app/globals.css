@@ -69,6 +69,14 @@ body.auth-zoom-lock {
   overscroll-behavior: none;
 }
 
+body.auth-zoom-lock .main-auth-container {
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ─── Display font utility ───────────────────────────────────────────────── */
 .font-display {
   font-family: var(--font-display);

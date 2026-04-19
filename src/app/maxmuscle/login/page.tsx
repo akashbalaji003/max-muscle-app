@@ -7,11 +7,14 @@ import { Phone, Lock, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import ZoomLock from '@/components/ZoomLock';
+import usePwaMode from '@/components/usePwaMode';
 
 const GYM_SLUG = 'maxmuscle';
 
 export default function MaxMuscleLoginPage() {
   const router = useRouter();
+  const isPWA = usePwaMode();
   const [form, setForm] = useState({ phone_number: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,8 +23,19 @@ export default function MaxMuscleLoginPage() {
     let cancelled = false;
 
     async function checkSession() {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
-      if (!cancelled && res.ok) {
+      const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+      if (cancelled || !res.ok) return;
+
+      const data = await res.json().catch(() => null);
+      if (data?.role === 'admin') {
+        router.replace('/admin/dashboard');
+        return;
+      }
+      if (data?.role === 'super_admin') {
+        router.replace('/super-admin');
+        return;
+      }
+      if (data?.role === 'user') {
         router.replace(`/${GYM_SLUG}/dashboard`);
       }
     }
@@ -61,7 +75,8 @@ export default function MaxMuscleLoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000000] p-4">
+    <ZoomLock>
+    <div className="main-auth-container relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-[#000000] p-4">
       <style>{`
         @keyframes card-fade-in {
           from { opacity: 0; transform: translateY(20px); }
@@ -134,9 +149,11 @@ export default function MaxMuscleLoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <div className="mb-6">
-          <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
-            <ArrowLeft className="w-4 h-4" /> Back to Home
-          </Link>
+          {!isPWA && (
+            <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
+              <ArrowLeft className="w-4 h-4" /> Back to Home
+            </Link>
+          )}
         </div>
 
         <div className="mb-8 flex flex-col items-center text-center">
@@ -174,5 +191,6 @@ export default function MaxMuscleLoginPage() {
       {/* PWA install prompt — gym-specific, slides up from bottom after 1.5s */}
       <PWAInstallPrompt gymSlug={GYM_SLUG} />
     </div>
+    </ZoomLock>
   );
 }

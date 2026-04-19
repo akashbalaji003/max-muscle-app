@@ -9,6 +9,7 @@ import type { Metadata } from 'next';
 import type { Viewport } from 'next';
 import ZoomLock from '@/components/ZoomLock';
 import WorkoutSessionGate from '@/components/WorkoutSessionGate';
+import SessionGate from '@/components/SessionGate';
 
 // Map slugs to display names; falls back to capitalised slug
 const GYM_NAMES: Record<string, string> = {
@@ -56,23 +57,31 @@ export default async function ProtectedGymLayout({ children, params }: Props) {
   // Super admin: allow through without membership check
   if (payload.role === 'super_admin') {
     return (
-      <ZoomLock>
-        <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
-          <WorkoutSessionGate gymSlug={gymSlug} />
-          <Sidebar />
-          <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
-            <div className="mx-auto max-w-5xl p-4 lg:p-8">
-              <PageTransition>{children}</PageTransition>
-            </div>
-          </main>
-        </div>
-      </ZoomLock>
+      <SessionGate
+        mode="member"
+        loginPath={`/${gymSlug}/login`}
+        memberRedirectPath={`/${gymSlug}/dashboard`}
+        adminRedirectPath="/admin/dashboard"
+        superAdminPath="/super-admin"
+      >
+        <ZoomLock>
+          <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
+            <WorkoutSessionGate gymSlug={gymSlug} />
+            <Sidebar />
+            <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
+              <div className="mx-auto max-w-5xl p-4 lg:p-8">
+                <PageTransition>{children}</PageTransition>
+              </div>
+            </main>
+          </div>
+        </ZoomLock>
+      </SessionGate>
     );
   }
 
   // Admin: redirect to admin dashboard
   if (payload.role === 'admin') {
-    redirect(`/${gymSlug}/admin/dashboard`);
+    redirect('/admin/dashboard');
   }
 
   // Member: check membership exists
@@ -86,23 +95,31 @@ export default async function ProtectedGymLayout({ children, params }: Props) {
     return (
       <ZoomLock>
         <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
-          <NoMembershipScreen />
+          <NoMembershipScreen logoutPath={`/${gymSlug}/login`} />
         </div>
       </ZoomLock>
     );
   }
 
   return (
-    <ZoomLock>
-      <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
-        <WorkoutSessionGate gymSlug={gymSlug} />
-        <Sidebar />
-        <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
-          <div className="mx-auto max-w-5xl p-4 lg:p-8">
-            <PageTransition>{children}</PageTransition>
-          </div>
-        </main>
-      </div>
-    </ZoomLock>
+    <SessionGate
+      mode="member"
+      loginPath={`/${gymSlug}/login`}
+      memberRedirectPath={`/${gymSlug}/dashboard`}
+      adminRedirectPath="/admin/dashboard"
+      superAdminPath="/super-admin"
+    >
+      <ZoomLock>
+        <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
+          <WorkoutSessionGate gymSlug={gymSlug} />
+          <Sidebar />
+          <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] lg:pl-56 pt-14 lg:pt-0 pb-14 sm:pb-0 lg:pb-0">
+            <div className="mx-auto max-w-5xl p-4 lg:p-8">
+              <PageTransition>{children}</PageTransition>
+            </div>
+          </main>
+        </div>
+      </ZoomLock>
+    </SessionGate>
   );
 }

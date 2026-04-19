@@ -1,5 +1,6 @@
 import type { Viewport } from 'next';
 import ZoomLock from '@/components/ZoomLock';
+import SessionGate from '@/components/SessionGate';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -10,12 +11,20 @@ export const viewport: Viewport = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ZoomLock>
-      <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
-        <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
-          {children}
-        </main>
-      </div>
-    </ZoomLock>
+    <SessionGate
+      mode="admin"
+      loginPath="/admin/login"
+      memberRedirectPath="/dashboard"
+      adminRedirectPath="/admin/dashboard"
+      superAdminPath="/super-admin"
+    >
+      <ZoomLock>
+        <div className="h-[100dvh] overflow-hidden bg-[#0B0B0F] text-white">
+          <main className="h-full overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+            {children}
+          </main>
+        </div>
+      </ZoomLock>
+    </SessionGate>
   );
 }

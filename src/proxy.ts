@@ -16,6 +16,14 @@ const GYM_PROTECTED_SEGMENTS = [
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  if (pathname.startsWith('/api/')) {
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
+  }
+
   // ── 1. Super Admin routes ────────────────────────────────────────────────
   if (pathname.startsWith('/super-admin')) {
     const token   = req.cookies.get(COOKIE_NAME)?.value;
@@ -85,6 +93,7 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
+    '/api/:path*',
     // Static protected routes
     '/admin/:path*',
     '/super-admin/:path*',

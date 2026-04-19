@@ -1,16 +1,46 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Lock, ArrowLeft } from 'lucide-react';
 import Input from '@/components/ui/Input';
+import usePwaMode from '@/components/usePwaMode';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const isPWA = usePwaMode();
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+      if (cancelled || !res.ok) return;
+
+      const data = await res.json().catch(() => null);
+      if (data?.role === 'user') {
+        router.replace('/dashboard');
+        return;
+      }
+      if (data?.role === 'super_admin') {
+        router.replace('/super-admin');
+        return;
+      }
+      if (data?.role === 'admin') {
+        router.replace('/admin/dashboard');
+      }
+    }
+
+    checkSession().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +75,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000000] p-4">
+    <div className="main-auth-container relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-[#000000] p-4">
       <style>{`
         @keyframes card-fade-in {
           from { opacity: 0; transform: translateY(20px); }
@@ -118,12 +148,14 @@ export default function AdminLoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <div className="mb-6">
-          <Link
-            href="/maxmuscle"
-            className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Home
-          </Link>
+          {!isPWA && (
+            <Link
+              href="/maxmuscle"
+              className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Home
+            </Link>
+          )}
         </div>
 
         <div className="mb-8 flex flex-col items-center text-center">
@@ -183,6 +215,7 @@ export default function AdminLoginPage() {
             ← Member login
           </Link>
         </p>
+        <PWAInstallPrompt gymSlug="admin" />
       </div>
     </div>
   );

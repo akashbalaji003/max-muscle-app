@@ -2,12 +2,16 @@
 import { AlertCircle, LogOut, Phone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function NoMembershipScreen() {
+interface Props {
+  logoutPath?: string;
+}
+
+export default function NoMembershipScreen({ logoutPath = '/login' }: Props) {
   const router = useRouter();
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
+    router.push(logoutPath);
   }
 
   return (

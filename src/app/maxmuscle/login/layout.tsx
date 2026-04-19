@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: 'Sign in to your Maximum Muscle Lifestyle Fitness Studio membership.',
   // Overrides root manifest — Chrome uses this gym-specific PWA manifest for install
   manifest: `/api/manifest?gymSlug=${GYM_SLUG}`,
-  themeColor: '#7C3AED',
 };
 
 export const viewport: Viewport = {
@@ -18,6 +17,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#7C3AED',
 };
 
 export default async function MaxMuscleLoginLayout({ children }: { children: React.ReactNode }) {

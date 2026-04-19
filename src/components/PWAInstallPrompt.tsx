@@ -19,7 +19,8 @@ export default function PWAInstallPrompt({ gymSlug }: Props) {
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   const config = getGymConfig(gymSlug);
-  const gymName   = config?.short_name ?? gymSlug;
+  const isAdmin = gymSlug === 'admin';
+  const gymName = config?.short_name ?? (isAdmin ? 'GymOS Admin' : gymSlug);
   const dismissKey = `pwa-dismissed-${gymSlug}`;
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function PWAInstallPrompt({ gymSlug }: Props) {
     setShow(false);
   }
 
-  if (isInstalled || !show || !config) return null;
+  if (isInstalled || !show || (!config && !isAdmin)) return null;
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">

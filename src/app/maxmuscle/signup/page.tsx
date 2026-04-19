@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -7,6 +7,8 @@ import { Phone, Lock, User, ArrowLeft, Ruler, Weight, Target, ChevronRight } fro
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import ZoomLock from '@/components/ZoomLock';
+import usePwaMode from '@/components/usePwaMode';
 
 const GYM_SLUG = 'maxmuscle';
 
@@ -18,11 +20,39 @@ const GOALS = [
 
 export default function MaxMuscleSignupPage() {
   const router = useRouter();
+  const isPWA = usePwaMode();
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState({ name: '', phone_number: '', password: '', confirm: '' });
   const [body, setBody] = useState({ height_cm: '', weight_kg: '', goal: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      const res = await fetch('/api/auth/me', { credentials: 'include', cache: 'no-store' });
+      if (cancelled || !res.ok) return;
+
+      const data = await res.json().catch(() => null);
+      if (data?.role === 'admin') {
+        router.replace('/admin/dashboard');
+        return;
+      }
+      if (data?.role === 'super_admin') {
+        router.replace('/super-admin');
+        return;
+      }
+      if (data?.role === 'user') {
+        router.replace(`/${GYM_SLUG}/dashboard`);
+      }
+    }
+
+    checkSession().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   async function handleStep1(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +90,8 @@ export default function MaxMuscleSignupPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#000000] p-4">
+    <ZoomLock>
+    <div className="main-auth-container relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-[#000000] p-4">
       <style>{`
         @keyframes card-fade-in {
           from { opacity: 0; transform: translateY(20px); }
@@ -134,9 +165,11 @@ export default function MaxMuscleSignupPage() {
       <div className="w-full max-w-sm">
         <div className="mb-6">
           {step === 1 ? (
-            <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
-              <ArrowLeft className="w-4 h-4" /> Back to Home
-            </Link>
+            !isPWA && (
+              <Link href={`/${GYM_SLUG}`} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
+                <ArrowLeft className="w-4 h-4" /> Back to Home
+              </Link>
+            )
           ) : (
             <button onClick={() => setStep(1)} className="inline-flex min-h-[44px] items-center gap-2 text-sm text-slate-500 transition-colors hover:text-violet-300">
               <ArrowLeft className="w-4 h-4" /> Back
@@ -246,5 +279,6 @@ export default function MaxMuscleSignupPage() {
       {/* PWA install prompt — gym-specific, slides up from bottom after 1.5s */}
       <PWAInstallPrompt gymSlug={GYM_SLUG} />
     </div>
+    </ZoomLock>
   );
 }

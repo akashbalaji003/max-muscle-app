@@ -9,6 +9,32 @@ import { getGymConfig } from '@/lib/gym-registry';
  */
 export async function GET(req: NextRequest) {
   const gymSlug = req.nextUrl.searchParams.get('gymSlug') ?? '';
+  if (gymSlug === 'admin') {
+    const manifest = {
+      name: 'GymOS Admin',
+      short_name: 'GymOS',
+      description: 'Admin app for GymOS',
+      start_url: '/admin/login',
+      scope: '/admin/',
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#0B0B0F',
+      theme_color: '#7C3AED',
+      icons: [
+        { src: '/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+        { src: '/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      ],
+    };
+
+    return new NextResponse(JSON.stringify(manifest), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/manifest+json',
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+
   const config = getGymConfig(gymSlug);
 
   if (!config) {
