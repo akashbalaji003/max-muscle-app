@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import MouseGlow from "@/components/MouseGlow";
 import NavigationProgress from "@/components/NavigationProgress";
+import PwaLaunchRouter from "@/components/PwaLaunchRouter";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import NoContextMenu from "@/components/NoContextMenu";
 
@@ -48,6 +49,7 @@ export default function RootLayout({
         <NoContextMenu />
         <NavigationProgress />
         <MouseGlow />
+        <PwaLaunchRouter />
         <ThemeProvider>
           {children}
         </ThemeProvider>

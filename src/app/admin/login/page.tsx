@@ -7,6 +7,7 @@ import { User, Lock, ArrowLeft } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import usePwaMode from '@/components/usePwaMode';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import { storePwaInstallContext } from '@/lib/pwa';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -16,6 +17,8 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    storePwaInstallContext('admin', window.localStorage.getItem('gymSlug'));
+
     let cancelled = false;
 
     async function checkSession() {

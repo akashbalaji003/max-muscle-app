@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import ZoomLock from '@/components/ZoomLock';
 import usePwaMode from '@/components/usePwaMode';
+import { storePwaInstallContext } from '@/lib/pwa';
 
 export default function GymLoginPage() {
   const params = useParams();
@@ -20,6 +21,8 @@ export default function GymLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    storePwaInstallContext('member', gymSlug);
+
     let cancelled = false;
 
     async function checkSession() {

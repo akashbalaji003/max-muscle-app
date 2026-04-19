@@ -11,6 +11,7 @@ import MobileAboutCarousel from '@/components/MobileAboutCarousel';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import EliteTeamCTA from '@/components/EliteTeamCTA';
 import FloatingCTA from '@/components/FloatingCTA';
+import { storePwaInstallContext } from '@/lib/pwa';
 
 // ─── Replace these with your real values ────────────────────────────────────
 const GYM_PHONE      = '07530007329';
@@ -38,6 +39,7 @@ export default function MaxMusclePage() {
   const router = useRouter();
   const [scrolled,     setScrolled]     = useState(false);
   const handleLoginClick = (href: string) => {
+    storePwaInstallContext(href === '/admin/login' ? 'admin' : 'member', 'maxmuscle');
     router.push(href);
   };
 

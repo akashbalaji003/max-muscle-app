@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import ZoomLock from '@/components/ZoomLock';
 import usePwaMode from '@/components/usePwaMode';
+import { storePwaInstallContext } from '@/lib/pwa';
 
 const GYM_SLUG = 'maxmuscle';
 
@@ -20,6 +21,8 @@ export default function MaxMuscleLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    storePwaInstallContext('member', GYM_SLUG);
+
     let cancelled = false;
 
     async function checkSession() {
