@@ -91,6 +91,63 @@ const PURPLE_ACCENTS = [
   },
 ];
 
+const SOCIAL_LINKS = [
+  { label: 'Twitter (X)', href: 'https://x.com/thegymos', icon: 'x' },
+  { label: 'Instagram', href: 'https://www.instagram.com/gymos.app/', icon: 'instagram' },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@thegymos', icon: 'tiktok' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/thegymos/', icon: 'linkedin' },
+] as const;
+
+function SocialMark({ icon }: { icon: (typeof SOCIAL_LINKS)[number]['icon'] }) {
+  const base = 'h-5 w-5 transition-transform duration-200 group-hover:scale-110';
+
+  if (icon === 'x') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={base} fill="none">
+        <path d="M4 4l7.8 10.2L4.7 20H7l5.2-5.8L16.8 20H20l-8-10.4L18.8 4H16.5L11.8 9.2 8.5 4H4z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (icon === 'instagram') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={base} fill="none">
+        <rect x="4" y="4" width="16" height="16" rx="5" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="17" cy="7" r="1.2" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (icon === 'tiktok') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={base} fill="none">
+        <path d="M14.5 4.5c.5 2.4 2.2 4.4 4.5 5v3.1c-1.7-.1-3.4-.7-4.5-1.6v5.9a5.1 5.1 0 1 1-4.1-5V14a2.1 2.1 0 1 0 1.6 2v-11.5h2z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={base} fill="none">
+      <rect x="3.8" y="3.8" width="16.4" height="16.4" rx="4.5" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M8.2 9.6V16M8.2 7.2v1.3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M11.1 16v-3.2c0-1.5.9-2.6 2.4-2.6s2.4 1.1 2.4 2.6V16"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M11.1 10.2v5.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function SectionTitle({
   eyebrow,
   title,
@@ -724,25 +781,45 @@ export default function GymOSHomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-white/5 px-5 py-8 sm:px-8 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/10">
-              <Zap className="h-4 w-4 text-violet-400" />
+      <footer className="border-t border-white/5 bg-[#0B0B0F] px-5 py-10 sm:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="text-sm text-slate-500">Follow GymOS</p>
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+              {SOCIAL_LINKS.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.label}
+                  className="group inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/5 bg-white/[0.03] text-slate-500 transition-all duration-200 hover:border-violet-500/20 hover:bg-violet-500/10 hover:text-violet-300 hover:shadow-[0_0_24px_rgba(124,58,237,0.12)]"
+                >
+                  <SocialMark icon={item.icon} />
+                </a>
+              ))}
             </div>
-            <span className="font-display text-sm tracking-wider text-white">
-              GYMOS
-            </span>
-            <span className="text-xs text-slate-500">© {new Date().getFullYear()}</span>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-slate-500">
-            <Link href="/maxmuscle" className="transition-colors hover:text-violet-300">
-              Live Demo
-            </Link>
-            <Link href="/login" className="transition-colors hover:text-violet-300">
-              Platform Login
-            </Link>
+          <div className="mx-auto flex max-w-7xl flex-col gap-4 border-t border-white/5 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/10">
+                <Zap className="h-4 w-4 text-violet-400" />
+              </div>
+              <span className="font-display text-sm tracking-wider text-white">
+                GYMOS
+              </span>
+              <span className="text-xs text-slate-500">© {new Date().getFullYear()}</span>
+            </div>
+
+            <div className="flex items-center gap-6 text-sm text-slate-500">
+              <Link href="/maxmuscle" className="transition-colors hover:text-violet-300">
+                Live Demo
+              </Link>
+              <Link href="/login" className="transition-colors hover:text-violet-300">
+                Platform Login
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
