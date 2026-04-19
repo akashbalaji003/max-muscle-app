@@ -16,6 +16,19 @@ function formatTimeFmt(date: Date): string {
   return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+function WorkoutGuidance() {
+  return (
+    <div className="mt-6 rounded-2xl border border-white/6 bg-[#111111]/80 px-4 py-4 text-center shadow-[0_0_30px_rgba(124,58,237,0.04)]">
+      <p className="text-sm font-medium text-slate-300">
+        To log your workout, use the Workout tab below.
+      </p>
+      <p className="mt-1 text-sm text-slate-500">
+        Your activity will be recorded automatically once you begin.
+      </p>
+    </div>
+  );
+}
+
 export default function CheckInPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState('');
@@ -103,6 +116,7 @@ export default function CheckInPage() {
             <Button onClick={handleCheckIn} size="lg" className="btn-shine w-full min-h-[52px] bg-violet-600 text-base text-white shadow-[0_8px_30px_rgba(124,58,237,0.25)] hover:bg-violet-500">
               Check In Now
             </Button>
+            <WorkoutGuidance />
             <p className="text-xs text-slate-600 mt-4">{todayDisplay}</p>
           </div>
         )}
@@ -138,15 +152,7 @@ export default function CheckInPage() {
             <p className="mb-8 text-sm font-medium text-violet-300">
               ✅ Checked In — Have a great workout!
             </p>
-
-            <div className="space-y-2">
-              <Link href="/workout">
-                <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Start Workout</Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Dashboard</Button>
-              </Link>
-            </div>
+            <WorkoutGuidance />
           </div>
         )}
 
@@ -173,15 +179,7 @@ export default function CheckInPage() {
             )}
 
             <p className="text-slate-400 text-sm mb-8">Already checked in today. See you tomorrow!</p>
-
-            <div className="space-y-2">
-              <Link href="/workout">
-                <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Log a Workout</Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Dashboard</Button>
-              </Link>
-            </div>
+            <WorkoutGuidance />
           </div>
         )}
 
@@ -193,11 +191,6 @@ export default function CheckInPage() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Membership Expired</h1>
             <p className="text-slate-400 text-sm mb-8">{message || 'Please renew your membership to check in.'}</p>
-            <div className="space-y-2">
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Go to Dashboard</Button>
-              </Link>
-            </div>
             <p className="text-xs text-slate-700 mt-6">{todayDisplay}</p>
           </div>
         )}
@@ -210,14 +203,9 @@ export default function CheckInPage() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Check-in Failed</h1>
             <p className="text-slate-400 text-sm mb-8">{message || 'Something went wrong. Please try again.'}</p>
-            <div className="space-y-2">
-              <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">
-                Try Again
-              </Button>
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">Go to Dashboard</Button>
-              </Link>
-            </div>
+            <Button onClick={() => setStatus('idle')} variant="secondary" className="w-full min-h-[48px] border border-white/10 bg-white/5 text-slate-200 hover:border-violet-500/20 hover:bg-white/10">
+              Try Again
+            </Button>
             <p className="text-xs text-slate-700 mt-6">{todayDisplay}</p>
           </div>
         )}
@@ -230,14 +218,9 @@ export default function CheckInPage() {
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Sign In Required</h1>
             <p className="text-slate-400 text-sm mb-8">Please sign in to your Max Muscle account to check in.</p>
-            <div className="space-y-2">
-              <Link href="/login">
-                <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Sign In</Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button variant="ghost" className="w-full min-h-[48px]">Dashboard</Button>
-              </Link>
-            </div>
+            <Link href="/login">
+              <Button className="btn-shine w-full min-h-[48px] bg-violet-600 text-white hover:bg-violet-500" size="lg">Sign In</Button>
+            </Link>
           </div>
         )}
       </div>
